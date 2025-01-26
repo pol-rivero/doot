@@ -1,0 +1,21 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
+var cleanCmd = &cobra.Command{
+	GroupID: basicCommandsGroup.ID,
+	Use:     "clean",
+	Short:   "Remove all symlinks created by doot.",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("clean called")
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(cleanCmd)
+	cleanCmd.Flags().Bool("full-clean", false, "Ignore the cache and remove all symlinks that point to the dotfiles directory,\neven if they were created by another program. Can be slow.")
+}

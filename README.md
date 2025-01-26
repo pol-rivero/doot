@@ -9,7 +9,9 @@ A fast and simple dotfiles manager that just gets the job done.
 
 ## Usage
 
-Simply run `doot` from anywhere in your system. It will symlink all files and directories in your dotfiles directory to your home directory.  
+### Create or update symlinks
+
+Simply run `doot` (or `doot install`) from anywhere in your system. It will symlink all files in your dotfiles directory to your home directory, creating directories as needed.  
 The subsequent runs will incrementally update the symlinks, adding the new files and directories, and removing references to files that are no longer in the dotfiles directory.
 
 ```sh
@@ -18,26 +20,37 @@ git clone https://your-dotfiles.git ~/.dotfiles # or any other directory
 doot
 ```
 
-Here's the complete list of commands:
+To remove the symlinks, run:
 
-```
-doot [command] [options]
-
-Commands:
-  install       Install or incrementally update the symlinks. This is the default command.
-  clean         Remove all symlinks created by doot.
-  add <file>    Move a file to the dotfiles directory and symlink it.
-  crypt         Manage private (encrypted) files. See `doot crypt --help`.
-  help          Show this help message
-
-Options:
-  --full-clean  Ignore the cache and clean up all symlinks that point to the dotfiles directory,
-                even if they were created by another program. Slow.
-                Allowed in commands: install, clean
-  -h, --help    Show this help message
+```sh
+doot clean
 ```
 
-### Dotfiles directory
+Pass `--full-clean` to the `install` or `clean` commands to search for all symlinks that point to the dotfiles directory, even if they were created by another program. This is useful if you created symlinks manually or your dotfiles installation has somehow become corrupted. 
+
+
+### Add a new file to the dotfiles directory
+
+You could manually move the file to the dotfiles directory and run `doot` to symlink it, but there's a command to do it in one step:
+
+```sh
+doot add ./some/file [/other/file ...]
+```
+
+Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](docs/encryption.md) for more information.  
+If you have more than one machine and this file is only applicable to the current one, pass `--host` to add it as a host-specific file. See `hosts` in the configuration file below.
+
+
+### Advanced usage
+
+- [`doot crypt`: Manage private (encrypted) files](docs/encryption.md)
+
+- [`doot bootstrap`: Automatically download and apply your dotfiles](docs/bootstrap.md)
+
+- [Hooks: Run custom scripts before and after the installation process](docs/hooks.md)
+
+
+## Dotfiles directory
 
 By default, `doot` searches for your dotfiles in commonly used directories. In order of priority, it looks for the first directory that exists:
 
@@ -63,18 +76,19 @@ After that, if you have `DOOT_DIR` set in your shell configuration file (`~/.bas
 # The target directory for the symlinks.
 target_dir = "~"
 
-# Files and directories to ignore. Each entry is a glob pattern relative to the dotfiles directory. Keep in mind that files and directories starting with a dot are always ignored unless explicitly listed in `include_files`.
+# Files and directories to ignore. Each entry is a glob pattern relative to the dotfiles directory.
 exclude_files = [
+  "**/.*",      # Files and directories that start with a dot are ignored by default
   "LICENSE",
   "README.md",
-  "doot.toml",
 ]
 
 # Files and directories that are always symlinked, even if they start with a dot or match a pattern in `exclude_files`. Each entry is a glob pattern relative to the dotfiles directory.
 include_files = []
 
-# If set to true, files and directories in the root of the dotfiles directory will be prefixed with a dot. If you set this to false, you'll need to list the top-level files and directories in `include_files`, as files that start with a dot are ignored by default.
-implicit_dot = true
+# If set to true, files and directories in the root of the dotfiles directory will be prefixed with a dot. For example, `<dotfiles dir>/config/foo` will be symlinked to `~/.config/foo`.
+# This is useful if you don't want to have hidden files in the root of the dotfiles directory.
+implicit_dot = false
 
 # Top-level files and directories that won't be prefixed with a dot if `implicit_dot` is set to true. Each entry is the name of a file or directory in the root of the dotfiles directory.
 implicit_dot_ignore = [
@@ -82,9 +96,10 @@ implicit_dot_ignore = [
 ]
 
 # Key-value pairs of "host name" -> "host-specific directory".
+# In the example below, <dotfiles dir>/laptop-dots/.zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/.zshrc, if the hostname is "my-laptop".
+# If `implicit_dot` is set to true, the host-specific directories also count as top-level. For example, <dotfiles dir>/laptop-dots/config/foo will be symlinked to ~/.config/foo.
 [hosts]
 # my-laptop = "laptop-dots"
-# In the above example, <dotfiles dir>/laptop-dots/zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/zshrc, if the hostname is "my-laptop".
 ```
 
 ## Why make another dotfiles manager?
