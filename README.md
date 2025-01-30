@@ -73,8 +73,8 @@ After that, if you have `DOOT_DIR` set in your shell configuration file (`~/.bas
 `doot` reads an optional configuration file `<dotfiles dir>/doot/config.toml` in the root of the dotfiles directory. This file won't be symlinked by default. These are the available options and their default values:
 
 ```toml
-# The target directory for the symlinks.
-target_dir = "~"
+# The target directory for the symlinks. Can contain environment variables.
+target_dir = "$HOME"
 
 # Files and directories to ignore. Each entry is a glob pattern relative to the dotfiles directory.
 exclude_files = [
