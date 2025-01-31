@@ -1,0 +1,15 @@
+package cache
+
+type InstalledFilesCache struct {
+	targets []text
+}
+
+type DotfilesDir struct {
+	dotfilesPath   text
+	installedFiles InstalledFilesCache
+}
+
+type DootCache struct {
+	version       uint32
+	installedDirs []DotfilesDir
+}

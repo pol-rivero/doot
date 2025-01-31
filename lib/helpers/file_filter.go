@@ -25,7 +25,7 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 			ignoreHidden = true
 			continue
 		}
-		g, err := glob.Compile(excludePattern, '/')
+		g, err := glob.Compile(excludePattern, filepath.Separator)
 		if err != nil {
 			log.Fatalf("Ignoring invalid exclude pattern '%s': %v", excludePattern, err)
 			continue
@@ -35,7 +35,7 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 
 	var includeGlobs = make([]glob.Glob, 0, len(config.IncludeFiles))
 	for _, includePattern := range config.IncludeFiles {
-		g, err := glob.Compile(includePattern, '/')
+		g, err := glob.Compile(includePattern, filepath.Separator)
 		if err != nil {
 			log.Fatalf("Ignoring invalid include pattern '%s': %v", includePattern, err)
 			continue
