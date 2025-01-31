@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/pol-rivero/doot/lib"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +10,7 @@ var installCmd = &cobra.Command{
 	Use:     "install",
 	Short:   "Install or incrementally update the symlinks. This is the default command.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("install called")
+		lib.Install()
 	},
 }
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/pol-rivero/doot/lib"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "doot",
 	Short: "A fast and simple dotfiles manager that just gets the job done.",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
+		lib.Install()
 	},
 }
 
