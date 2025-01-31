@@ -9,12 +9,15 @@ import (
 
 func FindDotfilesDir() string {
 	dotfilesDir, err := findDotfilesDir()
-	if err == nil {
-		log.Printf("Using dotfiles directory: %s\n", dotfilesDir)
-	} else {
+	if err != nil {
 		log.Fatalf("Error finding dotfiles directory: %v\n", err)
 		os.Exit(1)
 	}
+	if !filepath.IsAbs(dotfilesDir) {
+		log.Fatalf("Dotfiles directory must be an absolute path: %s\n", dotfilesDir)
+		os.Exit(1)
+	}
+	log.Printf("Using dotfiles directory: %s\n", dotfilesDir)
 	return dotfilesDir
 }
 

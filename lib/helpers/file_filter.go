@@ -51,31 +51,34 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	}
 }
 
-func ScanDirectory(path string, filter FileFilter) []string {
-	files := make([]string, 32)
-	var scanDir func(string)
-	scanDir = func(path string) {
-		entries, err := os.ReadDir(path)
-		if err != nil {
-			log.Fatalf("Error reading directory %s: %v", path, err)
-			return
-		}
-		for _, entry := range entries {
-			fileName := entry.Name()
-			filePath := filepath.Join(path, fileName)
-			if filter.isExcluded(filePath, fileName) {
-				continue
-			}
+func ScanDirectory(absolutePath string, filter FileFilter) []string {
+	const SEPARATOR_LEN = len(string(filepath.Separator))
+	prefixLen := len(absolutePath) + SEPARATOR_LEN
+	files := make([]string, 0, 32)
+	scanDirectoryRecursive(filter, &files, prefixLen, absolutePath)
+	return files
+}
 
-			if entry.IsDir() {
-				scanDir(filePath)
-			} else {
-				files = append(files, filePath)
-			}
+func scanDirectoryRecursive(filter FileFilter, files *[]string, prefixLen int, absolutePath string) {
+	entries, err := os.ReadDir(absolutePath)
+	if err != nil {
+		log.Fatalf("Error reading directory %s: %v", absolutePath, err)
+		return
+	}
+	for _, entry := range entries {
+		entryName := entry.Name()
+		entryAbsPath := filepath.Join(absolutePath, entryName)
+		entryRelativePath := entryAbsPath[prefixLen:]
+		if filter.isExcluded(entryRelativePath, entryName) {
+			continue
+		}
+
+		if entry.IsDir() {
+			scanDirectoryRecursive(filter, files, prefixLen, entryAbsPath)
+		} else {
+			*files = append(*files, entryRelativePath)
 		}
 	}
-	scanDir(path)
-	return files
 }
 
 func (f *FileFilter) isExcluded(path string, fileName string) bool {
