@@ -10,6 +10,10 @@ func SetUpLogger(cmd *cobra.Command) {
 	if err != nil {
 		panic(err)
 	}
+	quiet, err := cmd.Flags().GetBool("quiet")
+	if err != nil {
+		panic(err)
+	}
 
-	log.Init(verbose)
+	log.Init(verbose, quiet)
 }

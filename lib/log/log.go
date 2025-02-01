@@ -1,23 +1,26 @@
 package log
 
 import (
+	"io"
 	"log"
 
 	"github.com/fatih/color"
 )
 
 var (
-	infolnLogger  *log.Logger
-	warningLogger *log.Logger
-	errorLogger   *log.Logger
+	infolnLogger  *log.Logger = nil
+	warningLogger *log.Logger = log.New(color.Error, color.YellowString("WARNING: "), 0)
+	errorLogger   *log.Logger = log.New(color.Error, color.RedString("ERROR: "), 0)
 )
 
-func Init(verbose bool) {
+func Init(verbose bool, quiet bool) {
 	if verbose {
 		infolnLogger = log.New(color.Output, "", 0)
 	}
-	warningLogger = log.New(color.Error, color.YellowString("WARNING: "), 0)
-	errorLogger = log.New(color.Error, color.RedString("ERROR: "), 0)
+	if quiet {
+		warningLogger.SetOutput(io.Discard)
+		errorLogger.SetOutput(io.Discard)
+	}
 }
 
 func Info(format string, v ...interface{}) {

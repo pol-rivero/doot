@@ -11,6 +11,7 @@ var bootstrapCmd = &cobra.Command{
 	Use:     "bootstrap",
 	Short:   "Download and install your dotfiles.",
 	Run: func(cmd *cobra.Command, args []string) {
+		SetUpLogger(cmd)
 		fmt.Println("bootstrap called")
 	},
 }

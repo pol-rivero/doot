@@ -10,6 +10,7 @@ var installCmd = &cobra.Command{
 	Use:     "install",
 	Short:   "Install or incrementally update the symlinks. This is the default command.",
 	Run: func(cmd *cobra.Command, args []string) {
+		SetUpLogger(cmd)
 		lib.Install()
 	},
 }

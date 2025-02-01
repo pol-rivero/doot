@@ -11,6 +11,7 @@ var addCmd = &cobra.Command{
 	Use:     "add <file> [file2 ...]",
 	Short:   "Move one or more files to the dotfiles directory and symlink them.",
 	Run: func(cmd *cobra.Command, args []string) {
+		SetUpLogger(cmd)
 		fmt.Println("add called")
 	},
 }
