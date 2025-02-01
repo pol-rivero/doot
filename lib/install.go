@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -45,7 +44,6 @@ func mapSourceToTarget(relativePath string, implicitDot bool, implicitDotIgnore 
 	if implicitDot && !implicitDotIgnore.Contains(getTopLevelDir(relativePath)) {
 		target = "." + relativePath
 	}
-	log.Printf("Mapping %s to %s", relativePath, target)
 	return target
 }
 
