@@ -75,7 +75,7 @@ func getCachePath() string {
 	if err != nil {
 		log.Fatalf("Error creating cache directory: %v", err)
 	}
-	return path.Join(cacheDir, "cache.bin")
+	return path.Join(cacheDir, "doot-cache.bin")
 }
 
 func getCacheContainingDir() string {
