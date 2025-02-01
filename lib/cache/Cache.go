@@ -3,13 +3,15 @@ package cache
 import (
 	"log"
 	"os"
+	"path"
 )
 
 const CURRENT_CACHE_VERSION uint32 = 1
 
-func FromFile() DootCache {
+func Load() DootCache {
 	fileContents, err := os.ReadFile(getCachePath())
 	if err != nil {
+		log.Printf("Cache read error: %v, creating new cache", err)
 		return DootCache{
 			Version:       CURRENT_CACHE_VERSION,
 			InstalledDirs: []*DotfilesDir{},
@@ -37,7 +39,7 @@ func FromFile() DootCache {
 	return cacheData
 }
 
-func (cache *DootCache) SaveToFile() {
+func (cache *DootCache) Save() {
 	marshalledData, err := cache.MarshalBinary()
 	if err != nil {
 		log.Fatalf("Error marshalling cache data: %v", err)
@@ -66,15 +68,24 @@ func (cache *DootCache) UseDir(dotfilesDir string) *InstalledFilesCache {
 }
 
 func getCachePath() string {
+	cacheDir := getCacheContainingDir()
+	err := os.MkdirAll(cacheDir, 0755)
+	if err != nil {
+		log.Fatalf("Error creating cache directory: %v", err)
+	}
+	return path.Join(cacheDir, "cache.bin")
+}
+
+func getCacheContainingDir() string {
+	cacheDir := os.Getenv("DOOT_CACHE_DIR")
+	if cacheDir != "" {
+		return cacheDir
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("Error retrieving home directory: %v", err)
 		os.Exit(1)
 	}
-	err = os.MkdirAll(homeDir+"/.cache/doot", 0755)
-	if err != nil {
-		log.Fatalf("Error creating cache directory: %v", err)
-		os.Exit(1)
-	}
-	return homeDir + "/.cache/doot/cache.bin"
+	return path.Join(homeDir, ".cache", "doot")
 }
