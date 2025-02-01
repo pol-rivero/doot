@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pol-rivero/doot/lib/config"
+	"github.com/pol-rivero/doot/lib/constants"
 )
 
 type FileFilter struct {
@@ -72,7 +73,7 @@ func (f *FileFilter) matchesExcludePattern(path string, fileName string) bool {
 	if f.IgnoreHidden && fileName[0] == '.' {
 		return true
 	}
-	if f.IgnoreDootCrypt && strings.Contains(fileName, DOOT_CRYPT_EXT) {
+	if f.IgnoreDootCrypt && strings.Contains(fileName, constants.DOOT_CRYPT_EXT) {
 		return true
 	}
 	return f.ExcludeGlobs.Matches(path)

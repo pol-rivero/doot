@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/pol-rivero/doot/lib/constants"
 )
 
 func FindDotfilesDir() string {
@@ -23,7 +25,7 @@ func FindDotfilesDir() string {
 
 func findDotfilesDir() (string, error) {
 	// 1. Try $DOOT_DIR if defined
-	if dootDir := os.Getenv("DOOT_DIR"); dootDir != "" {
+	if dootDir := os.Getenv(constants.ENV_DOOT_DIR); dootDir != "" {
 		_, err := os.Stat(dootDir)
 		if err == nil {
 			return dootDir, nil
@@ -36,7 +38,7 @@ func findDotfilesDir() (string, error) {
 	}
 
 	// 2. Try $XDG_DATA_HOME/dotfiles (or ~/.local/share/dotfiles)
-	xdgDataHome := os.Getenv("XDG_DATA_HOME")
+	xdgDataHome := os.Getenv(constants.ENV_XDG_DATA_HOME)
 	if xdgDataHome == "" {
 		xdgDataHome = filepath.Join(homeDir, ".local", "share")
 	}

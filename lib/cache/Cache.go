@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"path"
+
+	"github.com/pol-rivero/doot/lib/constants"
 )
 
 const CURRENT_CACHE_VERSION uint32 = 1
@@ -77,7 +79,7 @@ func getCachePath() string {
 }
 
 func getCacheContainingDir() string {
-	cacheDir := os.Getenv("DOOT_CACHE_DIR")
+	cacheDir := os.Getenv(constants.ENV_DOOT_CACHE_DIR)
 	if cacheDir != "" {
 		return cacheDir
 	}
