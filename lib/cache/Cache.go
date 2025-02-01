@@ -1,11 +1,11 @@
 package cache
 
 import (
-	"log"
 	"os"
 	"path"
 
 	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/pol-rivero/doot/lib/log"
 )
 
 const CURRENT_CACHE_VERSION uint32 = 1
@@ -13,7 +13,7 @@ const CURRENT_CACHE_VERSION uint32 = 1
 func Load() DootCache {
 	fileContents, err := os.ReadFile(getCachePath())
 	if err != nil {
-		log.Printf("Cache read error: %v, creating new cache", err)
+		log.Info("Cache read error: %v, creating new cache", err)
 		return DootCache{
 			Version:       CURRENT_CACHE_VERSION,
 			InstalledDirs: []*DotfilesDir{},
@@ -23,7 +23,7 @@ func Load() DootCache {
 	var cacheData DootCache
 	err = cacheData.UnmarshalBinary(fileContents)
 	if err != nil {
-		log.Fatalf("Error parsing cache file: %v", err)
+		log.Warning("Error parsing cache file: %v, creating new cache", err)
 		return DootCache{
 			Version:       CURRENT_CACHE_VERSION,
 			InstalledDirs: []*DotfilesDir{},
@@ -31,7 +31,7 @@ func Load() DootCache {
 	}
 
 	if cacheData.Version != CURRENT_CACHE_VERSION {
-		log.Printf("Cache version mismatch: expected %d, got %d", CURRENT_CACHE_VERSION, cacheData.Version)
+		log.Info("Cache version mismatch: expected %d, got %d", CURRENT_CACHE_VERSION, cacheData.Version)
 		return DootCache{
 			Version:       CURRENT_CACHE_VERSION,
 			InstalledDirs: []*DotfilesDir{},
@@ -44,13 +44,13 @@ func Load() DootCache {
 func (cache *DootCache) Save() {
 	marshalledData, err := cache.MarshalBinary()
 	if err != nil {
-		log.Fatalf("Error marshalling cache data: %v", err)
+		log.Error("Error marshalling cache data: %v", err)
 		return
 	}
 
 	err = os.WriteFile(getCachePath(), marshalledData, 0644)
 	if err != nil {
-		log.Fatalf("Error saving cache file: %v", err)
+		log.Error("Error saving cache file: %v", err)
 	}
 }
 
@@ -73,7 +73,7 @@ func getCachePath() string {
 	cacheDir := getCacheContainingDir()
 	err := os.MkdirAll(cacheDir, 0755)
 	if err != nil {
-		log.Fatalf("Error creating cache directory: %v", err)
+		log.Fatal("Error creating cache directory: %v", err)
 	}
 	return path.Join(cacheDir, "doot-cache.bin")
 }
@@ -86,8 +86,7 @@ func getCacheContainingDir() string {
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatalf("Error retrieving home directory: %v", err)
-		os.Exit(1)
+		log.Fatal("Error retrieving home directory: %v", err)
 	}
 	return path.Join(homeDir, ".cache", "doot")
 }

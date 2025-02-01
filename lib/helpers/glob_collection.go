@@ -1,10 +1,10 @@
 package helpers
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/gobwas/glob"
+	"github.com/pol-rivero/doot/lib/log"
 )
 
 type GlobCollection struct {
@@ -16,7 +16,7 @@ func NewGlobCollection(patterns []string) GlobCollection {
 	for _, pattern := range patterns {
 		g, err := glob.Compile(pattern, filepath.Separator)
 		if err != nil {
-			log.Fatalf("Ignoring invalid glob pattern '%s': %v", pattern, err)
+			log.Warning("Ignoring invalid glob pattern '%s': %v", pattern, err)
 			continue
 		}
 		globs = append(globs, g)

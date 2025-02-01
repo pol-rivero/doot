@@ -2,24 +2,22 @@ package helpers
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/pol-rivero/doot/lib/log"
 )
 
 func FindDotfilesDir() string {
 	dotfilesDir, err := findDotfilesDir()
 	if err != nil {
-		log.Fatalf("Error finding dotfiles directory: %v\n", err)
-		os.Exit(1)
+		log.Fatal("Error finding dotfiles directory: %v\n", err)
 	}
 	if !filepath.IsAbs(dotfilesDir) {
-		log.Fatalf("Dotfiles directory must be an absolute path: %s\n", dotfilesDir)
-		os.Exit(1)
+		log.Fatal("Dotfiles directory must be an absolute path: %s\n", dotfilesDir)
 	}
-	log.Printf("Using dotfiles directory: %s\n", dotfilesDir)
+	log.Info("Using dotfiles directory: %s\n", dotfilesDir)
 	return dotfilesDir
 }
 

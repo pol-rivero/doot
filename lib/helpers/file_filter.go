@@ -1,13 +1,13 @@
 package helpers
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pol-rivero/doot/lib/config"
 	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/pol-rivero/doot/lib/log"
 )
 
 type FileFilter struct {
@@ -46,7 +46,7 @@ func ScanDirectory(absolutePath string, filter FileFilter) []string {
 func scanDirectoryRecursive(filter FileFilter, files *[]string, prefixLen int, absolutePath string) {
 	entries, err := os.ReadDir(absolutePath)
 	if err != nil {
-		log.Fatalf("Error reading directory %s: %v", absolutePath, err)
+		log.Error("Error reading directory %s: %v", absolutePath, err)
 		return
 	}
 	for _, entry := range entries {

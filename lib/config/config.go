@@ -1,10 +1,10 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/pol-rivero/doot/lib/log"
 )
 
 type Config struct {
@@ -45,12 +45,12 @@ func FromFile(path string) Config {
 	config := DefaultConfig()
 	fileContents, err := os.ReadFile(path)
 	if err != nil {
-		log.Print("Config file not found or unaccessible, using default config")
+		log.Info("Config file not found or unaccessible, using default config")
 		return config
 	}
 	err = toml.Unmarshal(fileContents, &config)
 	if err != nil {
-		log.Fatalf("Error parsing config file: %v", err)
+		log.Error("Error parsing config file: %v", err)
 	}
 	config.TargetDir = os.ExpandEnv(config.TargetDir)
 	return config

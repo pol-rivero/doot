@@ -11,6 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "doot",
 	Short: "A fast and simple dotfiles manager that just gets the job done.",
 	Run: func(cmd *cobra.Command, args []string) {
+		SetUpLogger(cmd)
 		lib.Install()
 	},
 }
@@ -44,6 +45,7 @@ func init() {
 	rootCmd.AddGroup(advancedCommandsGroup)
 	rootCmd.AddGroup(otherCommandsGroup)
 	rootCmd.Flags().Bool("full-clean", false, "Ignore the cache and clean up all broken symlinks that point to the\ndotfiles directory, even if they were created by another program. Can be slow.")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Print more information about what the program is doing.")
 	rootCmd.SetHelpCommandGroupID(otherCommandsGroup.ID)
 	rootCmd.SetCompletionCommandGroupID(otherCommandsGroup.ID)
 }

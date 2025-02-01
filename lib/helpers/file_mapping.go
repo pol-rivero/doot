@@ -1,6 +1,8 @@
 package helpers
 
-import "log"
+import (
+	"github.com/pol-rivero/doot/lib/log"
+)
 
 type FileMapping struct {
 	// Map target -> source
@@ -15,7 +17,7 @@ func NewFileMapping(capacity int) FileMapping {
 
 func (fm *FileMapping) Add(newSource string, target string) {
 	if existingSource, contains := fm.mapping[target]; contains {
-		log.Printf("Conflicting files: %s and %s both map to %s. Ignoring %s", existingSource, newSource, target, newSource)
+		log.Warning("Conflicting files: %s and %s both map to %s. Ignoring %s", existingSource, newSource, target, newSource)
 	} else {
 		fm.mapping[target] = newSource
 	}
@@ -32,9 +34,9 @@ func (fm *FileMapping) GetTargets() []string {
 func (fm *FileMapping) InstallNewLinks(ignore []string) {
 	for target, source := range fm.mapping {
 		if contains(ignore, target) {
-			log.Printf("Target %s already exists and will not be created", target)
+			log.Info("Target %s already exists and will not be created", target)
 		} else {
-			log.Printf("Linking %s -> %s", target, source)
+			log.Info("Linking %s -> %s", target, source)
 		}
 	}
 }
@@ -42,7 +44,7 @@ func (fm *FileMapping) InstallNewLinks(ignore []string) {
 func (fm *FileMapping) RemoveStaleLinks(previousTargets []string) {
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
-			log.Printf("Removing stale link %s", previousTarget)
+			log.Info("Removing stale link %s", previousTarget)
 		}
 	}
 }
