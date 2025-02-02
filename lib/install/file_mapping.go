@@ -17,6 +17,7 @@ type FileMapping struct {
 	targetBaseDir     AbsolutePath
 	implicitDot       bool
 	implicitDotIgnore utils.Set[string]
+	targetsSkipped    []AbsolutePath
 }
 
 func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles []RelativePath) FileMapping {
@@ -26,6 +27,7 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 		targetBaseDir:     NewAbsolutePath(config.TargetDir),
 		implicitDot:       config.ImplicitDot,
 		implicitDotIgnore: utils.NewSetFromSlice(config.ImplicitDotIgnore),
+		targetsSkipped:    make([]AbsolutePath, 0),
 	}
 	for _, sourceFile := range sourceFiles {
 		mapping.Add(sourceFile)
@@ -42,10 +44,12 @@ func (fm *FileMapping) Add(newSource RelativePath) {
 	}
 }
 
-func (fm *FileMapping) GetTargets() []AbsolutePath {
+func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 	targets := make([]AbsolutePath, 0, len(fm.mapping))
 	for target := range fm.mapping {
-		targets = append(targets, target)
+		if !contains(fm.targetsSkipped, target) {
+			targets = append(targets, target)
+		}
 	}
 	return targets
 }
@@ -58,16 +62,28 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 			log.Info("Linking %s -> %s", target, source)
 			err := os.Symlink(source.Str(), target.Str())
 			if err != nil {
-				handleSymlinkError(target, source, err)
+				handleSymlinkError(target, source)
 			}
 		}
 	}
 }
 
-func handleSymlinkError(target, source AbsolutePath, err error) {
+func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
+	for _, previousTarget := range previousTargets {
+		if _, contains := fm.mapping[previousTarget]; !contains {
+			log.Info("Removing stale link %s", previousTarget)
+			err := os.Remove(previousTarget.Str())
+			if err != nil {
+				log.Error("Failed to remove stale link %s: %s", previousTarget, err)
+			}
+		}
+	}
+}
+
+func handleSymlinkError(target, source AbsolutePath) {
 	// The most likely reason os.Symlink failed is that the target (symlink path) already exists
-	fileInfo, statErr := os.Lstat(target.Str())
-	if statErr != nil {
+	fileInfo, err := os.Lstat(target.Str())
+	if err != nil {
 		// Either the target does not exist or we cannot access it, either way this is unexpected
 		log.Error("Failed to create link %s -> %s: %s", target, source, err)
 		return
@@ -82,25 +98,56 @@ func handleSymlinkError(target, source AbsolutePath, err error) {
 			return
 		}
 		if linkSource == source.Str() {
-			log.Info("Link %s -> %s already existed, cache was incorrect!", target, source)
+			log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
 			return
 		}
+		replace := utils.RequestInput("yN", "Link %s already exists, but points to %s instead of %s. Replace it?", target, linkSource, source)
+		if replace == 'y' {
+			err := utils.ReplaceWithSymlink(target, source)
+			if err != nil {
+				return
+			}
+		}
+		return
 	}
 
 	isRegularFile := fileInfo.Mode().IsRegular()
 	if isRegularFile {
-		log.Warning("Failed to create link %s -> %s: target already exists", target, source)
-	} else {
-		log.Error("Failed to create link %s -> %s: target is not a symlink", target, source)
-	}
-}
-
-func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
-	for _, previousTarget := range previousTargets {
-		if _, contains := fm.mapping[previousTarget]; !contains {
-			log.Info("Removing stale link %s", previousTarget)
+		// Compare the contents of the existing file with the source
+		contents, readErr := os.ReadFile(target.Str())
+		if readErr != nil {
+			log.Error("Failed to read file %s: %s", target, readErr)
+			return
 		}
+		sourceContents, readErr := os.ReadFile(source.Str())
+		if readErr != nil {
+			log.Error("Failed to read file %s: %s", source, readErr)
+			return
+		}
+		if string(contents) == string(sourceContents) {
+			log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
+			err := utils.ReplaceWithSymlink(target, source)
+			if err != nil {
+				return
+			}
+		}
+		replace := ' '
+		for replace != 'y' && replace != 'n' {
+			replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
+			if replace == 'y' {
+				err := utils.ReplaceWithSymlink(target, source)
+				if err != nil {
+					return
+				}
+			} else if replace == 'd' {
+				utils.PrintDiff(target, source)
+			}
+		}
+		return
 	}
+
+	// The target is neither a symlink nor a regular file, so we cannot replace it
+	log.Error("Failed to create link %s -> %s: %s", target, source, err)
 }
 
 func contains[T comparable](slice []T, element T) bool {

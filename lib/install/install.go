@@ -19,7 +19,7 @@ func Install() {
 	fileMapping.InstallNewLinks(installedFilesCache.GetTargets())
 	fileMapping.RemoveStaleLinks(installedFilesCache.GetTargets())
 
-	installedFilesCache.SetTargets(fileMapping.GetTargets())
+	installedFilesCache.SetTargets(fileMapping.GetInstalledTargets())
 	cache.Save()
 }
 

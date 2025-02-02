@@ -1,6 +1,7 @@
 package constants
 
 const DOOT_CRYPT_EXT string = ".doot-crypt"
+const DOOT_BACKUP_EXT string = ".doot-backup"
 
 const IGNORE_HIDDEN_FILES_GLOB string = "**/.*"
 
