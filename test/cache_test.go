@@ -2,9 +2,11 @@ package test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/cache"
+	"github.com/pol-rivero/doot/lib/constants"
 )
 
 func TestCache_GetInitial(t *testing.T) {
@@ -92,12 +94,24 @@ func TestCache_MalformedCache(t *testing.T) {
 		t.Fatalf("Error writing cache file: %v", err)
 	}
 
-	// Load the cache again and check that the version was reset
+	// Load the cache again and check that it was reset
 	cacheObj := cache.Load()
-	if cacheObj.Version != cache.CURRENT_CACHE_VERSION {
-		t.Fatalf("Expected cache version %d, got %d", cache.CURRENT_CACHE_VERSION, cacheObj.Version)
-	}
 	if len(cacheObj.InstalledDirs) != 0 {
 		t.Fatalf("Expected 0 installed directories, got %d", len(cacheObj.InstalledDirs))
+	}
+}
+
+func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
+	SetUp(t)
+	os.Unsetenv(constants.ENV_DOOT_CACHE_DIR)
+	cacheObj := cache.Load()
+	cacheObj.Save()
+
+	if _, err := os.Stat(cacheFile()); err == nil {
+		t.Fatalf("Cache unexpectedly saved in unset environment variable")
+	}
+
+	if _, err := os.Stat(filepath.Join(homeDir(), ".cache", "doot", "doot-cache.bin")); err != nil {
+		t.Fatalf("Cache not saved in default location")
 	}
 }

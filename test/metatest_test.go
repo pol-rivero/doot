@@ -3,7 +3,10 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/pol-rivero/doot/lib/config"
 )
 
 func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
@@ -60,7 +63,7 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error reading file: %v", err)
 	}
-	if !MatchRegex(string(fileContents), `^dummy text for file .*/topLevelFile$`) {
+	if string(fileContents) != "dummy text for file topLevelFile" {
 		t.Fatalf("topLevelFile has unexpected contents")
 	}
 
@@ -69,5 +72,32 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dootDir, "topLevelDir", "nestedDir", "file2")); err != nil {
 		t.Fatalf("file2 does not exist")
+	}
+}
+
+func TestMetatest_CreateConfig(t *testing.T) {
+	config := config.DefaultConfig()
+	config.Hosts = map[string]string{
+		"my-laptop": "laptop-dots",
+		"other-pc":  "other-dots",
+	}
+	SetUpFiles(t, []FsNode{
+		ConfigFile(config),
+	})
+	dootDir := sourceDir()
+	if _, err := os.Stat(filepath.Join(dootDir, "config.toml")); err != nil {
+		t.Fatalf("config.toml does not exist")
+	}
+	fileContents, err := os.ReadFile(filepath.Join(dootDir, "config.toml"))
+	if err != nil {
+		t.Fatalf("Error reading file: %v", err)
+	}
+
+	if !strings.Contains(string(fileContents), "target_dir = '$HOME'") {
+		t.Fatalf("config.toml has unexpected first line: %s", string(fileContents))
+	}
+
+	if !strings.Contains(string(fileContents), "[hosts]\nmy-laptop = 'laptop-dots'\nother-pc = 'other-dots'") {
+		t.Fatalf("config.toml does not contain expected hosts section: %s", string(fileContents))
 	}
 }

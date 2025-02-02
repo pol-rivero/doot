@@ -32,3 +32,7 @@ func (gc *GlobCollection) Matches(s string) bool {
 	}
 	return false
 }
+
+func (gc *GlobCollection) Len() int {
+	return len(gc.globs)
+}

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pelletier/go-toml/v2"
+	"github.com/pol-rivero/doot/lib/config"
 	"github.com/pol-rivero/doot/lib/constants"
 )
 
@@ -37,21 +39,36 @@ func cacheFile() string {
 }
 
 func homeDir() string {
+	// This is not the real home dir, it's the temp dir set in SetUp
 	return os.Getenv("HOME")
 }
 
 type FsNode interface {
-	IsDir() bool
 	GetName() string
 	GetChildren() []FsNode
 }
 
 type FsFile struct {
-	Name string
+	Name    string
+	Content string
 }
 
 func File(name string) FsFile {
-	return FsFile{Name: name}
+	return FsFile{
+		Name:    name,
+		Content: "dummy text for file " + name,
+	}
+}
+
+func ConfigFile(config config.Config) FsFile {
+	configBytes, err := toml.Marshal(config)
+	if err != nil {
+		panic(err)
+	}
+	return FsFile{
+		Name:    "config.toml",
+		Content: string(configBytes),
+	}
 }
 
 type FsDir struct {
@@ -71,10 +88,6 @@ func (f FsFile) GetChildren() []FsNode {
 	return nil
 }
 
-func (f FsFile) IsDir() bool {
-	return false
-}
-
 func (f FsDir) GetName() string {
 	return f.Name
 }
@@ -83,19 +96,18 @@ func (f FsDir) GetChildren() []FsNode {
 	return f.Children
 }
 
-func (f FsDir) IsDir() bool {
-	return true
-}
-
 func createNode(parentDir string, node FsNode) {
-	if node.IsDir() {
-		createDir(parentDir, node)
-	} else {
-		createFile(parentDir, node)
+	switch n := node.(type) {
+	case FsDir:
+		createDir(parentDir, n)
+	case FsFile:
+		createFile(parentDir, n)
+	default:
+		panic("unknown FsNode type")
 	}
 }
 
-func createDir(parentDir string, dir FsNode) {
+func createDir(parentDir string, dir FsDir) {
 	dirPath := filepath.Join(parentDir, dir.GetName())
 	err := os.Mkdir(dirPath, 0755)
 	if err != nil {
@@ -106,7 +118,7 @@ func createDir(parentDir string, dir FsNode) {
 	}
 }
 
-func createFile(parentDir string, file FsNode) {
+func createFile(parentDir string, file FsFile) {
 	filePath := filepath.Join(parentDir, file.GetName())
 	f, err := os.Create(filePath)
 	if err != nil {
@@ -114,7 +126,7 @@ func createFile(parentDir string, file FsNode) {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("dummy text for file " + filePath)
+	_, err = f.WriteString(file.Content)
 	if err != nil {
 		panic(err)
 	}
