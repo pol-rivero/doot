@@ -13,6 +13,9 @@ build: doot-linux-x86_64 doot-darwin-x86_64 doot-windows-x86_64.exe \
 
 codegen: lib/cache/Colfer.go
 
+test:
+	go test ./test -v
+
 doot-%: codegen
 	@GOOS=$(word 1,$(subst -, ,$*)) \
 	GOARCH=$(ARCH_MAP_$(word 2,$(subst -, ,$*))) \
@@ -21,4 +24,4 @@ doot-%: codegen
 lib/cache/Colfer.go: lib/cache/cache.colf
 	bin/colf -b lib Go lib/cache/cache.colf
 
-.PHONY: build
+.PHONY: build test

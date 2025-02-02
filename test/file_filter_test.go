@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/config"
-	"github.com/pol-rivero/doot/lib/helpers"
+	"github.com/pol-rivero/doot/lib/install"
 )
 
 func TestFileFilter_CreateFilter1(t *testing.T) {
@@ -13,7 +13,7 @@ func TestFileFilter_CreateFilter1(t *testing.T) {
 		ExcludeFiles: []string{"**/.*", "file1"},
 		IncludeFiles: []string{"file2"},
 	}
-	filter := helpers.CreateFilter(config, false)
+	filter := install.CreateFilter(config, false)
 	if filter.IgnoreHidden != true {
 		t.Fatalf("Expected IgnoreHidden to be true")
 	}
@@ -34,7 +34,7 @@ func TestFileFilter_CreateFilter2(t *testing.T) {
 		ExcludeFiles: []string{"file1", "*.txt"},
 		IncludeFiles: []string{"file2", invalid_glob},
 	}
-	filter := helpers.CreateFilter(config, true)
+	filter := install.CreateFilter(config, true)
 	if filter.IgnoreHidden != false {
 		t.Fatalf("Expected IgnoreHidden to be false")
 	}
@@ -88,13 +88,13 @@ func TestFileFilter_ScanDirectory(t *testing.T) {
 }
 
 func scanAll(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{}),
+		IncludeGlobs:    install.NewGlobCollection([]string{}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if !slices.Equal(files, []string{
 		".hiddenDir/.nestedHiddenFile2",
 		".hiddenDir/file4",
@@ -115,13 +115,13 @@ func scanAll(t *testing.T) {
 }
 
 func ignoreHidden(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    true,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{}),
+		IncludeGlobs:    install.NewGlobCollection([]string{}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if !slices.Equal(files, []string{
 		"dir1/nestedDir/file3",
 		"file1",
@@ -137,13 +137,13 @@ func ignoreHidden(t *testing.T) {
 }
 
 func ignoreCrypt(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: true,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{}),
+		IncludeGlobs:    install.NewGlobCollection([]string{}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if !slices.Equal(files, []string{
 		".hiddenDir/.nestedHiddenFile2",
 		".hiddenDir/file4",
@@ -158,13 +158,13 @@ func ignoreCrypt(t *testing.T) {
 }
 
 func ignoreHiddenAndCrypt(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    true,
 		IgnoreDootCrypt: true,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{}),
+		IncludeGlobs:    install.NewGlobCollection([]string{}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if !slices.Equal(files, []string{
 		"dir1/nestedDir/file3",
 		"file1",
@@ -175,13 +175,13 @@ func ignoreHiddenAndCrypt(t *testing.T) {
 }
 
 func excludeAndInclude1(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{"secret*"}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{"*.txt", "**/file6"}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{"secret*"}),
+		IncludeGlobs:    install.NewGlobCollection([]string{"*.txt", "**/file6"}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if slices.Contains(files, "secret2.doot-crypt") {
 		t.Fatalf("Should have excluded secret2.doot-crypt")
 	}
@@ -194,13 +194,13 @@ func excludeAndInclude1(t *testing.T) {
 }
 
 func excludeAndInclude2(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{"secret*/**"}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{"secret*/nested.doot-crypt", "**/file6"}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{"secret*/**"}),
+		IncludeGlobs:    install.NewGlobCollection([]string{"secret*/nested.doot-crypt", "**/file6"}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if slices.Contains(files, "secret-dir1.doot-crypt/file5") {
 		t.Fatalf("Should have excluded secret-dir1.doot-crypt/file5")
 	}
@@ -213,13 +213,13 @@ func excludeAndInclude2(t *testing.T) {
 }
 
 func excludeAndInclude3(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{"secret*/**"}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{"secret*/nested.doot-crypt**"}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{"secret*/**"}),
+		IncludeGlobs:    install.NewGlobCollection([]string{"secret*/nested.doot-crypt**"}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if slices.Contains(files, "secret-dir1.doot-crypt/file5") {
 		t.Fatalf("Should have excluded secret-dir1.doot-crypt/file5")
 	}
@@ -232,13 +232,13 @@ func excludeAndInclude3(t *testing.T) {
 }
 
 func weirdSuperAsterisk(t *testing.T) {
-	filter := helpers.FileFilter{
+	filter := install.FileFilter{
 		IgnoreHidden:    false,
 		IgnoreDootCrypt: false,
-		ExcludeGlobs:    helpers.NewGlobCollection([]string{"**/file2", ".hiddenDir/**/file4", "dir1/nestedDir/**"}),
-		IncludeGlobs:    helpers.NewGlobCollection([]string{"dir1/nestedDir/**/file3"}),
+		ExcludeGlobs:    install.NewGlobCollection([]string{"**/file2", ".hiddenDir/**/file4", "dir1/nestedDir/**"}),
+		IncludeGlobs:    install.NewGlobCollection([]string{"dir1/nestedDir/**/file3"}),
 	}
-	files := helpers.ScanDirectory(sourceDir(), filter)
+	files := install.ScanDirectory(sourceDir(), filter)
 	if !slices.Contains(files, "file1") {
 		t.Fatalf("Should not have excluded file1")
 	}
