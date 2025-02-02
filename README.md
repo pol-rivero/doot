@@ -2,10 +2,10 @@
 
 A fast and simple dotfiles manager that just gets the job done.
 
-| Install from the AUR | Install it with `go get` | Download the binary |
+<!-- | Install from the AUR | Install it with `go get` | Download the binary |
 | --- | --- | --- |
 | `yay -S doot` | `go get github.com/pol-rivero/doot` | [GitHub Releases](https://github.com/pol-rivero/doot/releases/tag/latest) |
-| ![AUR](https://img.shields.io/aur/version/doot) | ![Go](https://img.shields.io/github/go-mod/go-version/pol-rivero/doot) | ![GitHub Releases](https://img.shields.io/github/v/release/pol-rivero/doot) |
+| ![AUR](https://img.shields.io/aur/version/doot) | ![Go](https://img.shields.io/github/go-mod/go-version/pol-rivero/doot) | ![GitHub Releases](https://img.shields.io/github/v/release/pol-rivero/doot) | -->
 
 ## Usage
 
@@ -109,9 +109,11 @@ implicit_dot_ignore = [
 > 2. When a directory matches a glob in `exclude_files`, it will **NOT** be explored recursively (so its contents will *never* be symlinked, even if they would have matched a glob in `include_files`).  
 >   This is done to improve performace and is usually the desired behavior. If you want to exclude all the files in `some-dir` except for `some-dir/images/important.png`, do the following:
 >   ```toml
->   exclude_files = [ "some-dir/**" ]    # Exclude all children of some-dir, but not some-dir itself, so that it can be explored
+>   # Exclude all children of some-dir, but not some-dir itself, so that it can be explored
+>   exclude_files = [ "some-dir/**" ]
 >   include_files = [
->       "some-dir/images"                # Include some-dir/images so that it can be explored. Its children are NOT included (no trailing `/**`)
+>       # Include images so that it can be explored. Children are NOT included (no trailing `/**`)
+>       "some-dir/images",
 >       "some-dir/images/important.png"  # Include the file you want
 >   ]
 
