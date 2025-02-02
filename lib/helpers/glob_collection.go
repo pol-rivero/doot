@@ -3,8 +3,8 @@ package helpers
 import (
 	"path/filepath"
 
-	"github.com/gobwas/glob"
 	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/glob"
 )
 
 type GlobCollection struct {

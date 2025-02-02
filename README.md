@@ -84,6 +84,7 @@ exclude_files = [
 ]
 
 # Files and directories that are always symlinked, even if they start with a dot or match a pattern in `exclude_files`. Each entry is a glob pattern relative to the dotfiles directory.
+# IMPORTANT: See warning below!
 include_files = []
 
 # If set to true, files and directories in the root of the dotfiles directory will be prefixed with a dot. For example, `<dotfiles dir>/config/foo` will be symlinked to `~/.config/foo`.
@@ -101,6 +102,18 @@ implicit_dot_ignore = [
 [hosts]
 # my-laptop = "laptop-dots"
 ```
+
+> [!WARNING]
+> The glob matching has some quirks that you should be aware of:
+> 1. Unlike standard glob patterns, `**/file.txt` will **NOT** match `file.txt`. [Issue link](https://github.com/gobwas/glob/issues/58).
+> 2. When a directory matches a glob in `exclude_files`, it will **NOT** be explored recursively (so its contents will *never* be symlinked, even if they would have matched a glob in `include_files`).  
+>   This is done to improve performace and is usually the desired behavior. If you want to exclude all the files in `some-dir` except for `some-dir/images/important.png`, do the following:
+>   ```toml
+>   exclude_files = [ "some-dir/**" ]    # Exclude all children of some-dir, but not some-dir itself, so that it can be explored
+>   include_files = [
+>       "some-dir/images"                # Include some-dir/images so that it can be explored. Its children are NOT included (no trailing `/**`)
+>       "some-dir/images/important.png"  # Include the file you want
+>   ]
 
 ## Why make another dotfiles manager?
 

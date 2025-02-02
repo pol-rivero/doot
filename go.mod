@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	github.com/fatih/color v1.18.0
 	github.com/pelletier/go-toml/v2 v2.2.3
+	github.com/pol-rivero/glob v0.2.3-0.20250202113034-e108be52a61b
 	github.com/spf13/cobra v1.8.1
 )
 
