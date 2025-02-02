@@ -22,7 +22,7 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	ignoreHidden := false
 	newExcludeFiles := make([]string, 0, len(config.ExcludeFiles))
 	for _, excludePattern := range config.ExcludeFiles {
-		if excludePattern == "**/.*" {
+		if excludePattern == constants.IGNORE_HIDDEN_FILES_GLOB {
 			ignoreHidden = true
 		} else {
 			newExcludeFiles = append(newExcludeFiles, excludePattern)
