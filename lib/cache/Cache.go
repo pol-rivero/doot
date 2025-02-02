@@ -6,6 +6,7 @@ import (
 
 	"github.com/pol-rivero/doot/lib/constants"
 	"github.com/pol-rivero/doot/lib/log"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
 const CURRENT_CACHE_VERSION uint32 = 1
@@ -54,19 +55,34 @@ func (cache *DootCache) Save() {
 	}
 }
 
-func (cache *DootCache) UseDir(dotfilesDir string) *InstalledFilesCache {
+func (cache *DootCache) UseDir(dotfilesDir AbsolutePath) *InstalledFilesCache {
 	for _, installedDir := range cache.InstalledDirs {
-		if installedDir.DotfilesPath == dotfilesDir {
+		if installedDir.DotfilesPath == dotfilesDir.Str() {
 			return installedDir.InstalledFiles
 		}
 	}
 
 	newDir := DotfilesDir{
-		DotfilesPath:   dotfilesDir,
+		DotfilesPath:   dotfilesDir.Str(),
 		InstalledFiles: &InstalledFilesCache{},
 	}
 	cache.InstalledDirs = append(cache.InstalledDirs, &newDir)
 	return newDir.InstalledFiles
+}
+
+func (filesCache *InstalledFilesCache) GetTargets() []AbsolutePath {
+	targets := make([]AbsolutePath, 0, len(filesCache.Targets))
+	for _, target := range filesCache.Targets {
+		targets = append(targets, NewAbsolutePath(target))
+	}
+	return targets
+}
+
+func (filesCache *InstalledFilesCache) SetTargets(targets []AbsolutePath) {
+	filesCache.Targets = make([]string, 0, len(targets))
+	for _, target := range targets {
+		filesCache.Targets = append(filesCache.Targets, target.Str())
+	}
 }
 
 func getCachePath() string {

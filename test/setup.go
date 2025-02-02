@@ -8,6 +8,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pol-rivero/doot/lib/config"
 	"github.com/pol-rivero/doot/lib/constants"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
 func SetUp(t *testing.T) {
@@ -28,6 +29,10 @@ func SetUpFiles(t *testing.T, setUpDir []FsNode) {
 
 func sourceDir() string {
 	return os.Getenv(constants.ENV_DOOT_DIR)
+}
+
+func sourceDirPath() AbsolutePath {
+	return NewAbsolutePath(sourceDir())
 }
 
 func cacheDir() string {

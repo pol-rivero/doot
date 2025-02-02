@@ -7,9 +7,10 @@ import (
 
 	"github.com/pol-rivero/doot/lib/constants"
 	"github.com/pol-rivero/doot/lib/log"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
-func FindDotfilesDir() string {
+func FindDotfilesDir() AbsolutePath {
 	dotfilesDir, err := findDotfilesDir()
 	if err != nil {
 		log.Fatal("Error finding dotfiles directory: %v\n", err)
@@ -18,7 +19,7 @@ func FindDotfilesDir() string {
 		log.Fatal("Dotfiles directory must be an absolute path: %s\n", dotfilesDir)
 	}
 	log.Info("Using dotfiles directory: %s\n", dotfilesDir)
-	return dotfilesDir
+	return NewAbsolutePath(dotfilesDir)
 }
 
 func findDotfilesDir() (string, error) {

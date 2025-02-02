@@ -14,12 +14,12 @@ func Install() {
 	ignoreDootCrypt := !gitCryptIsInitialized()
 	filter := CreateFilter(&config, ignoreDootCrypt)
 	fileList := ScanDirectory(dotfilesDir, filter)
-	fileMapping := NewFileMapping(&config, fileList)
+	fileMapping := NewFileMapping(dotfilesDir, &config, fileList)
 
-	fileMapping.InstallNewLinks(installedFilesCache.Targets)
-	fileMapping.RemoveStaleLinks(installedFilesCache.Targets)
+	fileMapping.InstallNewLinks(installedFilesCache.GetTargets())
+	fileMapping.RemoveStaleLinks(installedFilesCache.GetTargets())
 
-	installedFilesCache.Targets = fileMapping.GetTargets()
+	installedFilesCache.SetTargets(fileMapping.GetTargets())
 	cache.Save()
 }
 

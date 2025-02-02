@@ -2,9 +2,11 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pol-rivero/doot/lib/log"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
 type Config struct {
@@ -41,9 +43,9 @@ func DefaultConfig() Config {
 	}
 }
 
-func FromFile(path string) Config {
+func FromFile(path AbsolutePath) Config {
 	config := DefaultConfig()
-	fileContents, err := os.ReadFile(path)
+	fileContents, err := os.ReadFile(path.Str())
 	if err != nil {
 		log.Info("Config file not found or unaccessible, using default config")
 		return config
@@ -53,9 +55,12 @@ func FromFile(path string) Config {
 		log.Error("Error parsing config file: %v", err)
 	}
 	config.TargetDir = os.ExpandEnv(config.TargetDir)
+	if !filepath.IsAbs(config.TargetDir) {
+		log.Fatal("Target directory must be an absolute path: %s", config.TargetDir)
+	}
 	return config
 }
 
-func FromDotfilesDir(dotfilesDir string) Config {
-	return FromFile(dotfilesDir + "/doot/config.toml")
+func FromDotfilesDir(dotfilesDir AbsolutePath) Config {
+	return FromFile(dotfilesDir.Join("doot").Join("config.toml"))
 }

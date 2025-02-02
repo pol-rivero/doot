@@ -8,6 +8,7 @@ import (
 	"github.com/pol-rivero/doot/lib/config"
 	"github.com/pol-rivero/doot/lib/constants"
 	"github.com/pol-rivero/doot/lib/log"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
 type FileFilter struct {
@@ -35,41 +36,41 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	}
 }
 
-func ScanDirectory(absolutePath string, filter FileFilter) []string {
+func ScanDirectory(dir AbsolutePath, filter FileFilter) []RelativePath {
 	const SEPARATOR_LEN = len(string(filepath.Separator))
-	prefixLen := len(absolutePath) + SEPARATOR_LEN
-	files := make([]string, 0, 64)
-	scanDirectoryRecursive(filter, &files, prefixLen, absolutePath)
+	prefixLen := len(dir) + SEPARATOR_LEN
+	files := make([]RelativePath, 0, 64)
+	scanDirectoryRecursive(filter, &files, prefixLen, dir)
 	return files
 }
 
-func scanDirectoryRecursive(filter FileFilter, files *[]string, prefixLen int, absolutePath string) {
-	entries, err := os.ReadDir(absolutePath)
+func scanDirectoryRecursive(filter FileFilter, result *[]RelativePath, prefixLen int, scanPath AbsolutePath) {
+	entries, err := os.ReadDir(scanPath.Str())
 	if err != nil {
-		log.Error("Error reading directory %s: %v", absolutePath, err)
+		log.Error("Error reading directory %s: %v", scanPath, err)
 		return
 	}
 	for _, entry := range entries {
 		entryName := entry.Name()
-		entryAbsPath := filepath.Join(absolutePath, entryName)
-		entryRelativePath := entryAbsPath[prefixLen:]
+		entryPath := scanPath.Join(entryName)
+		entryRelativePath := entryPath.ExtractRelativePath(prefixLen)
 		if filter.isExcluded(entryRelativePath, entryName) {
 			continue
 		}
 
 		if entry.IsDir() {
-			scanDirectoryRecursive(filter, files, prefixLen, entryAbsPath)
+			scanDirectoryRecursive(filter, result, prefixLen, entryPath)
 		} else {
-			*files = append(*files, entryRelativePath)
+			*result = append(*result, entryRelativePath)
 		}
 	}
 }
 
-func (f *FileFilter) isExcluded(path string, fileName string) bool {
+func (f *FileFilter) isExcluded(path RelativePath, fileName string) bool {
 	return f.matchesExcludePattern(path, fileName) && !f.IncludeGlobs.Matches(path)
 }
 
-func (f *FileFilter) matchesExcludePattern(path string, fileName string) bool {
+func (f *FileFilter) matchesExcludePattern(path RelativePath, fileName string) bool {
 	if f.IgnoreHidden && fileName[0] == '.' {
 		return true
 	}

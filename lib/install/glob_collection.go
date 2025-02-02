@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/pol-rivero/doot/lib/log"
+	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/glob"
 )
 
@@ -24,9 +25,9 @@ func NewGlobCollection(patterns []string) GlobCollection {
 	return GlobCollection{globs}
 }
 
-func (gc *GlobCollection) Matches(s string) bool {
+func (gc *GlobCollection) Matches(s RelativePath) bool {
 	for _, g := range gc.globs {
-		if g.Match(s) {
+		if g.Match(s.Str()) {
 			return true
 		}
 	}
