@@ -25,8 +25,8 @@ func FindDotfilesDir() AbsolutePath {
 func findDotfilesDir() (string, error) {
 	// 1. Try $DOOT_DIR if defined
 	if dootDir := os.Getenv(constants.ENV_DOOT_DIR); dootDir != "" {
-		_, err := os.Stat(dootDir)
-		if err == nil {
+		fileInfo, err := os.Stat(dootDir)
+		if err == nil && fileInfo.IsDir() {
 			return dootDir, nil
 		}
 	}
@@ -42,13 +42,13 @@ func findDotfilesDir() (string, error) {
 		xdgDataHome = filepath.Join(homeDir, ".local", "share")
 	}
 	dotfilesDir := filepath.Join(xdgDataHome, "dotfiles")
-	if _, err = os.Stat(dotfilesDir); err == nil {
+	if fileInfo, err := os.Stat(dotfilesDir); err == nil && fileInfo.IsDir() {
 		return dotfilesDir, nil
 	}
 
 	// 3. Try ~/.dotfiles
 	dotfilesDir = filepath.Join(homeDir, ".dotfiles")
-	if _, err = os.Stat(dotfilesDir); err == nil {
+	if fileInfo, err := os.Stat(dotfilesDir); err == nil && fileInfo.IsDir() {
 		return dotfilesDir, nil
 	}
 

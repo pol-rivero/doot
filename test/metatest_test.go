@@ -16,7 +16,7 @@ func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
 	if dootDir == "" {
 		t.Fatalf("DOOT_DIR not set")
 	}
-	if _, err := os.Stat(dootDir); err != nil {
+	if !FileExists(dootDir) {
 		t.Fatalf("DOOT_DIR does not exist")
 	}
 
@@ -24,7 +24,7 @@ func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
 	if cacheDir == "" {
 		t.Fatalf("DOOT_CACHE_DIR not set")
 	}
-	if _, err := os.Stat(cacheDir); err != nil {
+	if !FileExists(cacheDir) {
 		t.Fatalf("DOOT_CACHE_DIR does not exist")
 	}
 
@@ -35,7 +35,7 @@ func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
 	if !MatchRegex(targetDir, "^/tmp/") {
 		t.Fatalf("Temporary HOME was not created in /tmp (was %s)", targetDir)
 	}
-	if _, err := os.Stat(targetDir); err != nil {
+	if !FileExists(targetDir) {
 		t.Fatalf("HOME does not exist")
 	}
 
@@ -56,7 +56,7 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 		}),
 	})
 	dootDir := sourceDir()
-	if _, err := os.Stat(filepath.Join(dootDir, "topLevelFile")); err != nil {
+	if !FileExists(dootDir, "topLevelFile") {
 		t.Fatalf("topLevelFile does not exist")
 	}
 	fileContents, err := os.ReadFile(filepath.Join(dootDir, "topLevelFile"))
@@ -67,10 +67,10 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 		t.Fatalf("topLevelFile has unexpected contents")
 	}
 
-	if _, err := os.Stat(filepath.Join(dootDir, "topLevelDir", "file1")); err != nil {
+	if !FileExists(dootDir, "topLevelDir", "file1") {
 		t.Fatalf("file1 does not exist")
 	}
-	if _, err := os.Stat(filepath.Join(dootDir, "topLevelDir", "nestedDir", "file2")); err != nil {
+	if !FileExists(dootDir, "topLevelDir", "nestedDir", "file2") {
 		t.Fatalf("file2 does not exist")
 	}
 }
@@ -85,7 +85,7 @@ func TestMetatest_CreateConfig(t *testing.T) {
 		ConfigFile(config),
 	})
 	dootDir := sourceDir()
-	if _, err := os.Stat(filepath.Join(dootDir, "config.toml")); err != nil {
+	if !FileExists(dootDir, "config.toml") {
 		t.Fatalf("config.toml does not exist")
 	}
 	fileContents, err := os.ReadFile(filepath.Join(dootDir, "config.toml"))

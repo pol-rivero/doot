@@ -2,7 +2,6 @@ package test
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/cache"
@@ -39,7 +38,7 @@ func TestCache_SaveAndLoad(t *testing.T) {
 	cacheObj.Save()
 
 	// Check that the cache file was created and is not empty
-	if _, err := os.Stat(cacheFile()); err != nil {
+	if !FileExists(cacheFile()) {
 		t.Fatalf("Cache file not created")
 	}
 	bytes, err := os.ReadFile(cacheFile())
@@ -107,11 +106,11 @@ func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
 	cacheObj := cache.Load()
 	cacheObj.Save()
 
-	if _, err := os.Stat(cacheFile()); err == nil {
+	if FileExists(cacheFile()) {
 		t.Fatalf("Cache unexpectedly saved in unset environment variable")
 	}
 
-	if _, err := os.Stat(filepath.Join(homeDir(), ".cache", "doot", "doot-cache.bin")); err != nil {
+	if !FileExists(homeDir(), ".cache", "doot", "doot-cache.bin") {
 		t.Fatalf("Cache not saved in default location")
 	}
 }
