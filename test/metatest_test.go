@@ -76,6 +76,7 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 }
 
 func TestMetatest_CreateConfig(t *testing.T) {
+	SetUp(t)
 	config := config.DefaultConfig()
 	config.Hosts = map[string]string{
 		"my-laptop": "laptop-dots",
@@ -93,7 +94,7 @@ func TestMetatest_CreateConfig(t *testing.T) {
 		t.Fatalf("Error reading file: %v", err)
 	}
 
-	if !strings.Contains(string(fileContents), "target_dir = '$HOME'") {
+	if !MatchRegex(string(fileContents), "^target_dir = '/tmp/TestMetatest_CreateConfig") {
 		t.Fatalf("config.toml has unexpected first line: %s", string(fileContents))
 	}
 

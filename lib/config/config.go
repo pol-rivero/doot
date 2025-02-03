@@ -33,8 +33,12 @@ type Config struct {
 }
 
 func DefaultConfig() Config {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("Error retrieving home directory: %v", err)
+	}
 	return Config{
-		TargetDir:         "$HOME",
+		TargetDir:         homedir,
 		ExcludeFiles:      []string{"**/.*", "LICENSE", "README.md"},
 		IncludeFiles:      []string{},
 		ImplicitDot:       false,

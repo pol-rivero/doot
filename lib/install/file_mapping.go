@@ -10,6 +10,7 @@ import (
 	"github.com/pol-rivero/doot/lib/log"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
+	"github.com/pol-rivero/doot/lib/utils/optional"
 )
 
 type FileMapping struct {
@@ -37,7 +38,11 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 }
 
 func (fm *FileMapping) Add(newSource RelativePath) {
-	target := fm.targetBaseDir.JoinPath(fm.mapSourceToTarget(newSource))
+	relativeTarget := fm.mapSourceToTarget(newSource)
+	if !relativeTarget.HasValue() {
+		return
+	}
+	target := fm.targetBaseDir.JoinPath(relativeTarget.Value())
 	if existingSource, contains := fm.mapping[target]; contains {
 		log.Warning("Conflicting files: %s and %s both map to %s. Ignoring %s", existingSource, newSource, target, newSource)
 	} else {
@@ -160,12 +165,16 @@ func contains[T comparable](slice []T, element T) bool {
 	return false
 }
 
-func (fm *FileMapping) mapSourceToTarget(source RelativePath) RelativePath {
+func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[RelativePath] {
 	target := source
-	if fm.implicitDot && !fm.implicitDotIgnore.Contains(getTopLevelDir(source)) {
+	// The doot directory should not be symlinked
+	if strings.HasPrefix(source.Str(), "doot/") {
+		return optional.Empty[RelativePath]()
+	}
+	if fm.implicitDot && !fm.implicitDotIgnore.Contains(getTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
 		target = "." + source
 	}
-	return target
+	return optional.Of(target)
 }
 
 func getTopLevelDir(filePath RelativePath) string {
