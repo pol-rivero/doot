@@ -8,27 +8,22 @@ import (
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
+// https://stackoverflow.com/a/58148921
 func ReplaceWithSymlink(target AbsolutePath, dotfilesSource AbsolutePath) error {
 	tempLocation := target.Str() + constants.DOOT_BACKUP_EXT
-	err := os.Rename(target.Str(), tempLocation)
-	if err != nil {
-		log.Error("Failed to move %s to %s: %s", target, tempLocation, err)
+	if err := os.Remove(tempLocation); err != nil && !os.IsNotExist(err) {
+		log.Error("Failed to remove temporary file %s, consider removing it manually.\n%s", tempLocation, err)
 		return err
 	}
 
-	err = os.Symlink(dotfilesSource.Str(), target.Str())
-	if err != nil {
-		log.Error("Failed to create link %s -> %s: %s", target, dotfilesSource, err)
-		restoreErr := os.Rename(tempLocation, target.Str())
-		if restoreErr != nil {
-			log.Error("Failed to restore %s from %s! Consider restoring it manually.\n%s", target, tempLocation, restoreErr)
-		}
+	if err := os.Symlink(dotfilesSource.Str(), tempLocation); err != nil {
+		log.Error("Failed to create link %s -> %s: %s", tempLocation, dotfilesSource, err)
 		return err
 	}
 
-	err = os.Remove(tempLocation)
-	if err != nil {
-		log.Warning("Failed to remove temporary file %s, consider removing it manually.\n%s", tempLocation, err)
+	if err := os.Rename(tempLocation, target.Str()); err != nil {
+		log.Error("Failed to update %s: %s", target, err)
+		os.Remove(tempLocation)
 		return err
 	}
 

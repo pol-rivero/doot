@@ -2,6 +2,7 @@ package install
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -140,7 +141,7 @@ func handleSymlinkError(target, source AbsolutePath) {
 					return
 				}
 			} else if replace == 'd' {
-				utils.PrintDiff(target, source)
+				printDiff(target, source)
 			}
 		}
 		return
@@ -174,4 +175,14 @@ func getTopLevelDir(filePath RelativePath) string {
 		return filePathStr
 	}
 	return filePathStr[:firstSeparatorIndex]
+}
+
+func printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {
+	cmd := exec.Command("diff", "-u", leftFile.Str(), rightFile.Str())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Error("Failed to run diff: %s", err)
+	}
 }
