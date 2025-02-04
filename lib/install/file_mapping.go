@@ -95,70 +95,69 @@ func (fm *FileMapping) handleSymlinkError(target, source AbsolutePath) {
 		return
 	}
 
-	isSymlink := fileInfo.Mode()&os.ModeSymlink != 0
-	if isSymlink {
-		// Check if the existing symlink points to the correct source
-		linkSource, linkErr := os.Readlink(target.Str())
-		if linkErr != nil {
-			log.Error("Failed to read link %s: %s", target, linkErr)
+	if fileInfo.Mode()&os.ModeSymlink != 0 {
+		fm.handleExistingSymlink(target, source)
+	} else if fileInfo.Mode().IsRegular() {
+		fm.handleExistingFile(target, source)
+	} else {
+		log.Error("Failed to create link %s -> %s: %s", target, source, err)
+	}
+}
+
+func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) {
+	linkSource, linkErr := os.Readlink(target.Str())
+	if linkErr != nil {
+		log.Error("Failed to read link %s: %s", target, linkErr)
+		return
+	}
+	if linkSource == source.Str() {
+		log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
+		return
+	}
+	replace := utils.RequestInput("yN", "Link %s already exists, but points to %s instead of %s. Replace it?", target, linkSource, source)
+	if replace == 'y' {
+		err := utils.ReplaceWithSymlink(target, source)
+		if err != nil {
 			return
 		}
-		if linkSource == source.Str() {
-			log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
+	} else {
+		fm.targetsSkipped = append(fm.targetsSkipped, target)
+	}
+}
+
+func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
+	contents, readErr := os.ReadFile(target.Str())
+	if readErr != nil {
+		log.Error("Failed to read file %s: %s", target, readErr)
+		return
+	}
+	sourceContents, readErr := os.ReadFile(source.Str())
+	if readErr != nil {
+		log.Error("Failed to read file %s: %s", source, readErr)
+		return
+	}
+	if string(contents) == string(sourceContents) {
+		log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
+		err := utils.ReplaceWithSymlink(target, source)
+		if err != nil {
 			return
 		}
-		replace := utils.RequestInput("yN", "Link %s already exists, but points to %s instead of %s. Replace it?", target, linkSource, source)
-		if replace == 'y' {
+	}
+	replace := ' '
+	for replace != 'y' && replace != 'n' {
+		replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
+		switch replace {
+		case 'y':
 			err := utils.ReplaceWithSymlink(target, source)
 			if err != nil {
 				return
 			}
-		} else {
+		case 'n':
 			fm.targetsSkipped = append(fm.targetsSkipped, target)
+		case 'd':
+			printDiff(target, source)
 		}
-		return
 	}
-
-	isRegularFile := fileInfo.Mode().IsRegular()
-	if isRegularFile {
-		// Compare the contents of the existing file with the source
-		contents, readErr := os.ReadFile(target.Str())
-		if readErr != nil {
-			log.Error("Failed to read file %s: %s", target, readErr)
-			return
-		}
-		sourceContents, readErr := os.ReadFile(source.Str())
-		if readErr != nil {
-			log.Error("Failed to read file %s: %s", source, readErr)
-			return
-		}
-		if string(contents) == string(sourceContents) {
-			log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
-			err := utils.ReplaceWithSymlink(target, source)
-			if err != nil {
-				return
-			}
-		}
-		replace := ' '
-		for replace != 'y' && replace != 'n' {
-			replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
-			switch replace {
-			case 'y':
-				err := utils.ReplaceWithSymlink(target, source)
-				if err != nil {
-					return
-				}
-			case 'n':
-				fm.targetsSkipped = append(fm.targetsSkipped, target)
-			case 'd':
-				printDiff(target, source)
-			}
-		}
-		return
-	}
-
-	// The target is neither a symlink nor a regular file, so we cannot replace it
-	log.Error("Failed to create link %s -> %s: %s", target, source, err)
 }
 
 func contains[T comparable](slice []T, element T) bool {
