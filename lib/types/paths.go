@@ -42,3 +42,7 @@ func (ap AbsolutePath) JoinPath(other RelativePath) AbsolutePath {
 func (ap AbsolutePath) ExtractRelativePath(baseDirLen int) RelativePath {
 	return RelativePath(ap.Str()[baseDirLen:])
 }
+
+func (ap AbsolutePath) Parent() AbsolutePath {
+	return AbsolutePath(filepath.Dir(ap.Str()))
+}

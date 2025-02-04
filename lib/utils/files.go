@@ -40,3 +40,38 @@ func GetTopLevelDir(filePath RelativePath) string {
 	}
 	return filePathStr[:firstSeparatorIndex]
 }
+
+func EnsureParentDir(target AbsolutePath) bool {
+	parentDir := filepath.Dir(target.Str())
+	if err := os.MkdirAll(parentDir, 0755); err != nil {
+		log.Error("Failed to create directory %s: %s", parentDir, err)
+		return false
+	}
+	return true
+}
+
+func RemoveAndCleanup(removeFile AbsolutePath) {
+	err := os.Remove(removeFile.Str())
+	if err != nil {
+		log.Error("Failed to remove %s: %s", removeFile, err)
+		return
+	}
+	cleanupEmptyDir(removeFile.Parent())
+}
+
+func cleanupEmptyDir(dir AbsolutePath) {
+	dirEntries, err := os.ReadDir(dir.Str())
+	if err != nil {
+		log.Warning("Could not clean up %s: %s", dir, err)
+		return
+	}
+	if len(dirEntries) > 0 {
+		return
+	}
+	err = os.Remove(dir.Str())
+	if err != nil {
+		log.Warning("Could not clean up %s: %s", dir, err)
+	} else {
+		cleanupEmptyDir(dir.Parent())
+	}
+}

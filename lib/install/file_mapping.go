@@ -64,13 +64,21 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 	for target, source := range fm.mapping {
 		if slices.Contains(ignore, target) {
 			log.Info("Target %s already exists and will not be created", target)
-		} else {
+			continue
+		}
+		fileInfo, err := os.Lstat(target.Str())
+		if err == nil {
+			fm.handleTargetAlreadyExists(fileInfo, target, source)
+			continue
+		}
+		if os.IsNotExist(err) && utils.EnsureParentDir(target) {
 			log.Info("Linking %s -> %s", target, source)
-			err := os.Symlink(source.Str(), target.Str())
-			if err != nil {
-				fm.handleSymlinkError(target, source)
+			err = os.Symlink(source.Str(), target.Str())
+			if err == nil {
+				continue // Success
 			}
 		}
+		log.Error("Failed to create link %s -> %s: %s", target, source, err)
 	}
 }
 
@@ -78,29 +86,18 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
 			log.Info("Removing stale link %s", previousTarget)
-			err := os.Remove(previousTarget.Str())
-			if err != nil {
-				log.Error("Failed to remove stale link %s: %s", previousTarget, err)
-			}
+			utils.RemoveAndCleanup(previousTarget)
 		}
 	}
 }
 
-func (fm *FileMapping) handleSymlinkError(target, source AbsolutePath) {
-	// The most likely reason os.Symlink failed is that the target (symlink path) already exists
-	fileInfo, err := os.Lstat(target.Str())
-	if err != nil {
-		// Either the target does not exist or we cannot access it, either way this is unexpected
-		log.Error("Failed to create link %s -> %s: %s", target, source, err)
-		return
-	}
-
+func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) {
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
 		fm.handleExistingSymlink(target, source)
 	} else if fileInfo.Mode().IsRegular() {
 		fm.handleExistingFile(target, source)
 	} else {
-		log.Error("Failed to create link %s -> %s: %s", target, source, err)
+		log.Warning("Target %s exists but is not a symlink or a regular file, skipping", target)
 	}
 }
 
