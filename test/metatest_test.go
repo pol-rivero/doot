@@ -3,46 +3,29 @@ package test
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
 	SetUp(t)
-	// Check that the directories were created
 	dootDir := sourceDir()
-	if dootDir == "" {
-		t.Fatalf("DOOT_DIR not set")
-	}
-	if !FileExists(dootDir) {
-		t.Fatalf("DOOT_DIR does not exist")
-	}
+	assert.NotEmpty(t, dootDir, "DOOT_DIR not set")
+	assert.DirExists(t, dootDir, "DOOT_DIR does not exist")
 
 	cacheDir := cacheDir()
-	if cacheDir == "" {
-		t.Fatalf("DOOT_CACHE_DIR not set")
-	}
-	if !FileExists(cacheDir) {
-		t.Fatalf("DOOT_CACHE_DIR does not exist")
-	}
+	assert.NotEmpty(t, cacheDir, "DOOT_CACHE_DIR not set")
+	assert.DirExists(t, cacheDir, "DOOT_CACHE_DIR does not exist")
 
 	targetDir, err := os.UserHomeDir()
-	if err != nil {
-		t.Fatalf("Error retrieving home directory: %v", err)
-	}
-	if !MatchRegex(targetDir, "^/tmp/") {
-		t.Fatalf("Temporary HOME was not created in /tmp (was %s)", targetDir)
-	}
-	if !FileExists(targetDir) {
-		t.Fatalf("HOME does not exist")
-	}
+	assert.NoError(t, err, "Error retrieving home directory")
+	assert.Regexp(t, "^/tmp/", targetDir, "Temporary HOME was not created in /tmp")
+	assert.DirExists(t, targetDir, "HOME does not exist")
 
 	homeDir := homeDir()
-	if homeDir != targetDir {
-		t.Fatalf("homeDir() returned %s, expected %s", homeDir, targetDir)
-	}
+	assert.Equal(t, targetDir, homeDir, "homeDir() returned unexpected value")
 }
 
 func TestMetatest_CreateTempDirs(t *testing.T) {
@@ -56,23 +39,14 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 		}),
 	})
 	dootDir := sourceDir()
-	if !FileExists(dootDir, "topLevelFile") {
-		t.Fatalf("topLevelFile does not exist")
-	}
-	fileContents, err := os.ReadFile(filepath.Join(dootDir, "topLevelFile"))
-	if err != nil {
-		t.Fatalf("Error reading file: %v", err)
-	}
-	if string(fileContents) != "dummy text for file topLevelFile" {
-		t.Fatalf("topLevelFile has unexpected contents")
-	}
+	assert.FileExists(t, filepath.Join(dootDir, "topLevelFile"))
 
-	if !FileExists(dootDir, "topLevelDir", "file1") {
-		t.Fatalf("file1 does not exist")
-	}
-	if !FileExists(dootDir, "topLevelDir", "nestedDir", "file2") {
-		t.Fatalf("file2 does not exist")
-	}
+	fileContents, err := os.ReadFile(filepath.Join(dootDir, "topLevelFile"))
+	assert.NoError(t, err, "Error reading file")
+	assert.Equal(t, "dummy text for file topLevelFile", string(fileContents), "topLevelFile has unexpected contents")
+
+	assert.FileExists(t, filepath.Join(dootDir, "topLevelDir", "file1"))
+	assert.FileExists(t, filepath.Join(dootDir, "topLevelDir", "nestedDir", "file2"))
 }
 
 func TestMetatest_CreateConfig(t *testing.T) {
@@ -86,19 +60,10 @@ func TestMetatest_CreateConfig(t *testing.T) {
 		ConfigFile(config),
 	})
 	dootDir := sourceDir()
-	if !FileExists(dootDir, "config.toml") {
-		t.Fatalf("config.toml does not exist")
-	}
+	assert.FileExists(t, filepath.Join(dootDir, "config.toml"))
+
 	fileContents, err := os.ReadFile(filepath.Join(dootDir, "config.toml"))
-	if err != nil {
-		t.Fatalf("Error reading file: %v", err)
-	}
-
-	if !MatchRegex(string(fileContents), "^target_dir = '/tmp/TestMetatest_CreateConfig") {
-		t.Fatalf("config.toml has unexpected first line: %s", string(fileContents))
-	}
-
-	if !strings.Contains(string(fileContents), "[hosts]\nmy-laptop = 'laptop-dots'\nother-pc = 'other-dots'") {
-		t.Fatalf("config.toml does not contain expected hosts section: %s", string(fileContents))
-	}
+	assert.NoError(t, err, "Error reading file")
+	assert.Regexp(t, "^target_dir = '\\$HOME", string(fileContents), "config.toml has unexpected first line")
+	assert.Contains(t, string(fileContents), "[hosts]\nmy-laptop = 'laptop-dots'\nother-pc = 'other-dots'", "config.toml does not contain expected hosts section")
 }

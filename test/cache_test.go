@@ -2,30 +2,23 @@ package test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/cache"
 	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCache_GetInitial(t *testing.T) {
 	SetUp(t)
 	cacheObj := cache.Load()
-
-	if cacheObj.Version != cache.CURRENT_CACHE_VERSION {
-		t.Fatalf("Expected cache version %d, got %d", cache.CURRENT_CACHE_VERSION, cacheObj.Version)
-	}
-	if len(cacheObj.InstalledDirs) != 0 {
-		t.Fatalf("Expected 0 installed directories, got %d", len(cacheObj.InstalledDirs))
-	}
+	assert.Equal(t, cache.CURRENT_CACHE_VERSION, cacheObj.Version, "Unexpected cache version")
+	assert.Empty(t, cacheObj.InstalledDirs, "New cache should have no entries")
 
 	filesCache := cacheObj.UseDir("SomeDir")
-	if filesCache == nil {
-		t.Fatalf("Unexpected nil files cache")
-	}
-	if len(filesCache.Targets) != 0 {
-		t.Fatalf("Expected 0 files in cache, got %d", len(filesCache.Targets))
-	}
+	assert.NotNil(t, filesCache, "Unexpected nil files cache")
+	assert.Empty(t, filesCache.Targets, "New files cache should have no entries")
 }
 
 func TestCache_SaveAndLoad(t *testing.T) {
@@ -38,33 +31,17 @@ func TestCache_SaveAndLoad(t *testing.T) {
 	cacheObj.Save()
 
 	// Check that the cache file was created and is not empty
-	if !FileExists(cacheFile()) {
-		t.Fatalf("Cache file not created")
-	}
+	assert.FileExists(t, cacheFile(), "Cache file not created")
 	bytes, err := os.ReadFile(cacheFile())
-	if err != nil {
-		t.Fatalf("Error reading cache file: %v", err)
-	}
-	if len(bytes) == 0 {
-		t.Fatalf("Cache file is empty")
-	}
+	assert.NoError(t, err, "Error reading cache file")
+	assert.NotEmpty(t, bytes, "Cache file is empty")
 
 	// Load the cache again and check that the data is the same
 	cacheObj = cache.Load()
 	filesCache = cacheObj.UseDir("SomeDir")
-	if len(filesCache.Targets) != 1 {
-		t.Fatalf("Expected 1 file in cache, got %d", len(filesCache.Targets))
-	}
-	if filesCache.Targets[0] != "SomeFile.txt" {
-		t.Fatalf("Expected file 'SomeFile.txt' in cache, got '%s'", filesCache.Targets[0])
-	}
+	assert.ElementsMatch(t, filesCache.Targets, []string{"SomeFile.txt"}, "Unexpected files in cache")
 	filesCache = cacheObj.UseDir("AnotherDir")
-	if len(filesCache.Targets) != 1 {
-		t.Fatalf("Expected 1 file in cache, got %d", len(filesCache.Targets))
-	}
-	if filesCache.Targets[0] != "AnotherFile.txt" {
-		t.Fatalf("Expected file 'AnotherFile.txt' in cache, got '%s'", filesCache.Targets[0])
-	}
+	assert.Equal(t, []string{"AnotherFile.txt"}, filesCache.Targets, "Unexpected files in cache")
 }
 
 func TestCache_VersionMismatch(t *testing.T) {
@@ -78,26 +55,18 @@ func TestCache_VersionMismatch(t *testing.T) {
 
 	// Load the cache again and check that the version was reset
 	cacheObj = cache.Load()
-	if cacheObj.Version != cache.CURRENT_CACHE_VERSION {
-		t.Fatalf("Expected cache version %d, got %d", cache.CURRENT_CACHE_VERSION, cacheObj.Version)
-	}
-	if len(cacheObj.InstalledDirs) != 0 {
-		t.Fatalf("Expected 0 installed directories, got %d", len(cacheObj.InstalledDirs))
-	}
+	assert.Equal(t, cache.CURRENT_CACHE_VERSION, cacheObj.Version, "Unexpected cache version")
+	assert.Empty(t, cacheObj.InstalledDirs, "Expected 0 installed directories")
 }
 
 func TestCache_MalformedCache(t *testing.T) {
 	SetUp(t)
 	err := os.WriteFile(cacheFile(), []byte("This is not a cache file"), 0644)
-	if err != nil {
-		t.Fatalf("Error writing cache file: %v", err)
-	}
+	assert.NoError(t, err, "Error writing cache file")
 
 	// Load the cache again and check that it was reset
 	cacheObj := cache.Load()
-	if len(cacheObj.InstalledDirs) != 0 {
-		t.Fatalf("Expected 0 installed directories, got %d", len(cacheObj.InstalledDirs))
-	}
+	assert.Empty(t, cacheObj.InstalledDirs, "Expected 0 installed directories")
 }
 
 func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
@@ -106,11 +75,6 @@ func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
 	cacheObj := cache.Load()
 	cacheObj.Save()
 
-	if FileExists(cacheFile()) {
-		t.Fatalf("Cache unexpectedly saved in unset environment variable")
-	}
-
-	if !FileExists(homeDir(), ".cache", "doot", "doot-cache.bin") {
-		t.Fatalf("Cache not saved in default location")
-	}
+	assert.NoFileExists(t, cacheFile(), "Cache unexpectedly saved in unset environment variable")
+	assert.FileExists(t, filepath.Join(homeDir(), ".cache", "doot", "doot-cache.bin"), "Cache not saved in default location")
 }

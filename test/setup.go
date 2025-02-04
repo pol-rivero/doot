@@ -66,6 +66,9 @@ func File(name string) FsFile {
 }
 
 func ConfigFile(config config.Config) FsFile {
+	if config.TargetDir == homeDir() {
+		config.TargetDir = "$HOME"
+	}
 	configBytes, err := toml.Marshal(config)
 	if err != nil {
 		panic(err)
