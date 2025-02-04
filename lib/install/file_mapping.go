@@ -3,7 +3,7 @@ package install
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pol-rivero/doot/lib/config"
@@ -53,7 +53,7 @@ func (fm *FileMapping) Add(newSource RelativePath) {
 func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 	targets := make([]AbsolutePath, 0, len(fm.mapping))
 	for target := range fm.mapping {
-		if !contains(fm.targetsSkipped, target) {
+		if !slices.Contains(fm.targetsSkipped, target) {
 			targets = append(targets, target)
 		}
 	}
@@ -62,7 +62,7 @@ func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 
 func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 	for target, source := range fm.mapping {
-		if contains(ignore, target) {
+		if slices.Contains(ignore, target) {
 			log.Info("Target %s already exists and will not be created", target)
 		} else {
 			log.Info("Linking %s -> %s", target, source)
@@ -160,35 +160,17 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
 	}
 }
 
-func contains[T comparable](slice []T, element T) bool {
-	for _, e := range slice {
-		if e == element {
-			return true
-		}
-	}
-	return false
-}
-
 func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[RelativePath] {
 	target := source
 	// The doot directory should not be symlinked
 	if strings.HasPrefix(source.Str(), "doot/") {
 		return optional.Empty[RelativePath]()
 	}
-	if fm.implicitDot && !fm.implicitDotIgnore.Contains(getTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
+	if fm.implicitDot && !fm.implicitDotIgnore.Contains(utils.GetTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
 		target = "." + source
 	}
 	target = target.Replace(".doot-crypt", "")
 	return optional.Of(target)
-}
-
-func getTopLevelDir(filePath RelativePath) string {
-	filePathStr := string(filePath)
-	firstSeparatorIndex := strings.IndexRune(filePathStr, filepath.Separator)
-	if firstSeparatorIndex == -1 {
-		return filePathStr
-	}
-	return filePathStr[:firstSeparatorIndex]
 }
 
 func printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {

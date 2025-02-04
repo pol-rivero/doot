@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/pol-rivero/doot/lib/install"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +11,7 @@ var cleanCmd = &cobra.Command{
 	Short:   "Remove all symlinks created by doot.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("clean called")
+		install.Clean()
 	},
 }
 

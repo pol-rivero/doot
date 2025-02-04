@@ -5,9 +5,28 @@ import (
 
 	"github.com/pol-rivero/doot/lib/cache"
 	"github.com/pol-rivero/doot/lib/config"
+	. "github.com/pol-rivero/doot/lib/types"
 )
 
+type GetFilesFunc func(*config.Config, AbsolutePath) []RelativePath
+
 func Install() {
+	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
+		ignoreDootCrypt := !gitCryptIsInitialized()
+		filter := CreateFilter(config, ignoreDootCrypt)
+		return ScanDirectory(dotfilesDir, filter)
+	}
+	installImpl(getFiles)
+}
+
+func Clean() {
+	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
+		return []RelativePath{}
+	}
+	installImpl(getFiles)
+}
+
+func installImpl(getFiles GetFilesFunc) {
 	dotfilesDir := FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
@@ -15,9 +34,7 @@ func Install() {
 	cache := cache.Load()
 	installedFilesCache := cache.GetEntry(cacheKey)
 
-	ignoreDootCrypt := !gitCryptIsInitialized()
-	filter := CreateFilter(&config, ignoreDootCrypt)
-	fileList := ScanDirectory(dotfilesDir, filter)
+	fileList := getFiles(&config, dotfilesDir)
 	fileMapping := NewFileMapping(dotfilesDir, &config, fileList)
 
 	fileMapping.InstallNewLinks(installedFilesCache.GetTargets())

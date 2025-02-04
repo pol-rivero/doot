@@ -2,6 +2,8 @@ package utils
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/pol-rivero/doot/lib/constants"
 	"github.com/pol-rivero/doot/lib/log"
@@ -28,4 +30,13 @@ func ReplaceWithSymlink(target AbsolutePath, dotfilesSource AbsolutePath) error 
 	}
 
 	return nil
+}
+
+func GetTopLevelDir(filePath RelativePath) string {
+	filePathStr := string(filePath)
+	firstSeparatorIndex := strings.IndexRune(filePathStr, filepath.Separator)
+	if firstSeparatorIndex == -1 {
+		return filePathStr
+	}
+	return filePathStr[:firstSeparatorIndex]
 }
