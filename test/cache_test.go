@@ -14,9 +14,9 @@ func TestCache_GetInitial(t *testing.T) {
 	SetUp(t)
 	cacheObj := cache.Load()
 	assert.Equal(t, cache.CURRENT_CACHE_VERSION, cacheObj.Version, "Unexpected cache version")
-	assert.Empty(t, cacheObj.InstalledDirs, "New cache should have no entries")
+	assert.Empty(t, cacheObj.Entries, "New cache should have no entries")
 
-	filesCache := cacheObj.UseDir("SomeDir")
+	filesCache := cacheObj.GetEntry("cacheKey1")
 	assert.NotNil(t, filesCache, "Unexpected nil files cache")
 	assert.Empty(t, filesCache.Targets, "New files cache should have no entries")
 }
@@ -24,9 +24,9 @@ func TestCache_GetInitial(t *testing.T) {
 func TestCache_SaveAndLoad(t *testing.T) {
 	SetUp(t)
 	cacheObj := cache.Load()
-	filesCache := cacheObj.UseDir("SomeDir")
+	filesCache := cacheObj.GetEntry("cacheKey1")
 	filesCache.Targets = append(filesCache.Targets, "SomeFile.txt")
-	filesCache = cacheObj.UseDir("AnotherDir")
+	filesCache = cacheObj.GetEntry("cacheKey2")
 	filesCache.Targets = append(filesCache.Targets, "AnotherFile.txt")
 	cacheObj.Save()
 
@@ -38,17 +38,20 @@ func TestCache_SaveAndLoad(t *testing.T) {
 
 	// Load the cache again and check that the data is the same
 	cacheObj = cache.Load()
-	filesCache = cacheObj.UseDir("SomeDir")
-	assert.ElementsMatch(t, filesCache.Targets, []string{"SomeFile.txt"}, "Unexpected files in cache")
-	filesCache = cacheObj.UseDir("AnotherDir")
-	assert.Equal(t, []string{"AnotherFile.txt"}, filesCache.Targets, "Unexpected files in cache")
+	filesCache = cacheObj.GetEntry("cacheKey1")
+	assert.ElementsMatch(t, filesCache.Targets, []string{"SomeFile.txt"})
+	filesCache = cacheObj.GetEntry("cacheKey2")
+	assert.Equal(t, []string{"AnotherFile.txt"}, filesCache.Targets)
+	filesCache = cacheObj.GetEntry("wrongKey")
+	assert.Empty(t, filesCache.Targets, "Expected empty targets for wrong key")
+
 }
 
 func TestCache_VersionMismatch(t *testing.T) {
 	SetUp(t)
 	cacheObj := cache.Load()
 	cacheObj.Version = cache.CURRENT_CACHE_VERSION + 1
-	filesCache := cacheObj.UseDir("SomeDir")
+	filesCache := cacheObj.GetEntry("cacheKey1")
 	filesCache.Targets = append(filesCache.Targets, "SomeFile.txt")
 
 	cacheObj.Save()
@@ -56,7 +59,7 @@ func TestCache_VersionMismatch(t *testing.T) {
 	// Load the cache again and check that the version was reset
 	cacheObj = cache.Load()
 	assert.Equal(t, cache.CURRENT_CACHE_VERSION, cacheObj.Version, "Unexpected cache version")
-	assert.Empty(t, cacheObj.InstalledDirs, "Expected 0 installed directories")
+	assert.Empty(t, cacheObj.Entries)
 }
 
 func TestCache_MalformedCache(t *testing.T) {
@@ -66,7 +69,7 @@ func TestCache_MalformedCache(t *testing.T) {
 
 	// Load the cache again and check that it was reset
 	cacheObj := cache.Load()
-	assert.Empty(t, cacheObj.InstalledDirs, "Expected 0 installed directories")
+	assert.Empty(t, cacheObj.Entries)
 }
 
 func TestCache_DefaultsToHomeCacheDir(t *testing.T) {

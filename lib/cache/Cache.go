@@ -16,8 +16,8 @@ func Load() DootCache {
 	if err != nil {
 		log.Info("Cache read error: %v, creating new cache", err)
 		return DootCache{
-			Version:       CURRENT_CACHE_VERSION,
-			InstalledDirs: []*DotfilesDir{},
+			Version: CURRENT_CACHE_VERSION,
+			Entries: []*CacheEntry{},
 		}
 	}
 
@@ -26,16 +26,16 @@ func Load() DootCache {
 	if err != nil {
 		log.Warning("Error parsing cache file: %v, creating new cache", err)
 		return DootCache{
-			Version:       CURRENT_CACHE_VERSION,
-			InstalledDirs: []*DotfilesDir{},
+			Version: CURRENT_CACHE_VERSION,
+			Entries: []*CacheEntry{},
 		}
 	}
 
 	if cacheData.Version != CURRENT_CACHE_VERSION {
 		log.Info("Cache version mismatch: expected %d, got %d", CURRENT_CACHE_VERSION, cacheData.Version)
 		return DootCache{
-			Version:       CURRENT_CACHE_VERSION,
-			InstalledDirs: []*DotfilesDir{},
+			Version: CURRENT_CACHE_VERSION,
+			Entries: []*CacheEntry{},
 		}
 	}
 
@@ -55,19 +55,19 @@ func (cache *DootCache) Save() {
 	}
 }
 
-func (cache *DootCache) UseDir(dotfilesDir AbsolutePath) *InstalledFilesCache {
-	for _, installedDir := range cache.InstalledDirs {
-		if installedDir.DotfilesPath == dotfilesDir.Str() {
-			return installedDir.InstalledFiles
+func (cache *DootCache) GetEntry(cacheKey string) *InstalledFilesCache {
+	for _, entry := range cache.Entries {
+		if entry.CacheKey == cacheKey {
+			return entry.InstalledFiles
 		}
 	}
 
-	newDir := DotfilesDir{
-		DotfilesPath:   dotfilesDir.Str(),
+	newEntry := CacheEntry{
+		CacheKey:       cacheKey,
 		InstalledFiles: &InstalledFilesCache{},
 	}
-	cache.InstalledDirs = append(cache.InstalledDirs, &newDir)
-	return newDir.InstalledFiles
+	cache.Entries = append(cache.Entries, &newEntry)
+	return newEntry.InstalledFiles
 }
 
 func (filesCache *InstalledFilesCache) GetTargets() []AbsolutePath {

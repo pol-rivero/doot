@@ -1,6 +1,8 @@
 package install
 
 import (
+	"path/filepath"
+
 	"github.com/pol-rivero/doot/lib/cache"
 	"github.com/pol-rivero/doot/lib/config"
 )
@@ -8,8 +10,10 @@ import (
 func Install() {
 	dotfilesDir := FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
+
+	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
 	cache := cache.Load()
-	installedFilesCache := cache.UseDir(dotfilesDir)
+	installedFilesCache := cache.GetEntry(cacheKey)
 
 	ignoreDootCrypt := !gitCryptIsInitialized()
 	filter := CreateFilter(&config, ignoreDootCrypt)

@@ -4,12 +4,12 @@ type InstalledFilesCache struct {
 	targets []text
 }
 
-type DotfilesDir struct {
-	dotfilesPath   text
+type CacheEntry struct {
+	cacheKey       text
 	installedFiles InstalledFilesCache
 }
 
 type DootCache struct {
-	version       uint32
-	installedDirs []DotfilesDir
+	version uint32
+	entries []CacheEntry
 }
