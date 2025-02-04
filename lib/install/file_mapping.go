@@ -68,7 +68,7 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 			log.Info("Linking %s -> %s", target, source)
 			err := os.Symlink(source.Str(), target.Str())
 			if err != nil {
-				handleSymlinkError(target, source)
+				fm.handleSymlinkError(target, source)
 			}
 		}
 	}
@@ -86,7 +86,7 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
 	}
 }
 
-func handleSymlinkError(target, source AbsolutePath) {
+func (fm *FileMapping) handleSymlinkError(target, source AbsolutePath) {
 	// The most likely reason os.Symlink failed is that the target (symlink path) already exists
 	fileInfo, err := os.Lstat(target.Str())
 	if err != nil {
@@ -113,6 +113,8 @@ func handleSymlinkError(target, source AbsolutePath) {
 			if err != nil {
 				return
 			}
+		} else {
+			fm.targetsSkipped = append(fm.targetsSkipped, target)
 		}
 		return
 	}
@@ -140,12 +142,15 @@ func handleSymlinkError(target, source AbsolutePath) {
 		replace := ' '
 		for replace != 'y' && replace != 'n' {
 			replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
-			if replace == 'y' {
+			switch replace {
+			case 'y':
 				err := utils.ReplaceWithSymlink(target, source)
 				if err != nil {
 					return
 				}
-			} else if replace == 'd' {
+			case 'n':
+				fm.targetsSkipped = append(fm.targetsSkipped, target)
+			case 'd':
 				printDiff(target, source)
 			}
 		}
