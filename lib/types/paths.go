@@ -1,6 +1,9 @@
 package types
 
-import "path/filepath"
+import (
+	"path/filepath"
+	"strings"
+)
 
 type RelativePath string
 type AbsolutePath string
@@ -11,6 +14,10 @@ func (rp RelativePath) Str() string {
 
 func (rp RelativePath) MakeAbsolute(baseDir AbsolutePath) AbsolutePath {
 	return baseDir.Join(rp.Str())
+}
+
+func (rp RelativePath) Replace(substring, replacement string) RelativePath {
+	return RelativePath(strings.ReplaceAll(rp.Str(), substring, replacement))
 }
 
 func (ap AbsolutePath) Str() string {
