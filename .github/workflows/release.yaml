@@ -35,7 +35,7 @@ jobs:
             echo "Found release version: ${VERSION}"
           else
             # Otherwise, use a date-based version string.
-            VERSION=$(date +'pre-%Y.%m.%d.%H%M')
+            VERSION=$(date +'pre.%Y.%m.%d.%H%M')
             RELEASE_TYPE="prerelease"
             echo "No release version marker found, using prerelease version: ${VERSION}"
           fi
