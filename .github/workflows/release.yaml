@@ -51,6 +51,7 @@ jobs:
           tag_name: "${{ env.VERSION }}"
           name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
           prerelease: ${{ env.RELEASE_TYPE != 'release' }}
+          generate_release_notes: true
           files: |
             dist/doot-linux-arm64
             dist/doot-linux-x86_64
@@ -63,20 +64,9 @@ jobs:
 
       - name: Generate PKGBUILD files from templates
         run: |
-          # Generate doot PKGBUILD from its template.
           sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot.PKGBUILD.template > doot-PKGBUILD
-          echo "Generated doot-PKGBUILD:"
-          cat doot-PKGBUILD
-
-          # Generate doot-git PKGBUILD from its template.
           sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-git.PKGBUILD.template > doot-git-PKGBUILD
-          echo "Generated doot-git-PKGBUILD:"
-          cat doot-git-PKGBUILD
-
-          # Generate doot-bin PKGBUILD from its template.
           sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-bin.PKGBUILD.template > doot-bin-PKGBUILD
-          echo "Generated doot-bin-PKGBUILD:"
-          cat doot-bin-PKGBUILD
 
       - name: Upload PKGBUILD Artifacts
         uses: actions/upload-artifact@v4
@@ -87,26 +77,26 @@ jobs:
             doot-git-PKGBUILD
             doot-bin-PKGBUILD
 
-      # - name: Publish AUR package (doot)
-      #   uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
-      #   if: ${{ env.RELEASE_TYPE == 'release' }}
-      #   with:
-      #     pkgname: doot
-      #     pkgbuild: ./doot-PKGBUILD
-      #     commit_username: ${{ secrets.AUR_USERNAME }}
-      #     commit_email: ${{ secrets.AUR_EMAIL }}
-      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-      #     commit_message: Update AUR package
-      #     ssh_keyscan_types: rsa,ecdsa,ed25519
+      - name: Publish AUR package (doot)
+        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        if: ${{ env.RELEASE_TYPE == 'release' }}
+        with:
+          pkgname: doot
+          pkgbuild: ./doot-PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update AUR package
+          ssh_keyscan_types: rsa,ecdsa,ed25519
 
-      # - name: Publish AUR package (doot-bin)
-      #   uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
-      #   if: ${{ env.RELEASE_TYPE == 'release' }}
-      #   with:
-      #     pkgname: doot-bin
-      #     pkgbuild: ./doot-bin-PKGBUILD
-      #     commit_username: ${{ secrets.AUR_USERNAME }}
-      #     commit_email: ${{ secrets.AUR_EMAIL }}
-      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-      #     commit_message: Update AUR package
-      #     ssh_keyscan_types: rsa,ecdsa,ed25519
+      - name: Publish AUR package (doot-bin)
+        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        if: ${{ env.RELEASE_TYPE == 'release' }}
+        with:
+          pkgname: doot-bin
+          pkgbuild: ./doot-bin-PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update AUR package
+          ssh_keyscan_types: rsa,ecdsa,ed25519
