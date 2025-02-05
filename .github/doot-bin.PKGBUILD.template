@@ -14,7 +14,7 @@ optdepends=('diff: To display changes before overwriting a file')
 
 source=("https://github.com/pol-rivero/doot/releases/download/{{VERSION}}/doot-linux-x86_64"
         "https://github.com/pol-rivero/doot/releases/download/{{VERSION}}/doot-linux-arm64")
-sha256sums=('SKIP' 'SKIP')
+sha256sums=('{{X86_CHECKSUM}}' '{{ARM64_CHECKSUM}}')
 
 package() {
     install -Dm755 "doot-linux-x86_64" "$pkgdir/usr/bin/doot"

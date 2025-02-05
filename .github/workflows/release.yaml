@@ -68,6 +68,11 @@ jobs:
           sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-git.PKGBUILD.template > doot-git-PKGBUILD
           sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-bin.PKGBUILD.template > doot-bin-PKGBUILD
 
+          X86_CHECKSUM=$(sha256sum dist/doot-linux-x86_64 | cut -d ' ' -f 1)
+          ARM64_CHECKSUM=$(sha256sum dist/doot-linux-arm64 | cut -d ' ' -f 1)
+          sed -i "s/{{X86_CHECKSUM}}/${X86_CHECKSUM}/" doot-bin-PKGBUILD
+          sed -i "s/{{ARM64_CHECKSUM}}/${ARM64_CHECKSUM}/" doot-bin-PKGBUILD
+
       - name: Upload PKGBUILD Artifacts
         uses: actions/upload-artifact@v4
         with:
