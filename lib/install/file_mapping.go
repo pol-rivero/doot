@@ -85,7 +85,7 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
-			log.Info("Removing stale link %s", previousTarget)
+			log.Info("Removing link %s", previousTarget)
 			utils.RemoveAndCleanup(previousTarget, fm.targetBaseDir)
 		}
 	}

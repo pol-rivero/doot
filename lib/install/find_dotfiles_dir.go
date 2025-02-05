@@ -52,5 +52,9 @@ func findDotfilesDir() (string, error) {
 		return dotfilesDir, nil
 	}
 
-	return "", fmt.Errorf("none of the candidate dotfiles directories exist")
+	err = fmt.Errorf("none of the candidate dotfiles directories exist:\n  - $DOOT_DIR = '%s'\n  - %s\n  - %s",
+		os.Getenv(constants.ENV_DOOT_DIR),
+		filepath.Join(xdgDataHome, "dotfiles"),
+		dotfilesDir)
+	return "", err
 }
