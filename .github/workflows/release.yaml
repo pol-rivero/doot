@@ -1,0 +1,123 @@
+name: Build, Release, and AUR Update
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build_release:
+    runs-on: ubuntu-latest
+    env:
+      PATH: ${{ env.PATH }}:/usr/local/go/bin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.5'
+
+      - name: Install Go dependencies
+        run: go mod download
+
+      - name: Determine Version
+        id: determine_version
+        shell: bash
+        run: |
+          # Get the commit message from the push event.
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          echo "Commit message: $COMMIT_MESSAGE"
+          
+          # Check if commit message starts with "!release " followed by a semantic version.
+          if [[ "$COMMIT_MESSAGE" =~ ^\!release[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            RELEASE_TYPE="release"
+            echo "Found release version: ${VERSION}"
+          else
+            # Otherwise, use a date-based version string.
+            VERSION=$(date +'%Y.%m.%d-%H%M')
+            RELEASE_TYPE="prerelease"
+            echo "No release version marker found, using prerelease version: ${VERSION}"
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+          echo "::set-output name=version::${VERSION}"
+          echo "::set-output name=releasetype::${RELEASE_TYPE}"
+
+      - name: Build binaries
+        run: make build
+
+      # - name: Create GitHub Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: "${{ env.VERSION }}"
+      #     name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
+      #     prerelease: ${{ env.RELEASE_TYPE != 'release' }}
+      #     files: |
+      #       dist/doot-linux-arm64
+      #       dist/doot-linux-x86_64
+      #       dist/doot-darwin-arm64
+      #       dist/doot-darwin-x86_64
+      #       dist/doot-windows-arm64.exe
+      #       dist/doot-windows-x86_64.exe
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux Binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate PKGBUILD files from templates
+        run: |
+          # Generate doot PKGBUILD from its template.
+          sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot.PKGBUILD.template > doot-PKGBUILD
+          echo "Generated doot-PKGBUILD:"
+          cat doot-PKGBUILD
+
+          # Generate doot-git PKGBUILD from its template.
+          sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-git.PKGBUILD.template > doot-git-PKGBUILD
+          echo "Generated doot-git-PKGBUILD:"
+          cat doot-git-PKGBUILD
+
+          # Generate doot-bin PKGBUILD from its template.
+          sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-bin.PKGBUILD.template > doot-bin-PKGBUILD
+          echo "Generated doot-bin-PKGBUILD:"
+          cat doot-bin-PKGBUILD
+
+      - name: Upload PKGBUILD Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: pkgbuilds
+          path: |
+            doot-PKGBUILD
+            doot-git-PKGBUILD
+            doot-bin-PKGBUILD
+
+      # - name: Publish AUR package (doot)
+      #   uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+      #   if: ${{ env.RELEASE_TYPE == 'release' }}
+      #   with:
+      #     pkgname: doot
+      #     pkgbuild: ./doot-PKGBUILD
+      #     commit_username: ${{ secrets.AUR_USERNAME }}
+      #     commit_email: ${{ secrets.AUR_EMAIL }}
+      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+      #     commit_message: Update AUR package
+      #     ssh_keyscan_types: rsa,ecdsa,ed25519
+
+      # - name: Publish AUR package (doot-bin)
+      #   uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+      #   if: ${{ env.RELEASE_TYPE == 'release' }}
+      #   with:
+      #     pkgname: doot-bin
+      #     pkgbuild: ./doot-bin-PKGBUILD
+      #     commit_username: ${{ secrets.AUR_USERNAME }}
+      #     commit_email: ${{ secrets.AUR_EMAIL }}
+      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+      #     commit_message: Update AUR package
+      #     ssh_keyscan_types: rsa,ecdsa,ed25519

@@ -1,0 +1,31 @@
+# Maintainer: Pol Rivero <aur at polrivero dot com>
+pkgname=doot
+pkgver={{VERSION}}
+pkgrel=1
+pkgdesc="A fast and simple dotfiles manager that just gets the job done"
+arch=('x86_64' 'aarch64')
+url="https://github.com/pol-rivero/doot"
+license=('MIT')
+provides=('doot')
+conflicts=('doot')
+
+depends=('git' 'git-crypt')
+makedepends=('git' 'go' 'make')
+optdepends=('diff: To display changes before overwriting a file')
+
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "${pkgname}-${pkgver}"
+    make build
+}
+
+package() {
+    cd "${pkgname}-${pkgver}"
+    if [[ "$CARCH" == "aarch64" ]]; then
+        install -Dm755 "dist/doot-linux-arm64" "$pkgdir/usr/bin/doot"
+    else
+        install -Dm755 "dist/doot-linux-x86_64" "$pkgdir/usr/bin/doot"
+    fi
+}
