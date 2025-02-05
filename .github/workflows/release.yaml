@@ -8,14 +8,12 @@ on:
 jobs:
   build_release:
     runs-on: ubuntu-latest
-    env:
-      PATH: ${{ env.PATH }}:/usr/local/go/bin
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23.5'
 
@@ -37,38 +35,29 @@ jobs:
             echo "Found release version: ${VERSION}"
           else
             # Otherwise, use a date-based version string.
-            VERSION=$(date +'%Y.%m.%d-%H%M')
+            VERSION=$(date +'pre-%Y.%m.%d.%H%M')
             RELEASE_TYPE="prerelease"
             echo "No release version marker found, using prerelease version: ${VERSION}"
           fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
-          echo "::set-output name=version::${VERSION}"
-          echo "::set-output name=releasetype::${RELEASE_TYPE}"
 
       - name: Build binaries
         run: make build
 
-      # - name: Create GitHub Release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     tag_name: "${{ env.VERSION }}"
-      #     name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
-      #     prerelease: ${{ env.RELEASE_TYPE != 'release' }}
-      #     files: |
-      #       dist/doot-linux-arm64
-      #       dist/doot-linux-x86_64
-      #       dist/doot-darwin-arm64
-      #       dist/doot-darwin-x86_64
-      #       dist/doot-windows-arm64.exe
-      #       dist/doot-windows-x86_64.exe
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux Binaries to GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          
+          tag_name: "${{ env.VERSION }}"
+          name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
+          prerelease: ${{ env.RELEASE_TYPE != 'release' }}
+          files: |
+            dist/doot-linux-arm64
+            dist/doot-linux-x86_64
+            dist/doot-darwin-arm64
+            dist/doot-darwin-x86_64
+            dist/doot-windows-arm64.exe
+            dist/doot-windows-x86_64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -90,7 +79,7 @@ jobs:
           cat doot-bin-PKGBUILD
 
       - name: Upload PKGBUILD Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pkgbuilds
           path: |
