@@ -2,7 +2,6 @@ package test
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/cache"
@@ -79,5 +78,5 @@ func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
 	cacheObj.Save()
 
 	assert.NoFileExists(t, cacheFile(), "Cache unexpectedly saved in unset environment variable")
-	assert.FileExists(t, filepath.Join(homeDir(), ".cache", "doot", "doot-cache.bin"), "Cache not saved in default location")
+	assert.FileExists(t, homeDir()+"/.cache/doot/doot-cache.bin", "Cache not saved in default location")
 }

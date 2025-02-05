@@ -86,7 +86,7 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
 			log.Info("Removing stale link %s", previousTarget)
-			utils.RemoveAndCleanup(previousTarget)
+			utils.RemoveAndCleanup(previousTarget, fm.targetBaseDir)
 		}
 	}
 }
@@ -111,7 +111,7 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) {
 		log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
 		return
 	}
-	replace := utils.RequestInput("yN", "Link %s already exists, but points to %s instead of %s. Replace it?", target, linkSource, source)
+	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
 		err := utils.ReplaceWithSymlink(target, source)
 		if err != nil {
@@ -135,10 +135,8 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
 	}
 	if string(contents) == string(sourceContents) {
 		log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
-		err := utils.ReplaceWithSymlink(target, source)
-		if err != nil {
-			return
-		}
+		utils.ReplaceWithSymlink(target, source)
+		return
 	}
 	replace := ' '
 	for replace != 'y' && replace != 'n' {

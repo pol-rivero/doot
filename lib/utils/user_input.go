@@ -5,11 +5,14 @@ import (
 	"strings"
 )
 
+var USER_INPUT_MOCK_RESPONSE *string = nil
+
 func RequestInput(options string, format string, args ...interface{}) rune {
 	suffix := fmt.Sprintf(" [%s] ", addSlashes(options))
 	fmt.Printf(format+suffix, args...)
 	defaultResponse := getFirstUpperRune(options)
 	responseStr := getUserInput()
+	fmt.Printf("\n")
 
 	var responseRune rune
 	if responseStr == "" {
@@ -22,7 +25,7 @@ func RequestInput(options string, format string, args ...interface{}) rune {
 
 	acceptedResponses := strings.ToLower(options)
 	if !strings.ContainsRune(acceptedResponses, responseRune) {
-		fmt.Printf("\nInvalid response: '%c', defaulting to '%c'\n", responseRune, defaultResponse)
+		fmt.Printf("Invalid response: '%c', defaulting to '%c'\n", responseRune, defaultResponse)
 		responseRune = ensureLower(defaultResponse)
 	}
 
@@ -41,6 +44,9 @@ func addSlashes(s string) string {
 }
 
 func getUserInput() string {
+	if USER_INPUT_MOCK_RESPONSE != nil {
+		return *USER_INPUT_MOCK_RESPONSE
+	}
 	var response string
 	fmt.Scanf("%s", &response)
 	response = strings.ToLower(response)

@@ -50,16 +50,19 @@ func EnsureParentDir(target AbsolutePath) bool {
 	return true
 }
 
-func RemoveAndCleanup(removeFile AbsolutePath) {
+func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) {
 	err := os.Remove(removeFile.Str())
 	if err != nil {
 		log.Error("Failed to remove %s: %s", removeFile, err)
 		return
 	}
-	cleanupEmptyDir(removeFile.Parent())
+	cleanupEmptyDir(removeFile.Parent(), stopAt)
 }
 
-func cleanupEmptyDir(dir AbsolutePath) {
+func cleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
+	if dir == stopAt {
+		return
+	}
 	dirEntries, err := os.ReadDir(dir.Str())
 	if err != nil {
 		log.Warning("Could not clean up %s: %s", dir, err)
@@ -72,6 +75,6 @@ func cleanupEmptyDir(dir AbsolutePath) {
 	if err != nil {
 		log.Warning("Could not clean up %s: %s", dir, err)
 	} else {
-		cleanupEmptyDir(dir.Parent())
+		cleanupEmptyDir(dir.Parent(), stopAt)
 	}
 }

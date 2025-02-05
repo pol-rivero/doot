@@ -139,3 +139,11 @@ func createFile(parentDir string, file FsFile) {
 		panic(err)
 	}
 }
+
+func createSymlink(parentDir string, name string, target string) {
+	symlinkPath := filepath.Join(parentDir, name)
+	err := os.Symlink(target, symlinkPath)
+	if err != nil {
+		panic(err)
+	}
+}
