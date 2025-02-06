@@ -7,6 +7,7 @@ import (
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/glob_collection"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
@@ -14,8 +15,8 @@ import (
 type FileFilter struct {
 	IgnoreHidden    bool
 	IgnoreDootCrypt bool
-	ExcludeGlobs    GlobCollection
-	IncludeGlobs    GlobCollection
+	ExcludeGlobs    glob_collection.GlobCollection
+	IncludeGlobs    glob_collection.GlobCollection
 }
 
 func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
@@ -31,8 +32,8 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	return FileFilter{
 		IgnoreHidden:    ignoreHidden,
 		IgnoreDootCrypt: ignoreDootCrypt,
-		ExcludeGlobs:    NewGlobCollection(newExcludeFiles),
-		IncludeGlobs:    NewGlobCollection(config.IncludeFiles),
+		ExcludeGlobs:    glob_collection.NewGlobCollection(newExcludeFiles),
+		IncludeGlobs:    glob_collection.NewGlobCollection(config.IncludeFiles),
 	}
 }
 

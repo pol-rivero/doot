@@ -1,4 +1,4 @@
-package install
+package glob_collection
 
 import (
 	"path/filepath"
