@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pol-rivero/doot/lib/config"
+	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,8 +3,8 @@ package test
 import (
 	"testing"
 
-	"github.com/pol-rivero/doot/lib/cache"
-	"github.com/pol-rivero/doot/lib/config"
+	"github.com/pol-rivero/doot/lib/common/cache"
+	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/install"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/pelletier/go-toml/v2"
-	"github.com/pol-rivero/doot/lib/config"
-	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/config"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -15,20 +15,20 @@ func SetUp(t *testing.T) {
 	tempDootDir := t.TempDir()
 	tempCacheDir := t.TempDir()
 	tempHomeDir := t.TempDir()
-	os.Setenv(constants.ENV_DOOT_DIR, tempDootDir)
-	os.Setenv(constants.ENV_DOOT_CACHE_DIR, tempCacheDir)
+	os.Setenv(common.ENV_DOOT_DIR, tempDootDir)
+	os.Setenv(common.ENV_DOOT_CACHE_DIR, tempCacheDir)
 	os.Setenv("HOME", tempHomeDir)
 }
 
 func SetUpFiles(t *testing.T, setUpDir []FsNode) {
 	SetUp(t)
 	for _, node := range setUpDir {
-		createNode(os.Getenv(constants.ENV_DOOT_DIR), node)
+		createNode(os.Getenv(common.ENV_DOOT_DIR), node)
 	}
 }
 
 func sourceDir() string {
-	return os.Getenv(constants.ENV_DOOT_DIR)
+	return os.Getenv(common.ENV_DOOT_DIR)
 }
 
 func sourceDirPath() AbsolutePath {
@@ -36,7 +36,7 @@ func sourceDirPath() AbsolutePath {
 }
 
 func cacheDir() string {
-	return os.Getenv(constants.ENV_DOOT_CACHE_DIR)
+	return os.Getenv(common.ENV_DOOT_CACHE_DIR)
 }
 
 func cacheFile() string {

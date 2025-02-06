@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pol-rivero/doot/lib/cache"
+	"github.com/pol-rivero/doot/lib/common/cache"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/stretchr/testify/assert"
 )

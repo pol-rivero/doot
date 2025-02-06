@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pol-rivero/doot/lib/cache"
-	"github.com/pol-rivero/doot/lib/constants"
+	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -73,7 +73,7 @@ func TestCache_MalformedCache(t *testing.T) {
 
 func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
 	SetUp(t)
-	os.Unsetenv(constants.ENV_DOOT_CACHE_DIR)
+	os.Unsetenv(common.ENV_DOOT_CACHE_DIR)
 	cacheObj := cache.Load()
 	cacheObj.Save()
 

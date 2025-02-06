@@ -4,8 +4,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/pol-rivero/doot/lib/constants"
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -95,7 +95,7 @@ func getCachePath() string {
 }
 
 func getCacheContainingDir() string {
-	cacheDir := os.Getenv(constants.ENV_DOOT_CACHE_DIR)
+	cacheDir := os.Getenv(common.ENV_DOOT_CACHE_DIR)
 	if cacheDir != "" {
 		return cacheDir
 	}

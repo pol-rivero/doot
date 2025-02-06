@@ -6,11 +6,12 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/pol-rivero/doot/lib/config"
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
 	"github.com/pol-rivero/doot/lib/utils/optional"
+	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
 type FileMapping struct {
@@ -18,7 +19,7 @@ type FileMapping struct {
 	sourceBaseDir     AbsolutePath
 	targetBaseDir     AbsolutePath
 	implicitDot       bool
-	implicitDotIgnore utils.Set[string]
+	implicitDotIgnore set.Set[string]
 	targetsSkipped    []AbsolutePath
 }
 
@@ -28,7 +29,7 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 		sourceBaseDir:     dotfilesDir,
 		targetBaseDir:     NewAbsolutePath(config.TargetDir),
 		implicitDot:       config.ImplicitDot,
-		implicitDotIgnore: utils.NewSetFromSlice(config.ImplicitDotIgnore),
+		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),
 		targetsSkipped:    make([]AbsolutePath, 0),
 	}
 	for _, sourceFile := range sourceFiles {
@@ -71,7 +72,7 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 			fm.handleTargetAlreadyExists(fileInfo, target, source)
 			continue
 		}
-		if os.IsNotExist(err) && utils.EnsureParentDir(target) {
+		if os.IsNotExist(err) && EnsureParentDir(target) {
 			log.Info("Linking %s -> %s", target, source)
 			err = os.Symlink(source.Str(), target.Str())
 			if err == nil {
@@ -86,7 +87,7 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
 			log.Info("Removing link %s", previousTarget)
-			utils.RemoveAndCleanup(previousTarget, fm.targetBaseDir)
+			RemoveAndCleanup(previousTarget, fm.targetBaseDir)
 		}
 	}
 }
@@ -113,7 +114,7 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) {
 	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
-		err := utils.ReplaceWithSymlink(target, source)
+		err := ReplaceWithSymlink(target, source)
 		if err != nil {
 			return
 		}
@@ -135,7 +136,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
 	}
 	if string(contents) == string(sourceContents) {
 		log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
-		utils.ReplaceWithSymlink(target, source)
+		ReplaceWithSymlink(target, source)
 		return
 	}
 	replace := ' '
@@ -143,7 +144,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
 		replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
 		switch replace {
 		case 'y':
-			err := utils.ReplaceWithSymlink(target, source)
+			err := ReplaceWithSymlink(target, source)
 			if err != nil {
 				return
 			}
@@ -161,7 +162,7 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[
 	if strings.HasPrefix(source.Str(), "doot/") {
 		return optional.Empty[RelativePath]()
 	}
-	if fm.implicitDot && !fm.implicitDotIgnore.Contains(utils.GetTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
+	if fm.implicitDot && !fm.implicitDotIgnore.Contains(GetTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
 		target = "." + source
 	}
 	target = target.Replace(".doot-crypt", "")

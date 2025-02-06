@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pol-rivero/doot/lib/config"
-	"github.com/pol-rivero/doot/lib/constants"
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -22,7 +22,7 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	ignoreHidden := false
 	newExcludeFiles := make([]string, 0, len(config.ExcludeFiles))
 	for _, excludePattern := range config.ExcludeFiles {
-		if excludePattern == constants.IGNORE_HIDDEN_FILES_GLOB {
+		if excludePattern == common.IGNORE_HIDDEN_FILES_GLOB {
 			ignoreHidden = true
 		} else {
 			newExcludeFiles = append(newExcludeFiles, excludePattern)
@@ -74,7 +74,7 @@ func (f *FileFilter) matchesExcludePattern(path RelativePath, fileName string) b
 	if f.IgnoreHidden && fileName[0] == '.' {
 		return true
 	}
-	if f.IgnoreDootCrypt && strings.Contains(fileName, constants.DOOT_CRYPT_EXT) {
+	if f.IgnoreDootCrypt && strings.Contains(fileName, common.DOOT_CRYPT_EXT) {
 		return true
 	}
 	return f.ExcludeGlobs.Matches(path)

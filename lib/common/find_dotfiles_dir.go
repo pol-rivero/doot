@@ -1,12 +1,11 @@
-package install
+package common
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/pol-rivero/doot/lib/constants"
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -24,7 +23,7 @@ func FindDotfilesDir() AbsolutePath {
 
 func findDotfilesDir() (string, error) {
 	// 1. Try $DOOT_DIR if defined
-	if dootDir := os.Getenv(constants.ENV_DOOT_DIR); dootDir != "" {
+	if dootDir := os.Getenv(ENV_DOOT_DIR); dootDir != "" {
 		fileInfo, err := os.Stat(dootDir)
 		if err == nil && fileInfo.IsDir() {
 			return dootDir, nil
@@ -37,7 +36,7 @@ func findDotfilesDir() (string, error) {
 	}
 
 	// 2. Try $XDG_DATA_HOME/dotfiles (or ~/.local/share/dotfiles)
-	xdgDataHome := os.Getenv(constants.ENV_XDG_DATA_HOME)
+	xdgDataHome := os.Getenv(ENV_XDG_DATA_HOME)
 	if xdgDataHome == "" {
 		xdgDataHome = filepath.Join(homeDir, ".local", "share")
 	}
@@ -53,7 +52,7 @@ func findDotfilesDir() (string, error) {
 	}
 
 	err = fmt.Errorf("none of the candidate dotfiles directories exist:\n  - $DOOT_DIR = '%s'\n  - %s\n  - %s",
-		os.Getenv(constants.ENV_DOOT_DIR),
+		os.Getenv(ENV_DOOT_DIR),
 		filepath.Join(xdgDataHome, "dotfiles"),
 		dotfilesDir)
 	return "", err

@@ -3,8 +3,9 @@ package install
 import (
 	"path/filepath"
 
-	"github.com/pol-rivero/doot/lib/cache"
-	"github.com/pol-rivero/doot/lib/config"
+	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/cache"
+	"github.com/pol-rivero/doot/lib/common/config"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -27,7 +28,7 @@ func Clean() {
 }
 
 func installImpl(getFiles GetFilesFunc) {
-	dotfilesDir := FindDotfilesDir()
+	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
 	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir

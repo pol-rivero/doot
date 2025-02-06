@@ -1,15 +1,15 @@
-package utils
+package set
 
 type Set[T comparable] struct {
 	elements map[T]struct{}
 }
 
-func NewSet[T comparable](capacity int) Set[T] {
+func New[T comparable](capacity int) Set[T] {
 	return Set[T]{make(map[T]struct{}, capacity)}
 }
 
-func NewSetFromSlice[T comparable](slice []T) Set[T] {
-	set := NewSet[T](len(slice))
+func NewFromSlice[T comparable](slice []T) Set[T] {
+	set := New[T](len(slice))
 	for _, element := range slice {
 		set.Add(element)
 	}

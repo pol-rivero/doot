@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 

@@ -3,7 +3,7 @@ package install
 import (
 	"path/filepath"
 
-	"github.com/pol-rivero/doot/lib/log"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/glob"
 )
