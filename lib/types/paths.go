@@ -20,6 +20,25 @@ func (rp RelativePath) Replace(substring, replacement string) RelativePath {
 	return RelativePath(strings.ReplaceAll(rp.Str(), substring, replacement))
 }
 
+func (rp RelativePath) TopLevelDir() string {
+	firstSeparatorIndex := strings.IndexRune(rp.Str(), filepath.Separator)
+	if firstSeparatorIndex == -1 {
+		return rp.Str()
+	}
+	return rp.Str()[:firstSeparatorIndex]
+}
+
+func (rp RelativePath) IsHidden() bool {
+	return strings.HasPrefix(rp.Str(), ".")
+}
+
+func (rp RelativePath) Unhide() RelativePath {
+	if !rp.IsHidden() {
+		return rp
+	}
+	return RelativePath(rp.Str()[1:])
+}
+
 func (ap AbsolutePath) Str() string {
 	return string(ap)
 }

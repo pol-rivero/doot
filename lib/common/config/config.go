@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -58,13 +59,24 @@ func FromFile(path AbsolutePath) Config {
 	if err != nil {
 		log.Error("Error parsing config file: %v", err)
 	}
-	config.TargetDir = os.ExpandEnv(config.TargetDir)
-	if !filepath.IsAbs(config.TargetDir) {
-		log.Fatal("Target directory must be an absolute path: %s", config.TargetDir)
-	}
+	verifyConfig(&config)
 	return config
 }
 
 func FromDotfilesDir(dotfilesDir AbsolutePath) Config {
 	return FromFile(dotfilesDir.Join("doot").Join("config.toml"))
+}
+
+func verifyConfig(config *Config) {
+	config.TargetDir = filepath.Clean(os.ExpandEnv(config.TargetDir))
+	if !filepath.IsAbs(config.TargetDir) {
+		log.Fatal("Invalid config: 'target_dir = %s', must be an absolute path", config.TargetDir)
+	}
+	for _, implicitDotIgnore := range config.ImplicitDotIgnore {
+		if strings.ContainsRune(implicitDotIgnore, filepath.Separator) {
+			topLevelDir := RelativePath(implicitDotIgnore).TopLevelDir()
+			log.Fatal("Invalid config. 'implicit_dot_ignore -> %s' must be a top-level file or directory. Consider adding '%s' instead",
+				implicitDotIgnore, topLevelDir)
+		}
+	}
 }

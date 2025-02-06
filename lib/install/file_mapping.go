@@ -162,7 +162,7 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[
 	if strings.HasPrefix(source.Str(), "doot/") {
 		return optional.Empty[RelativePath]()
 	}
-	if fm.implicitDot && !fm.implicitDotIgnore.Contains(GetTopLevelDir(source)) && !strings.HasPrefix(source.Str(), ".") {
+	if fm.implicitDot && !fm.implicitDotIgnore.Contains(source.TopLevelDir()) && !strings.HasPrefix(source.Str(), ".") {
 		target = "." + source
 	}
 	target = target.Replace(".doot-crypt", "")

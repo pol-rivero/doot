@@ -3,7 +3,6 @@ package install
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -32,15 +31,6 @@ func ReplaceWithSymlink(target AbsolutePath, dotfilesSource AbsolutePath) error 
 	return nil
 }
 
-func GetTopLevelDir(filePath RelativePath) string {
-	filePathStr := string(filePath)
-	firstSeparatorIndex := strings.IndexRune(filePathStr, filepath.Separator)
-	if firstSeparatorIndex == -1 {
-		return filePathStr
-	}
-	return filePathStr[:firstSeparatorIndex]
-}
-
 func EnsureParentDir(target AbsolutePath) bool {
 	parentDir := filepath.Dir(target.Str())
 	if err := os.MkdirAll(parentDir, 0755); err != nil {
@@ -52,11 +42,14 @@ func EnsureParentDir(target AbsolutePath) bool {
 
 func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) {
 	err := os.Remove(removeFile.Str())
-	if err != nil {
-		log.Error("Failed to remove %s: %s", removeFile, err)
+	if err == nil {
+		cleanupEmptyDir(removeFile.Parent(), stopAt)
 		return
+	} else if os.IsNotExist(err) {
+		log.Info("Link %s does not exist, it may have been removed manually", removeFile)
+	} else {
+		log.Error("Failed to remove %s: %s", removeFile, err)
 	}
-	cleanupEmptyDir(removeFile.Parent(), stopAt)
 }
 
 func cleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
