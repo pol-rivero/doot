@@ -39,6 +39,10 @@ func (rp RelativePath) Unhide() RelativePath {
 	return RelativePath(rp.Str()[1:])
 }
 
+func (ap RelativePath) Parent() RelativePath {
+	return RelativePath(filepath.Dir(ap.Str()))
+}
+
 func (ap AbsolutePath) Str() string {
 	return string(ap)
 }

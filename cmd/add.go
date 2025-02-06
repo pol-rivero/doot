@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/pol-rivero/doot/lib/add"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +11,15 @@ var addCmd = &cobra.Command{
 	Short:   "Move one or more files to the dotfiles directory and symlink them.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("add called")
+		isCrypt, err := cmd.Flags().GetBool("crypt")
+		if err != nil {
+			panic(err)
+		}
+		hostSpecific, err := cmd.Flags().GetBool("host")
+		if err != nil {
+			panic(err)
+		}
+		add.Add(args, isCrypt, hostSpecific)
 	},
 }
 
