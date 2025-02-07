@@ -12,12 +12,12 @@ import (
 
 func TestInstall_DefaultConfig(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 
 	install.Install()
 	assertHomeDirContents(t, "", []string{
 		"file1",
-		"file2",
+		"file2.txt",
 		"dir1",
 		"dir3",
 	})
@@ -40,8 +40,8 @@ func TestInstall_DefaultConfig(t *testing.T) {
 
 func TestInstall_HiddenFiles(t *testing.T) {
 	config := config.DefaultConfig()
-	config.ExcludeFiles = []string{"file2"}
-	setUpTestFiles(t, config)
+	config.ExcludeFiles = []string{"file2.txt"}
+	setUpFiles_TestInstall(t, config)
 
 	install.Install()
 	assertHomeDirContents(t, "", []string{
@@ -65,13 +65,13 @@ func TestInstall_ImplicitDot(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ExcludeFiles = []string{}
 	config.ImplicitDot = true
-	config.ImplicitDotIgnore = []string{"file2", "dir3"}
-	setUpTestFiles(t, config)
+	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
+	setUpFiles_TestInstall(t, config)
 
 	install.Install()
 	assertHomeDirContents(t, "", []string{
 		".file1",
-		"file2",
+		"file2.txt",
 		".dir1",
 		".dir2",
 		"dir3",
@@ -93,7 +93,7 @@ func TestInstall_ImplicitDot(t *testing.T) {
 
 func TestInstall_MixedWithRegularFiles(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), File("existingFile"))
 	createDir(homeDir(), Dir("dir1", []FsNode{
 		File("existingFileInDir1"),
@@ -107,7 +107,7 @@ func TestInstall_MixedWithRegularFiles(t *testing.T) {
 	assertHomeDirContents(t, "", []string{
 		"existingFile",
 		"file1",
-		"file2",
+		"file2.txt",
 		"dir1",
 		"dir3",
 	})
@@ -131,15 +131,15 @@ func TestInstall_UpdatesCache(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ExcludeFiles = []string{}
 	config.ImplicitDot = true
-	config.ImplicitDotIgnore = []string{"file2", "dir3"}
+	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	install.Install()
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AbsolutePath{
 		homePath.Join(".file1"),
-		homePath.Join("file2"),
+		homePath.Join("file2.txt"),
 		homePath.Join(".dir1/.file2"),
 		homePath.Join(".dir1/file3"),
 		homePath.Join(".dir1/nestedDir/file4"),
@@ -153,7 +153,7 @@ func TestInstall_UpdatesCache(t *testing.T) {
 
 func TestInstall_IncrementalInstall(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), File("someFileInstalledInAPreviousRun"))
 
 	// Lie to the cache and see that only the other files were added.
@@ -169,7 +169,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 
 	install.Install()
 	assertHomeDirContents(t, "", []string{
-		"file2",
+		"file2.txt",
 		"dir1",
 		"dir3",
 	})
@@ -180,7 +180,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AbsolutePath{
 		homePath.Join("file1"),
-		homePath.Join("file2"),
+		homePath.Join("file2.txt"),
 		homePath.Join("dir1/file3"),
 		homePath.Join("dir1/nestedDir/file4"),
 		homePath.Join("dir3/file6"),
@@ -189,17 +189,17 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 
 func TestInstall_SilentOverwrite(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	// Due to the implementation of File(), it has the same contents as the one in dotfiles dir
 	createFile(homeDir(), File("file1"))
-	createSymlink(homeDir(), "file2", sourceDir()+"/file2")
+	createSymlink(homeDir(), "file2.txt", sourceDir()+"/file2.txt")
 	assertHomeRegularFile(t, "file1")
 
 	install.Install()
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeDirContents(t, "", []string{
 		"file1",
-		"file2",
+		"file2.txt",
 		"dir1",
 		"dir3",
 	})
@@ -207,7 +207,7 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AbsolutePath{
 		homePath.Join("file1"),
-		homePath.Join("file2"),
+		homePath.Join("file2.txt"),
 		homePath.Join("dir1/file3"),
 		homePath.Join("dir1/nestedDir/file4"),
 		homePath.Join("dir3/file6"),
@@ -216,16 +216,16 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 
 func TestInstall_OverwriteN(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
-	createSymlink(homeDir(), "file2", sourceDir()+"/outdatedLink")
+	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
 
 	response := "n"
 	utils.USER_INPUT_MOCK_RESPONSE = &response
 
 	install.Install()
 	assertHomeRegularFile(t, "file1")
-	assertHomeLink(t, "file2", sourceDir()+"/outdatedLink")
+	assertHomeLink(t, "file2.txt", sourceDir()+"/outdatedLink")
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AbsolutePath{
@@ -237,34 +237,34 @@ func TestInstall_OverwriteN(t *testing.T) {
 
 func TestInstall_OverwriteY(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpTestFiles(t, config)
+	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
-	createSymlink(homeDir(), "file2", sourceDir()+"/outdatedLink")
+	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
 
 	response := "y"
 	utils.USER_INPUT_MOCK_RESPONSE = &response
 
 	install.Install()
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
-	assertHomeLink(t, "file2", sourceDir()+"/file2")
+	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AbsolutePath{
 		homePath.Join("file1"),
-		homePath.Join("file2"),
+		homePath.Join("file2.txt"),
 		homePath.Join("dir1/file3"),
 		homePath.Join("dir1/nestedDir/file4"),
 		homePath.Join("dir3/file6"),
 	})
 }
 
-func setUpTestFiles(t *testing.T, config config.Config) {
+func setUpFiles_TestInstall(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{
 			ConfigFile(config),
 		}),
 		File("file1"),
-		File("file2"),
+		File("file2.txt"),
 		Dir("dir1", []FsNode{
 			File(".file2"),
 			File("file3"),

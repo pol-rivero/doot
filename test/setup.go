@@ -23,7 +23,7 @@ func SetUp(t *testing.T) {
 func SetUpFiles(t *testing.T, setUpDir []FsNode) {
 	SetUp(t)
 	for _, node := range setUpDir {
-		createNode(os.Getenv(common.ENV_DOOT_DIR), node)
+		createNode(sourceDir(), node)
 	}
 }
 

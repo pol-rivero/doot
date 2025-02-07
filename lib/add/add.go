@@ -29,11 +29,12 @@ func Add(files []string, crypt bool, hostSpecific bool) {
 	}
 
 	for _, file := range files {
-		dotfilePath, err := ProcessAddedFile(file, params)
+		dotfileRelativePath, err := processAddedFile(file, params)
 		if err != nil {
-			log.Warning("Can't add %s: %v", file, err)
+			log.Error("Can't add %s: %v", file, err)
 			continue
 		}
+		dotfilePath := dotfilesDir.JoinPath(dotfileRelativePath)
 		err = os.MkdirAll(filepath.Dir(dotfilePath.Str()), 0755)
 		if err != nil {
 			log.Error("Error creating directory %s: %v", filepath.Dir(dotfilePath.Str()), err)
@@ -59,9 +60,12 @@ type ProcessAddedFileParams struct {
 	excludeFiles      glob_collection.GlobCollection
 }
 
-func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
+func processAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
 	fileInfo, err := os.Stat(input)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return "", fmt.Errorf("this file does not exist")
+		}
 		return "", err
 	}
 	if fileInfo.IsDir() {

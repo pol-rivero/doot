@@ -12,7 +12,16 @@ import (
 
 func assertHomeDirContents(t *testing.T, dir string, expected []string) {
 	t.Helper()
-	path := filepath.Join(homeDir(), dir)
+	assertDirContents(t, filepath.Join(homeDir(), dir), expected)
+}
+
+func assertSourceDirContents(t *testing.T, dir string, expected []string) {
+	t.Helper()
+	assertDirContents(t, filepath.Join(sourceDir(), dir), expected)
+}
+
+func assertDirContents(t *testing.T, path string, expected []string) {
+	t.Helper()
 	fileNames := []string{}
 	dirEntries, err := os.ReadDir(path)
 	assert.NoError(t, err, "Error reading directory")
