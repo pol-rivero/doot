@@ -28,6 +28,11 @@ func (rp RelativePath) TopLevelDir() string {
 	return rp.Str()[:firstSeparatorIndex]
 }
 
+func (rp RelativePath) Split() (RelativePath, string) {
+	dir, file := filepath.Split(rp.Str())
+	return RelativePath(dir), file
+}
+
 func (rp RelativePath) IsHidden() bool {
 	return strings.HasPrefix(rp.Str(), ".")
 }

@@ -18,12 +18,18 @@ import (
 func Add(files []string, crypt bool, hostSpecific bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
-	implicitDotIgnore := set.NewFromSlice(config.ImplicitDotIgnore)
-	includeFiles := glob_collection.NewGlobCollection(config.IncludeFiles)
-	excludeFiles := glob_collection.NewGlobCollection(config.ExcludeFiles)
+	params := ProcessAddedFileParams{
+		crypt:             crypt,
+		hostSpecific:      hostSpecific,
+		targetDir:         config.TargetDir,
+		implicitDot:       config.ImplicitDot,
+		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),
+		includeFiles:      glob_collection.NewGlobCollection(config.IncludeFiles),
+		excludeFiles:      glob_collection.NewGlobCollection(config.ExcludeFiles),
+	}
 
 	for _, file := range files {
-		dotfilePath, err := ProcessAddedFile(file, config.TargetDir, config.ImplicitDot, implicitDotIgnore, includeFiles, excludeFiles)
+		dotfilePath, err := ProcessAddedFile(file, params)
 		if err != nil {
 			log.Warning("Can't add %s: %v", file, err)
 			continue
@@ -43,14 +49,17 @@ func Add(files []string, crypt bool, hostSpecific bool) {
 	install.Install()
 }
 
-func ProcessAddedFile(
-	input string,
-	targetDir string,
-	implicitDot bool,
-	implicitDotIgnore set.Set[string],
-	includeFiles glob_collection.GlobCollection,
-	excludeFiles glob_collection.GlobCollection,
-) (RelativePath, error) {
+type ProcessAddedFileParams struct {
+	crypt             bool
+	hostSpecific      bool
+	targetDir         string
+	implicitDot       bool
+	implicitDotIgnore set.Set[string]
+	includeFiles      glob_collection.GlobCollection
+	excludeFiles      glob_collection.GlobCollection
+}
+
+func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
 	fileInfo, err := os.Stat(input)
 	if err != nil {
 		return "", err
@@ -62,14 +71,14 @@ func ProcessAddedFile(
 	if err != nil {
 		return "", fmt.Errorf("error getting absolute path: %v", err)
 	}
-	if !strings.HasPrefix(absFile, targetDir) {
-		return "", fmt.Errorf("it's not inside target directory %s", targetDir)
+	if !strings.HasPrefix(absFile, params.targetDir) {
+		return "", fmt.Errorf("it's not inside target directory %s", params.targetDir)
 	}
 
-	targetDirLen := len(targetDir) + len(string(filepath.Separator))
+	targetDirLen := len(params.targetDir) + len(string(filepath.Separator))
 	relPath := NewAbsolutePath(absFile).ExtractRelativePath(targetDirLen)
 
-	if implicitDot && !implicitDotIgnore.Contains(relPath.TopLevelDir()) {
+	if params.implicitDot && !params.implicitDotIgnore.Contains(relPath.TopLevelDir()) {
 		if relPath.IsHidden() {
 			relPath = relPath.Unhide()
 		} else {
@@ -77,8 +86,16 @@ func ProcessAddedFile(
 		}
 	}
 
-	if err := checkIsIncluded(relPath, includeFiles, excludeFiles); err != nil {
+	if err := checkIsIncluded(relPath, params.includeFiles, params.excludeFiles); err != nil {
 		return "", err
+	}
+
+	if params.crypt {
+		relPath = addDootCryptExtension(relPath)
+	}
+
+	if params.hostSpecific {
+		// TODO
 	}
 
 	return relPath, nil
@@ -92,4 +109,16 @@ func checkIsIncluded(relPath RelativePath, includeFiles glob_collection.GlobColl
 		return fmt.Errorf("%s matches exclude_files but is not included in include_files", relPath)
 	}
 	return checkIsIncluded(relPath.Parent(), includeFiles, excludeFiles)
+}
+
+func addDootCryptExtension(relPath RelativePath) RelativePath {
+	dir, file := relPath.Split()
+	parts := strings.Split(file, ".")
+	// TODO: maybe can be simplified
+	if len(parts) > 1 {
+		parts = append(parts[:len(parts)-1], common.DOOT_CRYPT_EXT, parts[len(parts)-1])
+	} else {
+		parts = append(parts, common.DOOT_CRYPT_EXT)
+	}
+	return RelativePath(filepath.Join(dir.Str(), strings.Join(parts, ".")))
 }
