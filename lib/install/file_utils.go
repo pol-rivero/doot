@@ -40,16 +40,17 @@ func EnsureParentDir(target AbsolutePath) bool {
 	return true
 }
 
-func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) {
+func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) bool {
 	err := os.Remove(removeFile.Str())
 	if err == nil {
 		cleanupEmptyDir(removeFile.Parent(), stopAt)
-		return
+		return true
 	} else if os.IsNotExist(err) {
 		log.Info("Link %s does not exist, it may have been removed manually", removeFile)
 	} else {
 		log.Error("Failed to remove %s: %s", removeFile, err)
 	}
+	return false
 }
 
 func cleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {

@@ -1,11 +1,14 @@
 package install
 
 import (
+	"fmt"
 	"path/filepath"
 
+	"github.com/fatih/color"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -38,9 +41,32 @@ func installImpl(getFiles GetFilesFunc) {
 	fileList := getFiles(&config, dotfilesDir)
 	fileMapping := NewFileMapping(dotfilesDir, &config, fileList)
 
-	fileMapping.InstallNewLinks(installedFilesCache.GetTargets())
-	fileMapping.RemoveStaleLinks(installedFilesCache.GetTargets())
+	added := fileMapping.InstallNewLinks(installedFilesCache.GetTargets())
+	removed := fileMapping.RemoveStaleLinks(installedFilesCache.GetTargets())
 
 	installedFilesCache.SetTargets(fileMapping.GetInstalledTargets())
 	cache.Save()
+
+	if !log.IsQuiet() {
+		printChanges(added, removed)
+	}
+}
+
+func printChanges(added int, removed int) {
+	if added == 0 && removed == 0 {
+		fmt.Println("No changes made")
+		return
+	}
+	if added > 0 {
+		boldGreen := color.New(color.FgGreen, color.Bold).SprintFunc()
+		fmt.Printf(boldGreen("%d")+color.GreenString(" files added"), added)
+	}
+	if added > 0 && removed > 0 {
+		fmt.Print(", ")
+	}
+	if removed > 0 {
+		boldRed := color.New(color.FgRed, color.Bold).SprintFunc()
+		fmt.Printf(boldRed("%d")+color.RedString(" files removed"), removed)
+	}
+	fmt.Println()
 }

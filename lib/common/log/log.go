@@ -11,12 +11,14 @@ var (
 	infolnLogger  *log.Logger = nil
 	warningLogger *log.Logger = log.New(color.Error, color.YellowString("WARNING: "), 0)
 	errorLogger   *log.Logger = log.New(color.Error, color.RedString("ERROR: "), 0)
+	isQuiet       bool
 )
 
 func Init(verbose bool, quiet bool) {
 	if verbose {
 		infolnLogger = log.New(color.Output, "", 0)
 	}
+	isQuiet = quiet
 	if quiet {
 		warningLogger.SetOutput(io.Discard)
 		errorLogger.SetOutput(io.Discard)
@@ -39,4 +41,8 @@ func Error(format string, v ...interface{}) {
 
 func Fatal(format string, v ...interface{}) {
 	errorLogger.Fatalf(format, v...)
+}
+
+func IsQuiet() bool {
+	return isQuiet
 }

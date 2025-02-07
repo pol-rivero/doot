@@ -61,7 +61,8 @@ func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
+func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) int {
+	createdLinksCount := 0
 	for target, source := range fm.mapping {
 		if slices.Contains(ignore, target) {
 			log.Info("Target %s already exists and will not be created", target)
@@ -76,20 +77,27 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) {
 			log.Info("Linking %s -> %s", target, source)
 			err = os.Symlink(source.Str(), target.Str())
 			if err == nil {
-				continue // Success
+				createdLinksCount++
+				continue
 			}
 		}
 		log.Error("Failed to create link %s -> %s: %s", target, source, err)
 	}
+	return createdLinksCount
 }
 
-func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) {
+func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) int {
+	removedLinksCount := 0
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
 			log.Info("Removing link %s", previousTarget)
-			RemoveAndCleanup(previousTarget, fm.targetBaseDir)
+			success := RemoveAndCleanup(previousTarget, fm.targetBaseDir)
+			if success {
+				removedLinksCount++
+			}
 		}
 	}
+	return removedLinksCount
 }
 
 func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) {
