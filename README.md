@@ -77,8 +77,9 @@ After that, if you have `DOOT_DIR` set in your shell configuration file (`~/.bas
 target_dir = "$HOME"
 
 # Files and directories to ignore. Each entry is a glob pattern relative to the dotfiles directory.
+# IMPORTANT: Hidden files/directories are ignored by default. If you set `implicit_dot` to false, you should remove the `**/.*` pattern from this list.
 exclude_files = [
-  "**/.*",      # Files and directories that start with a dot are ignored by default
+  "**/.*",
   "LICENSE",
   "README.md",
 ]
@@ -89,11 +90,11 @@ include_files = []
 
 # If set to true, files and directories in the root of the dotfiles directory will be prefixed with a dot. For example, `<dotfiles dir>/config/foo` will be symlinked to `~/.config/foo`.
 # This is useful if you don't want to have hidden files in the root of the dotfiles directory.
-implicit_dot = false
+implicit_dot = true
 
 # Top-level files and directories that won't be prefixed with a dot if `implicit_dot` is set to true. Each entry is the name of a file or directory in the root of the dotfiles directory.
 implicit_dot_ignore = [
-    "bin"
+  "bin"
 ]
 
 # Key-value pairs of "host name" -> "host-specific directory".

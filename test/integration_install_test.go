@@ -12,6 +12,7 @@ import (
 
 func TestInstall_DefaultConfig(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 
 	install.Install()
@@ -40,6 +41,7 @@ func TestInstall_DefaultConfig(t *testing.T) {
 
 func TestInstall_HiddenFiles(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	config.ExcludeFiles = []string{"file2.txt"}
 	setUpFiles_TestInstall(t, config)
 
@@ -93,6 +95,7 @@ func TestInstall_ImplicitDot(t *testing.T) {
 
 func TestInstall_MixedWithRegularFiles(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), File("existingFile"))
 	createDir(homeDir(), Dir("dir1", []FsNode{
@@ -153,6 +156,7 @@ func TestInstall_UpdatesCache(t *testing.T) {
 
 func TestInstall_IncrementalInstall(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), File("someFileInstalledInAPreviousRun"))
 
@@ -189,6 +193,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 
 func TestInstall_SilentOverwrite(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	// Due to the implementation of File(), it has the same contents as the one in dotfiles dir
 	createFile(homeDir(), File("file1"))
@@ -216,6 +221,7 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 
 func TestInstall_OverwriteN(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
@@ -237,6 +243,7 @@ func TestInstall_OverwriteN(t *testing.T) {
 
 func TestInstall_OverwriteY(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")

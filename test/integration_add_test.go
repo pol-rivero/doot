@@ -10,6 +10,7 @@ import (
 
 func TestAdd_BasicMapping(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
 	os.Chdir(homeDir())
 
@@ -49,6 +50,7 @@ func TestAdd_IncorrectInputs(t *testing.T) {
 
 func TestAdd_FromAnotherPWD(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
 	os.Chdir(homeDir() + "/dir1")
 
@@ -69,6 +71,7 @@ func TestAdd_FromAnotherPWD(t *testing.T) {
 
 func TestAdd_WeirdInputPath(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
 	os.Chdir(homeDir() + "/dir1")
 
@@ -87,6 +90,7 @@ func TestAdd_WeirdInputPath(t *testing.T) {
 
 func TestAdd_ExcludeInclude(t *testing.T) {
 	config := config.DefaultConfig()
+	config.ImplicitDot = false
 	config.ExcludeFiles = []string{"file1", "*.txt", "dir1", "dir3/**"}
 	config.IncludeFiles = []string{"**/file6", "file2.txt"}
 	setUpFiles_TestAdd(t, config)
@@ -114,6 +118,7 @@ func TestAdd_ImplicitDot(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = true
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
+	config.ExcludeFiles = []string{}
 	setUpFiles_TestAdd(t, config)
 	os.Chdir(homeDir())
 
@@ -135,9 +140,9 @@ func TestAdd_ImplicitDot(t *testing.T) {
 		"file5",
 		".foo",
 	})
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
-	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeLink(t, ".dir2/file5", sourceDir()+"/dir2/file5")
+	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6")
 }
 
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {
