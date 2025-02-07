@@ -13,7 +13,7 @@ type GetFilesFunc func(*config.Config, AbsolutePath) []RelativePath
 
 func Install() {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
-		ignoreDootCrypt := !gitCryptIsInitialized()
+		ignoreDootCrypt := !common.GitCryptIsInitialized(dotfilesDir)
 		filter := CreateFilter(config, ignoreDootCrypt)
 		return ScanDirectory(dotfilesDir, filter)
 	}
@@ -43,9 +43,4 @@ func installImpl(getFiles GetFilesFunc) {
 
 	installedFilesCache.SetTargets(fileMapping.GetInstalledTargets())
 	cache.Save()
-}
-
-func gitCryptIsInitialized() bool {
-	// TODO
-	return false
 }

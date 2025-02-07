@@ -28,6 +28,11 @@ func Add(files []string, crypt bool, hostSpecific bool) {
 		excludeFiles:      glob_collection.NewGlobCollection(config.ExcludeFiles),
 	}
 
+	if crypt && !common.GitCryptIsInitialized(dotfilesDir) {
+		log.Error("Can't add private files with --crypt flag because repository is not initialized. Run 'doot crypt init' first.")
+		return
+	}
+
 	for _, file := range files {
 		dotfileRelativePath, err := processAddedFile(file, params)
 		if err != nil {
@@ -118,11 +123,10 @@ func checkIsIncluded(relPath RelativePath, includeFiles glob_collection.GlobColl
 func addDootCryptExtension(relPath RelativePath) RelativePath {
 	dir, file := relPath.Split()
 	parts := strings.Split(file, ".")
-	// TODO: maybe can be simplified
 	if len(parts) > 1 {
-		parts = append(parts[:len(parts)-1], common.DOOT_CRYPT_EXT, parts[len(parts)-1])
+		parts = append(parts[:len(parts)-1], common.DOOT_CRYPT_EXT_WITHOUT_DOT, parts[len(parts)-1])
 	} else {
-		parts = append(parts, common.DOOT_CRYPT_EXT)
+		parts = append(parts, common.DOOT_CRYPT_EXT_WITHOUT_DOT)
 	}
 	return RelativePath(filepath.Join(dir.Str(), strings.Join(parts, ".")))
 }

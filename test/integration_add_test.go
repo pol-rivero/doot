@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/add"
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
 )
 
@@ -145,6 +146,64 @@ func TestAdd_ImplicitDot(t *testing.T) {
 	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6")
 }
 
+func TestAdd_WithCryptExtensionUninitialized(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config)
+	os.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+		"file2.txt",
+		"dir1/nestedDir/file4",
+		"dir.with.dots/file.with.some.dots",
+		"dir.with.dots/file-without-dots",
+	}, true, false)
+
+	assertSourceDirContents(t, "", []string{
+		"doot",
+	})
+}
+
+func TestAdd_WithCryptExtension(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config)
+	initializeGitCrypt()
+	os.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+		"file2.txt",
+		"dir1/nestedDir/file4",
+		"dir.with.dots/file.with.some.dots",
+		"dir.with.dots/file-without-dots",
+	}, true, false)
+	assertSourceDirContents(t, "", []string{
+		".git",
+		"doot",
+		"file1.doot-crypt",
+		"file2.doot-crypt.txt",
+		"dir1",
+		"dir.with.dots",
+	})
+	assertSourceDirContents(t, "dir1", []string{
+		"nestedDir",
+	})
+	assertSourceDirContents(t, "dir1/nestedDir", []string{
+		"file4.doot-crypt",
+	})
+	assertSourceDirContents(t, "dir.with.dots", []string{
+		"file.with.some.doot-crypt.dots",
+		"file-without-dots.doot-crypt",
+	})
+	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
+	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.doot-crypt.txt")
+	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4.doot-crypt")
+	assertHomeLink(t, "dir.with.dots/file.with.some.dots", sourceDir()+"/dir.with.dots/file.with.some.doot-crypt.dots")
+	assertHomeLink(t, "dir.with.dots/file-without-dots", sourceDir()+"/dir.with.dots/file-without-dots.doot-crypt")
+}
+
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{
@@ -169,9 +228,29 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 			File("file6"),
 			File("file7"),
 		}),
+		Dir("dir.with.dots", []FsNode{
+			File("file.with.some.dots"),
+			File("file-without-dots"),
+		}),
 		Dir("emptyDir", []FsNode{}),
 	}
 	for _, node := range testFiles {
 		createNode(homeDir(), node)
 	}
+}
+
+func initializeGitCrypt() {
+	createNode(sourceDir(), Dir(".git", []FsNode{
+		Dir("git-crypt", []FsNode{
+			Dir("keys", []FsNode{
+				File("default"),
+			}),
+		}),
+		Dir("info", []FsNode{
+			FsFile{
+				Name:    "attributes",
+				Content: common.GITATTRIBUTES_CONTENT,
+			},
+		}),
+	}))
 }
