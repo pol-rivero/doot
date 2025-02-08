@@ -10,7 +10,7 @@ provides=('doot')
 conflicts=('doot')
 
 depends=('git' 'git-crypt')
-optdepends=('diff: To display changes before overwriting a file')
+optdepends=('diffutils: To display changes before overwriting a file')
 
 source_x86_64=("https://github.com/pol-rivero/doot/releases/download/{{VERSION}}/doot-linux-x86_64")
 sha256sums_x86_64=('{{X86_CHECKSUM}}')

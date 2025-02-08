@@ -15,7 +15,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   exit
 fi
 
-TAG_NAME="pre.$(date +'%Y.%m.%d.%H%M')"
+TAG_NAME="pre.$(date -u +'%Y.%m.%d.%H%M')"
 echo "Creating and pushing tag: $TAG_NAME"
 
 git tag -a "$TAG_NAME" -m "Create pre-release tag $TAG_NAME"

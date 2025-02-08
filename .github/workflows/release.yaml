@@ -57,7 +57,6 @@ jobs:
           name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
           prerelease: ${{ env.RELEASE_TYPE != 'release' }}
           generate_release_notes: true
-          target_commitish: release
           files: |
             dist/doot-linux-arm64
             dist/doot-linux-x86_64
