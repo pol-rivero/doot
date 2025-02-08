@@ -2,8 +2,8 @@ name: Build, Release, and AUR Update
 
 on:
   push:
-    branches:
-      - release
+    tags:
+      - '*'  # Trigger on any tag push
 
 jobs:
   build_release:
@@ -33,22 +33,18 @@ jobs:
         id: determine_version
         shell: bash
         run: |
-          # Get the commit message from the push event.
-          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
-          echo "Commit message: $COMMIT_MESSAGE"
-          
-          # Check if commit message starts with "!release " followed by a semantic version.
-          if [[ "$COMMIT_MESSAGE" =~ ^\!release[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            VERSION="${BASH_REMATCH[1]}"
-            RELEASE_TYPE="release"
-            echo "Found release version: ${VERSION}"
-          else
-            # Otherwise, use a date-based version string.
-            VERSION=$(date +'pre.%Y.%m.%d.%H%M')
+          # Extract the tag name
+          TAG_NAME="${{ github.ref_name }}"  # GitHub provides the tag name directly
+          echo "Tag name: $TAG_NAME"
+
+          # Determine if it's a pre-release (starts with 'pre.')
+          if [[ "$TAG_NAME" == pre.* ]]; then
             RELEASE_TYPE="prerelease"
-            echo "No release version marker found, using prerelease version: ${VERSION}"
+          else
+            RELEASE_TYPE="release"
           fi
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
 
       - name: Build binaries
@@ -101,7 +97,7 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: Update AUR package
+          commit_message: "Update AUR package to version ${{ env.VERSION }}"
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-bin)
@@ -113,5 +109,5 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: Update AUR package
+          commit_message: "Update AUR package to version ${{ env.VERSION }}"
           ssh_keyscan_types: rsa,ecdsa,ed25519
