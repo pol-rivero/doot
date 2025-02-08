@@ -19,6 +19,9 @@ test:
 check:
 	staticcheck ./...
 
+create-prerelease:
+	.github/create-prerelease.sh
+
 doot-%: codegen
 	@GOOS=$(word 1,$(subst -, ,$*)) \
 	GOARCH=$(ARCH_MAP_$(word 2,$(subst -, ,$*))) \
