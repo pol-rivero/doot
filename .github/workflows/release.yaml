@@ -87,12 +87,18 @@ jobs:
             doot-git-PKGBUILD
             doot-bin-PKGBUILD
 
+      - name: Rename PKGBUILDs
+        run: |
+          mkdir -p pkgbuilds/doot pkgbuilds/doot-bin
+          mv doot-PKGBUILD pkgbuilds/doot/PKGBUILD
+          mv doot-bin-PKGBUILD pkgbuilds/doot-bin/PKGBUILD
+
       - name: Publish AUR package (doot)
         uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
         if: ${{ env.RELEASE_TYPE == 'release' }}
         with:
           pkgname: doot
-          pkgbuild: ./doot-PKGBUILD
+          pkgbuild: ./pkgbuilds/doot/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -104,7 +110,7 @@ jobs:
         if: ${{ env.RELEASE_TYPE == 'release' }}
         with:
           pkgname: doot-bin
-          pkgbuild: ./doot-bin-PKGBUILD
+          pkgbuild: ./pkgbuilds/doot-bin/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
