@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/pol-rivero/doot/lib/crypt"
+	"github.com/pol-rivero/doot/lib/utils/optional"
 	"github.com/spf13/cobra"
 )
 
@@ -17,16 +17,20 @@ var cryptInitCmd = &cobra.Command{
 	Short: "Initialize the repository for use with encrypted files.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("crypt init called")
+		crypt.Init()
 	},
 }
 
 var cryptUnlockCmd = &cobra.Command{
 	Use:   "unlock [key_file]",
-	Short: "Unlock a protected repository to be able to access encrypted files.",
+	Short: "Unlock a protected repository to be able to access encrypted files. If using GPG, the key file is optional. Otherwise, use the key file obtained with 'doot crypt export-key'.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("crypt unlock called")
+		keyFile := optional.Empty[string]()
+		if len(args) > 0 {
+			keyFile = optional.Of(args[0])
+		}
+		crypt.Unlock(keyFile)
 	},
 }
 
@@ -35,7 +39,8 @@ var cryptExportKeyCmd = &cobra.Command{
 	Short: "Export the public key to a file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("crypt export-key called")
+		outputFile := args[0]
+		crypt.ExportKey(outputFile)
 	},
 }
 
@@ -44,7 +49,8 @@ var cryptAddGpgUserCmd = &cobra.Command{
 	Short: "Add a GPG user to the list of users that can decrypt the repository.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fmt.Println("crypt add-gpg-user called")
+		userId := args[0]
+		crypt.AddGpgUser(userId)
 	},
 }
 

@@ -10,17 +10,18 @@ import (
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/glob_collection"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/crypt"
 	"github.com/pol-rivero/doot/lib/install"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
-func Add(files []string, crypt bool, hostSpecific bool) {
+func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 	params := ProcessAddedFileParams{
-		crypt:             crypt,
-		hostSpecific:      hostSpecific,
+		crypt:             isCrypt,
+		hostSpecific:      isHostSpecific,
 		targetDir:         config.TargetDir,
 		implicitDot:       config.ImplicitDot,
 		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),
@@ -28,7 +29,7 @@ func Add(files []string, crypt bool, hostSpecific bool) {
 		excludeFiles:      glob_collection.NewGlobCollection(config.ExcludeFiles),
 	}
 
-	if crypt && !common.GitCryptIsInitialized(dotfilesDir) {
+	if isCrypt && !crypt.GitCryptIsInitialized(dotfilesDir) {
 		log.Error("Can't add private files with --crypt flag because repository is not initialized. Run 'doot crypt init' first.")
 		return
 	}

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
+	"github.com/pol-rivero/doot/lib/crypt"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -67,7 +67,7 @@ func initializeGitCrypt() {
 		Dir("info", []FsNode{
 			FsFile{
 				Name:    "attributes",
-				Content: common.GITATTRIBUTES_CONTENT,
+				Content: crypt.GetGitAttributesContentForTesting(),
 			},
 		}),
 	}))
