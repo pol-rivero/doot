@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "doot",
-	Short: "A fast and simple dotfiles manager that just gets the job done.",
+	Short: "A fast and simple dotfiles manager that just gets the job done.\nVersion: " + VERSION_STRING,
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
 		install.Install()

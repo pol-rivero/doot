@@ -23,21 +23,13 @@ jobs:
       - name: Install Go dependencies
         run: go mod download
 
-      - name: Run tests
-        run: make test
-
-      - name: Static analysis
-        run: make check
-
       - name: Determine Version
         id: determine_version
         shell: bash
         run: |
-          # Extract the tag name
           TAG_NAME="${{ github.ref_name }}"  # GitHub provides the tag name directly
           echo "Tag name: $TAG_NAME"
 
-          # Determine if it's a pre-release (starts with 'pre.')
           if [[ "$TAG_NAME" == pre.* ]]; then
             RELEASE_TYPE="prerelease"
           else
@@ -46,6 +38,18 @@ jobs:
 
           echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+
+      - name: Populate version string
+        shell: bash
+        run: |
+          sed -i "s/{{VERSION}}/${{ env.VERSION }}/g" cmd/version.go
+          sed -i "s/{{COMMIT}}/${{ github.sha }}/g" cmd/version.go
+
+      - name: Run tests
+        run: make test
+
+      - name: Static analysis
+        run: make check
 
       - name: Build binaries
         run: make build
