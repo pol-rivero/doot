@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/add"
-	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
 )
 
@@ -237,20 +236,4 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 	for _, node := range testFiles {
 		createNode(homeDir(), node)
 	}
-}
-
-func initializeGitCrypt() {
-	createNode(sourceDir(), Dir(".git", []FsNode{
-		Dir("git-crypt", []FsNode{
-			Dir("keys", []FsNode{
-				File("default"),
-			}),
-		}),
-		Dir("info", []FsNode{
-			FsFile{
-				Name:    "attributes",
-				Content: common.GITATTRIBUTES_CONTENT,
-			},
-		}),
-	}))
 }

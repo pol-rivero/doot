@@ -265,6 +265,23 @@ func TestInstall_OverwriteY(t *testing.T) {
 	})
 }
 
+func TestInstall_WithCryptInitialized(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	initializeGitCrypt()
+
+	install.Install()
+	assertHomeDirContents(t, "dir3", []string{
+		"file6",
+		"file7",
+	})
+	assertHomeLink(t, "dir3/file7", sourceDir()+"/dir3/file7.doot-crypt")
+
+	install.Clean()
+	assertHomeDirContents(t, "", []string{})
+}
+
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{
