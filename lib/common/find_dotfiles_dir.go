@@ -12,12 +12,12 @@ import (
 func FindDotfilesDir() AbsolutePath {
 	dotfilesDir, err := findDotfilesDir()
 	if err != nil {
-		log.Fatal("Error finding dotfiles directory: %v\n", err)
+		log.Fatal("Error finding dotfiles directory: %v", err)
 	}
 	if !filepath.IsAbs(dotfilesDir) {
-		log.Fatal("Dotfiles directory must be an absolute path: %s\n", dotfilesDir)
+		log.Fatal("Dotfiles directory must be an absolute path: %s", dotfilesDir)
 	}
-	log.Info("Using dotfiles directory: %s\n", dotfilesDir)
+	log.Info("Using dotfiles directory: %s", dotfilesDir)
 	return NewAbsolutePath(dotfilesDir)
 }
 
@@ -54,6 +54,6 @@ func findDotfilesDir() (string, error) {
 	err = fmt.Errorf("none of the candidate dotfiles directories exist:\n  - $DOOT_DIR = '%s'\n  - %s\n  - %s",
 		os.Getenv(ENV_DOOT_DIR),
 		filepath.Join(xdgDataHome, "dotfiles"),
-		dotfilesDir)
+		filepath.Join(homeDir, ".dotfiles"))
 	return "", err
 }

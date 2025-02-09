@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"io"
 	"log"
 
@@ -28,6 +29,19 @@ func Init(verbose bool, quiet bool) {
 func Info(format string, v ...interface{}) {
 	if infolnLogger != nil {
 		infolnLogger.Printf(format, v...)
+	}
+}
+
+func Printf(format string, v ...interface{}) {
+	if !isQuiet {
+		fmt.Printf(format, v...)
+	}
+}
+
+func Printlnf(format string, v ...interface{}) {
+	if !isQuiet {
+		fmt.Printf(format, v...)
+		fmt.Println()
 	}
 }
 

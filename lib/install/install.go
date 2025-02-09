@@ -1,7 +1,6 @@
 package install
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/fatih/color"
@@ -47,26 +46,24 @@ func installImpl(getFiles GetFilesFunc) {
 	installedFilesCache.SetTargets(fileMapping.GetInstalledTargets())
 	cache.Save()
 
-	if !log.IsQuiet() {
-		printChanges(added, removed)
-	}
+	printChanges(added, removed)
 }
 
 func printChanges(added int, removed int) {
 	if added == 0 && removed == 0 {
-		fmt.Println("No changes made")
+		log.Printlnf("No changes made")
 		return
 	}
 	if added > 0 {
 		boldGreen := color.New(color.FgGreen, color.Bold).SprintFunc()
-		fmt.Printf(boldGreen("%d")+color.GreenString(" files added"), added)
+		log.Printf(boldGreen("%d")+color.GreenString(" files added"), added)
 	}
 	if added > 0 && removed > 0 {
-		fmt.Print(", ")
+		log.Printf(", ")
 	}
 	if removed > 0 {
 		boldRed := color.New(color.FgRed, color.Bold).SprintFunc()
-		fmt.Printf(boldRed("%d")+color.RedString(" files removed"), removed)
+		log.Printf(boldRed("%d")+color.RedString(" files removed"), removed)
 	}
-	fmt.Println()
+	log.Printlnf("")
 }
