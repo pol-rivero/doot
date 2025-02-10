@@ -2,10 +2,21 @@
 
 A fast and simple dotfiles manager that just gets the job done.
 
-<!-- | Install from the AUR | Install it with `go get` | Download the binary |
-| --- | --- | --- |
-| `yay -S doot` | `go get github.com/pol-rivero/doot` | [GitHub Releases](https://github.com/pol-rivero/doot/releases/tag/latest) |
-| ![AUR](https://img.shields.io/aur/version/doot) | ![Go](https://img.shields.io/github/go-mod/go-version/pol-rivero/doot) | ![GitHub Releases](https://img.shields.io/github/v/release/pol-rivero/doot) | -->
+<table>
+  <tr>
+    <th>Install from the AUR <br> <img src="https://img.shields.io/aur/version/doot-bin"/></th>
+    <td><strong>Pre-compiled binary</strong> <br> <code>yay -S doot-bin</code></td>
+    <td><strong>Build from source</strong> <br> <code>yay -S doot</code></td>
+    <td><strong>Latest Git commit</strong> <br> <code>yay -S doot-git</code></td>
+  </tr>
+  <tr>
+    <th>Download from GitHub <br> <img src="https://img.shields.io/github/v/release/pol-rivero/doot"/></td></th>
+    <td><strong><a href="https://github.com/pol-rivero/doot/releases/latest">Compiled binaries</a></strong></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
 
 ## Usage
 
