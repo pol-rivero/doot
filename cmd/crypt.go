@@ -34,9 +34,22 @@ var cryptUnlockCmd = &cobra.Command{
 	},
 }
 
+var cryptLockCmd = &cobra.Command{
+	Use:   "lock",
+	Short: "Undo the 'unlock' command and re-encrypt the private files in the work tree.",
+	Run: func(cmd *cobra.Command, args []string) {
+		force, err := cmd.Flags().GetBool("force")
+		if err != nil {
+			panic(err)
+		}
+		SetUpLogger(cmd)
+		crypt.Lock(force)
+	},
+}
+
 var cryptExportKeyCmd = &cobra.Command{
 	Use:   "export-key <output_file>",
-	Short: "Export the public key to a file.",
+	Short: "Export the private key to a file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
 		outputFile := args[0]
@@ -46,7 +59,7 @@ var cryptExportKeyCmd = &cobra.Command{
 
 var cryptAddGpgUserCmd = &cobra.Command{
 	Use:   "add-gpg-user <user_id>",
-	Short: "Add a GPG user to the list of users that can decrypt the repository.",
+	Short: "Add the public GPG key to the repository, so that its corresponding private key can be used to unlock the repository.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
 		userId := args[0]
@@ -59,6 +72,7 @@ func init() {
 
 	cryptCmd.AddCommand(cryptInitCmd)
 	cryptCmd.AddCommand(cryptUnlockCmd)
+	cryptCmd.AddCommand(cryptLockCmd)
 	cryptCmd.AddCommand(cryptExportKeyCmd)
 	cryptCmd.AddCommand(cryptAddGpgUserCmd)
 
@@ -70,4 +84,6 @@ func init() {
 
 	cryptAddGpgUserCmd.Args = cobra.ExactArgs(1)
 	cryptAddGpgUserCmd.ArgAliases = []string{"user_id"}
+
+	cryptLockCmd.Flags().Bool("force", false, "Lock even if unclean (you may lose uncommited work)")
 }

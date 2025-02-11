@@ -48,7 +48,7 @@ You could manually move the file to the dotfiles directory and run `doot` to sym
 doot add ./some/file [/other/file ...]
 ```
 
-Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](docs/encryption.md) for more information.  
+Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files) for more information.  
 If you have more than one machine and this file is only applicable to the current one, pass `--host` to add it as a host-specific file. See `hosts` in the configuration file below.
 
 
