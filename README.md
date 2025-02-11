@@ -54,7 +54,7 @@ If you have more than one machine and this file is only applicable to the curren
 
 ### Advanced usage
 
-- [`doot crypt`: Manage private (encrypted) files](docs/encryption.md)
+- [`doot crypt`: Manage private (encrypted) files](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files)
 
 - [`doot bootstrap`: Automatically download and apply your dotfiles](docs/bootstrap.md)
 
@@ -128,24 +128,3 @@ implicit_dot_ignore = [
 >       "some-dir/images",
 >       "some-dir/images/important.png"  # Include the file you want
 >   ]
-
-## Why make another dotfiles manager?
-
-I've tried many dotfiles managers, but none of them really satisfied me. Here are some managers I've tried:
-
-- [GNU Stow](https://www.gnu.org/software/stow/): Works great for what it does, and there are tons of resources online for learning how to use it, but:
-  - It lacks support for host-specific files, which makes it unsuitable when you have more than one machine.
-  - It symlinks the whole directory instead of individual files. This means having to add a lot of `.gitignore` files, and also losing **all** those ignored files (which can sometimes be very important) when resetting the branch or switching to another dotfiles manager. I've been there and it's not fun.
-  - No native support for encrypted files. This is not a deal-breaker, but it's nice to have.
-
-- [RCM](https://thoughtbot.github.io/rcm/): It's almost perfect, except for a [couple of issues](https://github.com/thoughtbot/rcm/issues/306) (see below) that I worked around by adding post-install hooks. However, it's also very slow, and adding the hooks made it even slower. Linking my personal dotfiles repository with RCM takes around 10 seconds, while `doot` takes [TO BE MEASURED]. 10 seconds doesn't seem like much time to wait, but I add and remove files from my dotfiles constantly, and waiting every time I do that gets old very quickly.
-  - RCM doesn't allow linking files/directories that start with a dot and are inside nested directories.
-  - It doesn't clean up stale/dead symlinks when a filed is moved/renamed/deleted in the dotfiles repository. 
-  - The last release was in 2022 and doesn't seem to be actively maintained.
-  - No native support for encrypted files. This is not a deal-breaker, but it's nice to have.
-
-- [yadm](https://yadm.io/) and [chezmoi](https://www.chezmoi.io/): Both are very mature and have tons of features. However, having that many features (especially *templates*) forces them to create dotfiles as *files* instead of *symlinks*, meaning that:
-  - Automatic changes to the dotfiles (made by other programs) won't be *automagically* reflected in the dotfiles repository. You need to remember to check for changes periodically.
-  - It forces you to use their CLI to manage the dotfiles, and I prefer to use a Git GUI for that.
-
-- [dotbot](https://github.com/anishathalye/dotbot): The configuration file is mandatory, and it requires you to manually list each file to be symlinked, instead of deducing it from the directory structure. This is a deal-breaker for me as it requires double the work for no reason.
