@@ -50,9 +50,12 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		err = os.Link(file, dotfilePath.Str())
 		if err != nil {
 			log.Error("Error moving %s to %s: %v", file, dotfilePath, err)
+		} else {
+			log.Info("Created hardlink %s -> %s", file, dotfilePath)
 		}
 	}
 
+	log.Info("Files have been copied to the dotfiles directory, now running 'install'...")
 	install.Install()
 }
 

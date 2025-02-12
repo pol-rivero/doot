@@ -13,8 +13,8 @@ func ExportKey(outputPath string) {
 
 	err := utils.RunCommand(dotfilesDir, "git-crypt", "export-key", outputPath)
 	if err != nil {
-		log.Fatal("Failed to export key: %s", err)
+		log.Fatal("Failed to export key")
 	}
 
-	log.Printf("Key exported to '%s'", outputPath)
+	log.Printlnf("Key exported to '%s'", outputPath)
 }

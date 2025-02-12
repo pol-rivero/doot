@@ -18,8 +18,8 @@ func Lock(force bool) {
 		err = utils.RunCommand(dotfilesDir, "git-crypt", "lock")
 	}
 	if err != nil {
-		log.Fatal("Failed to lock repository: %s", err)
+		log.Fatal("Failed to lock repository, make sure your working directory is clean or use 'doot crypt lock --force'.")
 	}
 
-	log.Printf("Repository locked successfully.")
+	log.Printlnf("Repository locked successfully.")
 }

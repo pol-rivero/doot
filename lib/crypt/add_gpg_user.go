@@ -13,8 +13,8 @@ func AddGpgUser(userId string) {
 
 	err := utils.RunCommand(dotfilesDir, "git-crypt", "add-gpg-user", userId)
 	if err != nil {
-		log.Fatal("Failed to add GPG user: %s", err)
+		log.Fatal("Failed to add GPG user")
 	}
 
-	log.Printf("GPG user '%s' added successfully.", userId)
+	log.Printlnf("GPG user '%s' added successfully.", userId)
 }

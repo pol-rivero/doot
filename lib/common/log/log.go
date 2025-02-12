@@ -17,7 +17,7 @@ var (
 
 func Init(verbose bool, quiet bool) {
 	if verbose {
-		infolnLogger = log.New(color.Output, "", 0)
+		infolnLogger = log.New(color.Output, "INFO: ", 0)
 	}
 	isQuiet = quiet
 	if quiet {

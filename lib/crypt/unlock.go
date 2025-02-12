@@ -12,12 +12,6 @@ func Unlock(keyFile optional.Optional[string]) {
 	ensureGitCryptInstalled()
 	dotfilesDir := common.FindDotfilesDir()
 
-	if keyFile.HasValue() {
-		unlockWithKeyFile(dotfilesDir, keyFile.Value())
-	} else {
-		unlockGPG(dotfilesDir)
-	}
-
 	if gitAttributesIsSet(dotfilesDir) {
 		log.Info("Git attributes already set, skipping...")
 	} else {
@@ -27,13 +21,19 @@ func Unlock(keyFile optional.Optional[string]) {
 		}
 	}
 
-	log.Printf("Repository (%s) unlocked successfully, you now have access to the encrypted files", dotfilesDir)
+	if keyFile.HasValue() {
+		unlockWithKeyFile(dotfilesDir, keyFile.Value())
+	} else {
+		unlockGPG(dotfilesDir)
+	}
+
+	log.Printlnf("Repository (%s) unlocked successfully, you now have access to the encrypted files", dotfilesDir)
 }
 
 func unlockWithKeyFile(dotfilesDir AbsolutePath, keyFile string) {
 	err := utils.RunCommand(dotfilesDir, "git-crypt", "unlock", keyFile)
 	if err != nil {
-		log.Fatal("Failed to unlock repository: %s", err)
+		log.Fatal("Failed to unlock repository")
 	}
 }
 

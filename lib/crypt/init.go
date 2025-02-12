@@ -20,7 +20,7 @@ func Init() {
 	} else {
 		err := utils.RunCommand(dotfilesDir, "git-crypt", "init")
 		if err != nil {
-			log.Fatal("Failed to initialize git-crypt: %s", err)
+			log.Fatal("Failed to initialize git-crypt")
 		}
 	}
 

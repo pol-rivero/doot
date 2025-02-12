@@ -70,7 +70,10 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) int {
 		}
 		fileInfo, err := os.Lstat(target.Str())
 		if err == nil {
-			fm.handleTargetAlreadyExists(fileInfo, target, source)
+			added := fm.handleTargetAlreadyExists(fileInfo, target, source)
+			if added {
+				createdLinksCount++
+			}
 			continue
 		}
 		if os.IsNotExist(err) && EnsureParentDir(target) {
@@ -100,64 +103,62 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) int {
 	return removedLinksCount
 }
 
-func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) {
+func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) bool {
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
-		fm.handleExistingSymlink(target, source)
+		return fm.handleExistingSymlink(target, source)
 	} else if fileInfo.Mode().IsRegular() {
-		fm.handleExistingFile(target, source)
+		return fm.handleExistingFile(target, source)
 	} else {
 		log.Warning("Target %s exists but is not a symlink or a regular file, skipping", target)
+		return false
 	}
 }
 
-func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) {
+func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 	linkSource, linkErr := os.Readlink(target.Str())
 	if linkErr != nil {
 		log.Error("Failed to read link %s: %s", target, linkErr)
-		return
+		return false
 	}
 	if linkSource == source.Str() {
 		log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
-		return
+		return false
 	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
 		err := ReplaceWithSymlink(target, source)
-		if err != nil {
-			return
-		}
+		return err == nil
 	} else {
 		fm.targetsSkipped = append(fm.targetsSkipped, target)
+		return false
 	}
 }
 
-func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) {
+func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 	contents, readErr := os.ReadFile(target.Str())
 	if readErr != nil {
 		log.Error("Failed to read file %s: %s", target, readErr)
-		return
+		return false
 	}
 	sourceContents, readErr := os.ReadFile(source.Str())
 	if readErr != nil {
 		log.Error("Failed to read file %s: %s", source, readErr)
-		return
+		return false
 	}
 	if string(contents) == string(sourceContents) {
 		log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
-		ReplaceWithSymlink(target, source)
-		return
+		err := ReplaceWithSymlink(target, source)
+		return err == nil
 	}
-	replace := ' '
-	for replace != 'y' && replace != 'n' {
-		replace = utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
+	for {
+		replace := utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
 		switch replace {
 		case 'y':
 			err := ReplaceWithSymlink(target, source)
-			if err != nil {
-				return
-			}
+			return err == nil
 		case 'n':
 			fm.targetsSkipped = append(fm.targetsSkipped, target)
+			return false
 		case 'd':
 			printDiff(target, source)
 		}
