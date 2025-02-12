@@ -93,6 +93,10 @@ func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) int {
 	removedLinksCount := 0
 	for _, previousTarget := range previousTargets {
 		if _, contains := fm.mapping[previousTarget]; !contains {
+			if !canBeSafelyRemoved(previousTarget, fm.sourceBaseDir) {
+				log.Info("%s appears to have been modified externally. Skipping removal to avoid data loss.", previousTarget)
+				continue
+			}
 			log.Info("Removing link %s", previousTarget)
 			success := RemoveAndCleanup(previousTarget, fm.targetBaseDir)
 			if success {
@@ -176,6 +180,14 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[
 	}
 	target = target.Replace(".doot-crypt", "")
 	return optional.Of(target)
+}
+
+func canBeSafelyRemoved(linkPath AbsolutePath, expectedDestinationDir AbsolutePath) bool {
+	linkSource, linkErr := os.Readlink(linkPath.Str())
+	if linkErr != nil {
+		return false
+	}
+	return strings.HasPrefix(linkSource, expectedDestinationDir.Str())
 }
 
 func printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/common/cache"
@@ -158,7 +159,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
-	createFile(homeDir(), File("someFileInstalledInAPreviousRun"))
+	createSymlink(homeDir(), "someFileInstalledInAPreviousRun", sourceDir()+"/file1")
 
 	// Lie to the cache and see that only the other files were added.
 	// Also, someFileInstalledInAPreviousRun is no longer in dotfiles dir, so it should be removed
@@ -280,6 +281,31 @@ func TestInstall_WithCryptInitialized(t *testing.T) {
 
 	install.Clean()
 	assertHomeDirContents(t, "", []string{})
+}
+
+func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+
+	install.Install()
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
+	// User manually changes some files, which should NOT be removed when cleaning
+	os.Remove(homeDir() + "/file1")
+	createNode(homeDir(), File("file1"))
+	os.Remove(homeDir() + "/file2.txt")
+	createSymlink(homeDir(), "file2.txt", homeDir()+"/incorrect_link") // Link does not point to dotfiles dir
+
+	install.Clean()
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+	})
 }
 
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {
