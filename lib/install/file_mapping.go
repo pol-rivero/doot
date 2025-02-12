@@ -14,8 +14,13 @@ import (
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
+type SourcePath struct {
+	path         AbsolutePath
+	hostSpecific bool
+}
+
 type FileMapping struct {
-	mapping           map[AbsolutePath]AbsolutePath // Map target (symlink) -> source (dotfile)
+	mapping           map[AbsolutePath]SourcePath // Map target (symlink) -> source (dotfile)
 	sourceBaseDir     AbsolutePath
 	targetBaseDir     AbsolutePath
 	implicitDot       bool
@@ -25,7 +30,7 @@ type FileMapping struct {
 
 func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles []RelativePath) FileMapping {
 	mapping := FileMapping{
-		mapping:           make(map[AbsolutePath]AbsolutePath, len(sourceFiles)),
+		mapping:           make(map[AbsolutePath]SourcePath, len(sourceFiles)),
 		sourceBaseDir:     dotfilesDir,
 		targetBaseDir:     NewAbsolutePath(config.TargetDir),
 		implicitDot:       config.ImplicitDot,
@@ -39,15 +44,27 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 }
 
 func (fm *FileMapping) Add(newSource RelativePath) {
-	relativeTarget := fm.mapSourceToTarget(newSource)
+	relativeTarget, newIsHostSpecific := fm.mapSourceToTarget(newSource)
 	if !relativeTarget.HasValue() {
 		return
 	}
 	target := fm.targetBaseDir.JoinPath(relativeTarget.Value())
-	if existingSource, contains := fm.mapping[target]; contains {
-		log.Warning("Conflicting files: %s and %s both map to %s. Ignoring %s", existingSource, newSource, target, newSource)
-	} else {
-		fm.mapping[target] = fm.sourceBaseDir.JoinPath(newSource)
+
+	oldSource, oldSourceExists := fm.mapping[target]
+	preferNewSource := !oldSourceExists || newIsHostSpecific
+	if preferNewSource {
+		fm.mapping[target] = SourcePath{
+			path:         fm.sourceBaseDir.JoinPath(newSource),
+			hostSpecific: newIsHostSpecific,
+		}
+		if oldSourceExists {
+			log.Info("Host-specific file %s overrides %s for target %s", newSource, oldSource.path, target)
+		}
+	} else if oldSource.hostSpecific {
+		log.Info("Host-specific file %s overrides %s for target %s", oldSource.path, newSource, target)
+	} else if newIsHostSpecific {
+		// This is rare, but it can happen if 2 files map to the same target after removing '.doot-crypt' or adding the implicit dot
+		log.Warning("Conflicting files: %s and %s both map to %s. Ignoring %s", oldSource.path, newSource, target, newSource)
 	}
 }
 
@@ -63,7 +80,8 @@ func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 
 func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) int {
 	createdLinksCount := 0
-	for target, source := range fm.mapping {
+	for target, sourceStruct := range fm.mapping {
+		source := sourceStruct.path
 		if slices.Contains(ignore, target) {
 			log.Info("Target %s already exists and will not be created", target)
 			continue
@@ -169,17 +187,17 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 	}
 }
 
-func (fm *FileMapping) mapSourceToTarget(source RelativePath) optional.Optional[RelativePath] {
+func (fm *FileMapping) mapSourceToTarget(source RelativePath) (optional.Optional[RelativePath], bool) {
 	target := source
 	// The doot directory should not be symlinked
 	if strings.HasPrefix(source.Str(), "doot/") {
-		return optional.Empty[RelativePath]()
+		return optional.Empty[RelativePath](), false
 	}
 	if fm.implicitDot && !fm.implicitDotIgnore.Contains(source.TopLevelDir()) && !strings.HasPrefix(source.Str(), ".") {
 		target = "." + source
 	}
 	target = target.Replace(".doot-crypt", "")
-	return optional.Of(target)
+	return optional.Of(target), false
 }
 
 func canBeSafelyRemoved(linkPath AbsolutePath, expectedDestinationDir AbsolutePath) bool {
