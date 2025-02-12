@@ -4,15 +4,15 @@ A fast and simple dotfiles manager that just gets the job done.
 
 <table>
   <tr>
-    <th>Install from the AUR <br> <img src="https://img.shields.io/aur/version/doot-bin"/></th>
+    <th>Install from the AUR <br> <a href="https://aur.archlinux.org/packages/doot-bin"><img src="https://img.shields.io/aur/version/doot-bin"/></a></th>
     <td><strong>Pre-compiled binary</strong> <br> <code>yay -S doot-bin</code></td>
     <td><strong>Build from source</strong> <br> <code>yay -S doot</code></td>
     <td><strong>Latest Git commit</strong> <br> <code>yay -S doot-git</code></td>
   </tr>
   <tr>
-    <th>Download from GitHub <br> <img src="https://img.shields.io/github/v/release/pol-rivero/doot"/></td></th>
-    <td><strong><a href="https://github.com/pol-rivero/doot/releases/latest">Compiled binaries</a></strong></td>
-    <td></td>
+    <th>Download from GitHub <br> <a href="https://github.com/pol-rivero/doot/releases/latest"><img src="https://img.shields.io/github/v/release/pol-rivero/doot"/></a></th>
+    <td><strong><a href="https://github.com/pol-rivero/doot/releases/latest">Download latest</a></strong></td>
+    <td><a href="https://github.com/pol-rivero/doot/releases">Older releases</a></td>
     <td></td>
   </tr>
 </table>
