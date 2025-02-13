@@ -36,7 +36,10 @@ func assertHomeLink(t *testing.T, link string, target string) {
 	t.Helper()
 	linkPath := filepath.Join(homeDir(), link)
 	info, err := os.Lstat(linkPath)
-	assert.NoError(t, err, "Failed to get link info")
+	if err != nil {
+		assert.Fail(t, "Failed to get link info")
+		return
+	}
 	assert.True(t, info.Mode()&os.ModeSymlink != 0, "File is not a symlink")
 	targetPath, err := os.Readlink(linkPath)
 	assert.NoError(t, err, "Failed to read link")

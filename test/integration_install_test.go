@@ -9,6 +9,7 @@ import (
 	"github.com/pol-rivero/doot/lib/install"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInstall_DefaultConfig(t *testing.T) {
@@ -278,6 +279,51 @@ func TestInstall_WithCryptInitialized(t *testing.T) {
 		"file7",
 	})
 	assertHomeLink(t, "dir3/file7", sourceDir()+"/dir3/file7.doot-crypt")
+
+	install.Clean()
+	assertHomeDirContents(t, "", []string{})
+}
+
+func TestInstall_WithHostSpecificDir(t *testing.T) {
+	myHost, err := os.Hostname()
+	assert.NoError(t, err)
+
+	config := config.DefaultConfig()
+	config.ExcludeFiles = []string{".git"}
+	config.Hosts = map[string]string{
+		"other_host1": "hosts/OTHER",
+		myHost:        "hosts/HOST",
+	}
+	setUpFiles_TestInstall(t, config)
+	initializeGitCrypt()
+	createNode(sourceDir(), Dir("hosts", []FsNode{
+		Dir("OTHER", []FsNode{
+			File("inOtherHost"),
+			Dir("inOtherHostDir", []FsNode{File("inOtherHostDirFile")}),
+		}),
+		Dir("HOST", []FsNode{
+			File("inMyHost"),
+			Dir("inMyHostDir", []FsNode{File("inMyHostDirFile")}),
+			File("file2.doot-crypt.txt"),
+			Dir("dir2", []FsNode{File("file5")}),
+		}),
+	}))
+
+	install.Install()
+	assertHomeDirContents(t, "", []string{
+		".file1",
+		".file2.txt",
+		".dir1",
+		".dir2",
+		".dir3",
+		".inMyHost",
+		".inMyHostDir",
+	})
+	assertHomeDirContents(t, ".inMyHostDir", []string{"inMyHostDirFile"})
+	assertHomeLink(t, ".inMyHost", sourceDir()+"/hosts/HOST/inMyHost")
+	assertHomeLink(t, ".file2.txt", sourceDir()+"/hosts/HOST/file2.doot-crypt.txt")
+	assertHomeLink(t, ".dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeLink(t, ".dir2/file5", sourceDir()+"/hosts/HOST/dir2/file5")
 
 	install.Clean()
 	assertHomeDirContents(t, "", []string{})
