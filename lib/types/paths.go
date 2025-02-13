@@ -20,6 +20,10 @@ func (rp RelativePath) Replace(substring, replacement string) RelativePath {
 	return RelativePath(strings.ReplaceAll(rp.Str(), substring, replacement))
 }
 
+func (rp RelativePath) RemoveBaseDir(baseDirLen int) RelativePath {
+	return RelativePath(rp.Str()[baseDirLen:])
+}
+
 func (rp RelativePath) TopLevelDir() string {
 	firstSeparatorIndex := strings.IndexRune(rp.Str(), filepath.Separator)
 	if firstSeparatorIndex == -1 {
