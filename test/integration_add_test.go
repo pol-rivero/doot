@@ -1,7 +1,6 @@
 package test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/add"
@@ -12,7 +11,7 @@ func TestAdd_BasicMapping(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	assertSourceDirContents(t, "", []string{
 		"doot",
@@ -36,7 +35,7 @@ func TestAdd_BasicMapping(t *testing.T) {
 func TestAdd_IncorrectInputs(t *testing.T) {
 	config := config.DefaultConfig()
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	add.Add([]string{
 		"some-nonexistent-file", // Doesn't exist
@@ -52,7 +51,7 @@ func TestAdd_FromAnotherPWD(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir() + "/dir1")
+	t.Chdir(homeDir() + "/dir1")
 
 	add.Add([]string{
 		"file3",
@@ -73,7 +72,7 @@ func TestAdd_WeirdInputPath(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir() + "/dir1")
+	t.Chdir(homeDir() + "/dir1")
 
 	add.Add([]string{
 		"../dir3////./../dir1//file3",
@@ -94,7 +93,7 @@ func TestAdd_ExcludeInclude(t *testing.T) {
 	config.ExcludeFiles = []string{"file1", "*.txt", "dir1", "dir3/**"}
 	config.IncludeFiles = []string{"**/file6", "file2.txt"}
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	add.Add([]string{
 		"file1",                // Excluded
@@ -120,7 +119,7 @@ func TestAdd_ImplicitDot(t *testing.T) {
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 	config.ExcludeFiles = []string{}
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	add.Add([]string{
 		"file1", // Impossible filename with implicit dot
@@ -149,7 +148,7 @@ func TestAdd_WithCryptExtensionUninitialized(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	add.Add([]string{
 		"file1",
@@ -169,7 +168,7 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 	config.ImplicitDot = false
 	setUpFiles_TestAdd(t, config)
 	initializeGitCrypt()
-	os.Chdir(homeDir())
+	t.Chdir(homeDir())
 
 	add.Add([]string{
 		"file1",
