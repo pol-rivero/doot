@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	infolnLogger  *log.Logger = nil
-	warningLogger *log.Logger = log.New(color.Error, color.YellowString("WARNING: "), 0)
-	errorLogger   *log.Logger = log.New(color.Error, color.RedString("ERROR: "), 0)
-	isQuiet       bool
+	infolnLogger       *log.Logger = nil
+	warningLogger      *log.Logger = log.New(color.Error, color.YellowString("WARNING: "), 0)
+	errorLogger        *log.Logger = log.New(color.Error, color.RedString("ERROR: "), 0)
+	isQuiet            bool
+	PanicInsteadOfExit bool
 )
 
 func Init(verbose bool, quiet bool) {
@@ -54,6 +55,10 @@ func Error(format string, v ...interface{}) {
 }
 
 func Fatal(format string, v ...interface{}) {
+	if PanicInsteadOfExit {
+		Error(format, v...)
+		panic(fmt.Sprintf(format, v...))
+	}
 	errorLogger.Fatalf(format, v...)
 }
 

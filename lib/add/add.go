@@ -21,7 +21,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	config := config.FromDotfilesDir(dotfilesDir)
 	params := ProcessAddedFileParams{
 		crypt:             isCrypt,
-		hostSpecific:      isHostSpecific,
+		hostSpecificDir:   getHostSpecificDir(&config, isHostSpecific),
 		targetDir:         config.TargetDir,
 		implicitDot:       config.ImplicitDot,
 		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),
@@ -59,9 +59,27 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	install.Install()
 }
 
+func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {
+	if !isHostSpecific {
+		return ""
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Error("Error getting hostname: %v", err)
+		return ""
+	}
+	hostSpecificDir, ok := config.Hosts[hostname]
+	if !ok {
+		log.Fatal(`--host flag is set but your hostname (%s) is not in the hosts map. Consider adding the following to your doot config:
+[hosts]
+%s = "%s-files"`, hostname, hostname, hostname)
+	}
+	return hostSpecificDir
+}
+
 type ProcessAddedFileParams struct {
 	crypt             bool
-	hostSpecific      bool
+	hostSpecificDir   string
 	targetDir         string
 	implicitDot       bool
 	implicitDotIgnore set.Set[string]
@@ -107,9 +125,7 @@ func processAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 		relPath = addDootCryptExtension(relPath)
 	}
 
-	if params.hostSpecific {
-		// TODO
-	}
+	relPath = relPath.AppendLeft(params.hostSpecificDir)
 
 	return relPath, nil
 }

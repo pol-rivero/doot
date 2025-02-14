@@ -1,10 +1,13 @@
 package test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/add"
 	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAdd_BasicMapping(t *testing.T) {
@@ -200,6 +203,57 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4.doot-crypt")
 	assertHomeLink(t, "dir.with.dots/file.with.some.dots", sourceDir()+"/dir.with.dots/file.with.some.doot-crypt.dots")
 	assertHomeLink(t, "dir.with.dots/file-without-dots", sourceDir()+"/dir.with.dots/file-without-dots.doot-crypt")
+}
+
+func TestAdd_HostSpecificNotFound(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.Hosts = map[string]string{
+		"other-host": "foo",
+	}
+	setUpFiles_TestAdd(t, config)
+	t.Chdir(homeDir())
+
+	log.PanicInsteadOfExit = true
+	assert.Panics(t, func() {
+		add.Add([]string{"file1"}, false, true)
+	})
+
+	assertSourceDirContents(t, "", []string{
+		"doot",
+	})
+}
+
+func TestAdd_HostSpecificDir(t *testing.T) {
+	host, err := os.Hostname()
+	assert.NoError(t, err)
+
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.Hosts = map[string]string{
+		"other-host": "foo",
+		host:         "host/dir",
+	}
+	setUpFiles_TestAdd(t, config)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file2.txt",
+		"dir1/nestedDir/file4",
+	}, false, true)
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"host",
+	})
+	assertSourceDirContents(t, "host/dir", []string{
+		"file2.txt",
+		"dir1",
+	})
+	assertSourceDirContents(t, "host/dir/dir1/nestedDir", []string{
+		"file4",
+	})
+	assertHomeLink(t, "file2.txt", sourceDir()+"/host/dir/file2.txt")
+	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/host/dir/dir1/nestedDir/file4")
 }
 
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {
