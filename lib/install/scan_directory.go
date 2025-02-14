@@ -37,7 +37,7 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	}
 }
 
-func ScanDirectory(dir AbsolutePath, filter FileFilter) []RelativePath {
+func ScanDirectory(dir AbsolutePath, filter *FileFilter) []RelativePath {
 	const SEPARATOR_LEN = len(string(filepath.Separator))
 	prefixLen := len(dir) + SEPARATOR_LEN
 	files := make([]RelativePath, 0, 64)
@@ -45,7 +45,7 @@ func ScanDirectory(dir AbsolutePath, filter FileFilter) []RelativePath {
 	return files
 }
 
-func scanDirectoryRecursive(filter FileFilter, result *[]RelativePath, prefixLen int, scanPath AbsolutePath) {
+func scanDirectoryRecursive(filter *FileFilter, result *[]RelativePath, prefixLen int, scanPath AbsolutePath) {
 	entries, err := os.ReadDir(scanPath.Str())
 	if err != nil {
 		log.Error("Error reading directory %s: %v", scanPath, err)

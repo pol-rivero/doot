@@ -18,7 +18,7 @@ func Install() {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
 		ignoreDootCrypt := !crypt.GitCryptIsInitialized(dotfilesDir)
 		filter := CreateFilter(config, ignoreDootCrypt)
-		return ScanDirectory(dotfilesDir, filter)
+		return ScanDirectory(dotfilesDir, &filter)
 	}
 	installImpl(getFiles)
 }
