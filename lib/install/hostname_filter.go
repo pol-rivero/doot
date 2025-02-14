@@ -38,7 +38,7 @@ func getHostnameFilter(hosts map[string]string) HostnameFilter {
 }
 
 func (hf HostnameFilter) isHostSpecific(path RelativePath) (isHostSpecific bool, prefixLen int) {
-	if !hf.hostSpecificDirPrefix.HasValue() {
+	if hf.hostSpecificDirPrefix.IsEmpty() {
 		return false, 0
 	}
 	prefix := hf.hostSpecificDirPrefix.Value()

@@ -47,7 +47,7 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 
 func (fm *FileMapping) Add(relativeSource RelativePath) {
 	relativeTarget, newIsHostSpecific := fm.mapSourceToTarget(relativeSource)
-	if !relativeTarget.HasValue() {
+	if relativeTarget.IsEmpty() {
 		return
 	}
 	source := fm.sourceBaseDir.JoinPath(relativeSource)

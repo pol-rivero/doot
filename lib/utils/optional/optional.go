@@ -22,6 +22,10 @@ func (o Optional[T]) HasValue() bool {
 	return o.hasValue
 }
 
+func (o Optional[T]) IsEmpty() bool {
+	return !o.hasValue
+}
+
 func (o Optional[T]) Value() T {
 	if !o.hasValue {
 		panic("Optional has no value")
