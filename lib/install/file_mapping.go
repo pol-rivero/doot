@@ -81,11 +81,11 @@ func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) int {
+func (fm *FileMapping) InstallNewLinks(alreadyExist set.Set[AbsolutePath]) int {
 	createdLinksCount := 0
 	for target, sourceStruct := range fm.mapping {
 		source := sourceStruct.path
-		if slices.Contains(ignore, target) {
+		if alreadyExist.Contains(target) {
 			log.Info("Target %s already exists and will not be created", target)
 			continue
 		}
@@ -110,9 +110,9 @@ func (fm *FileMapping) InstallNewLinks(ignore []AbsolutePath) int {
 	return createdLinksCount
 }
 
-func (fm *FileMapping) RemoveStaleLinks(previousTargets []AbsolutePath) int {
+func (fm *FileMapping) RemoveStaleLinks(previousTargets set.Set[AbsolutePath]) int {
 	removedLinksCount := 0
-	for _, previousTarget := range previousTargets {
+	for previousTarget := range previousTargets.Iter() {
 		if _, contains := fm.mapping[previousTarget]; !contains {
 			if !canBeSafelyRemoved(previousTarget, fm.sourceBaseDir) {
 				log.Info("%s appears to have been modified externally. Skipping removal to avoid data loss.", previousTarget)

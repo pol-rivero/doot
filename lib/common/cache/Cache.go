@@ -7,6 +7,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
+	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
 const CURRENT_CACHE_VERSION uint32 = 1
@@ -70,12 +71,12 @@ func (cache *DootCache) GetEntry(cacheKey string) *InstalledFilesCache {
 	return newEntry.InstalledFiles
 }
 
-func (filesCache *InstalledFilesCache) GetTargets() []AbsolutePath {
+func (filesCache *InstalledFilesCache) GetTargets() set.Set[AbsolutePath] {
 	targets := make([]AbsolutePath, 0, len(filesCache.Targets))
 	for _, target := range filesCache.Targets {
 		targets = append(targets, NewAbsolutePath(target))
 	}
-	return targets
+	return set.NewFromSlice(targets)
 }
 
 func (filesCache *InstalledFilesCache) SetTargets(targets []AbsolutePath) {

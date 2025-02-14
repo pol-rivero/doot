@@ -28,3 +28,7 @@ func (s *Set[T]) Contains(element T) bool {
 func (s *Set[T]) Remove(element T) {
 	delete(s.elements, element)
 }
+
+func (s *Set[T]) Iter() map[T]struct{} {
+	return s.elements
+}
