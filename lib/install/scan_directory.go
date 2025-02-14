@@ -13,10 +13,11 @@ import (
 )
 
 type FileFilter struct {
-	IgnoreHidden    bool
-	IgnoreDootCrypt bool
-	ExcludeGlobs    glob_collection.GlobCollection
-	IncludeGlobs    glob_collection.GlobCollection
+	IgnoreHidden        bool
+	IgnoreDootCrypt     bool
+	ExploreExcludedDirs bool
+	ExcludeGlobs        glob_collection.GlobCollection
+	IncludeGlobs        glob_collection.GlobCollection
 }
 
 func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
@@ -30,10 +31,11 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 		}
 	}
 	return FileFilter{
-		IgnoreHidden:    ignoreHidden,
-		IgnoreDootCrypt: ignoreDootCrypt,
-		ExcludeGlobs:    glob_collection.NewGlobCollection(newExcludeFiles),
-		IncludeGlobs:    glob_collection.NewGlobCollection(config.IncludeFiles),
+		IgnoreHidden:        ignoreHidden,
+		IgnoreDootCrypt:     ignoreDootCrypt,
+		ExploreExcludedDirs: config.ExploreExcludedDirs,
+		ExcludeGlobs:        glob_collection.NewGlobCollection(newExcludeFiles),
+		IncludeGlobs:        glob_collection.NewGlobCollection(config.IncludeFiles),
 	}
 }
 
@@ -41,11 +43,11 @@ func ScanDirectory(dir AbsolutePath, filter *FileFilter) []RelativePath {
 	const SEPARATOR_LEN = len(string(filepath.Separator))
 	prefixLen := len(dir) + SEPARATOR_LEN
 	files := make([]RelativePath, 0, 64)
-	scanDirectoryRecursive(filter, &files, prefixLen, dir)
+	scanDirectoryRecursive(filter, &files, prefixLen, dir, false)
 	return files
 }
 
-func scanDirectoryRecursive(filter *FileFilter, result *[]RelativePath, prefixLen int, scanPath AbsolutePath) {
+func scanDirectoryRecursive(filter *FileFilter, result *[]RelativePath, prefixLen int, scanPath AbsolutePath, inExcludedDir bool) {
 	entries, err := os.ReadDir(scanPath.Str())
 	if err != nil {
 		log.Error("Error reading directory %s: %v", scanPath, err)
@@ -55,28 +57,26 @@ func scanDirectoryRecursive(filter *FileFilter, result *[]RelativePath, prefixLe
 		entryName := entry.Name()
 		entryPath := scanPath.Join(entryName)
 		entryRelativePath := entryPath.ExtractRelativePath(prefixLen)
-		if filter.isExcluded(entryRelativePath, entryName) {
+		fileOrDirIsExcluded := filter.isExcluded(entryRelativePath, entryName, inExcludedDir)
+		if fileOrDirIsExcluded && !filter.ExploreExcludedDirs {
 			continue
 		}
 
 		if entry.IsDir() {
-			scanDirectoryRecursive(filter, result, prefixLen, entryPath)
-		} else {
+			scanDirectoryRecursive(filter, result, prefixLen, entryPath, fileOrDirIsExcluded)
+		} else if !fileOrDirIsExcluded {
 			*result = append(*result, entryRelativePath)
 		}
 	}
 }
 
-func (f *FileFilter) isExcluded(path RelativePath, fileName string) bool {
-	return f.matchesExcludePattern(path, fileName) && !f.IncludeGlobs.Matches(path)
+func (f *FileFilter) isExcluded(path RelativePath, fileName string, inExcludedDir bool) bool {
+	return (inExcludedDir || f.matchesExcludePattern(path, fileName)) &&
+		!f.IncludeGlobs.Matches(path)
 }
 
 func (f *FileFilter) matchesExcludePattern(path RelativePath, fileName string) bool {
-	if f.IgnoreHidden && fileName[0] == '.' {
-		return true
-	}
-	if f.IgnoreDootCrypt && strings.Contains(fileName, common.DOOT_CRYPT_EXT) {
-		return true
-	}
-	return f.ExcludeGlobs.Matches(path)
+	return (f.IgnoreHidden && fileName[0] == '.') ||
+		(f.IgnoreDootCrypt && strings.Contains(fileName, common.DOOT_CRYPT_EXT)) ||
+		f.ExcludeGlobs.Matches(path)
 }

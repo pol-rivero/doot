@@ -96,8 +96,11 @@ exclude_files = [
 ]
 
 # Files and directories that are always symlinked, even if they start with a dot or match a pattern in `exclude_files`. Each entry is a glob pattern relative to the dotfiles directory.
-# IMPORTANT: See warning below!
 include_files = []
+
+# You can get a large performance boost by setting this to `false`, but read this first:
+# https://github.com/pol-rivero/doot/wiki/Tip:-set-explore_excluded_dirs-to-false
+explore_excluded_dirs = true
 
 # If set to true, files and directories in the root of the dotfiles directory will be prefixed with a dot. For example, `<dotfiles dir>/config/foo` will be symlinked to `~/.config/foo`.
 # This is useful if you don't want to have hidden files in the root of the dotfiles directory.
@@ -114,17 +117,3 @@ implicit_dot_ignore = [
 [hosts]
 # my-laptop = "laptop-dots"
 ```
-
-> [!WARNING]
-> The glob matching has some quirks that you should be aware of:
-> 1. Unlike standard glob patterns, `**/file.txt` will **NOT** match `file.txt`. [Issue link](https://github.com/gobwas/glob/issues/58).
-> 2. When a directory matches a glob in `exclude_files`, it will **NOT** be explored recursively (so its contents will *never* be symlinked, even if they would have matched a glob in `include_files`).  
->   This is done to improve performace and is usually the desired behavior. If you want to exclude all the files in `some-dir` except for `some-dir/images/important.png`, do the following:
->   ```toml
->   # Exclude all children of some-dir, but not some-dir itself, so that it can be explored
->   exclude_files = [ "some-dir/**" ]
->   include_files = [
->       # Include images so that it can be explored. Children are NOT included (no trailing `/**`)
->       "some-dir/images",
->       "some-dir/images/important.png"  # Include the file you want
->   ]

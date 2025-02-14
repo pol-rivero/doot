@@ -71,15 +71,17 @@ func TestFileFilter_ScanDirectory(t *testing.T) {
 	excludeAndInclude1(t)
 	excludeAndInclude2(t)
 	excludeAndInclude3(t)
+	exploreExcludedDirs(t)
 	weirdSuperAsterisk(t)
 }
 
 func scanAll(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	expectedFiles := []RelativePath{
@@ -102,10 +104,11 @@ func scanAll(t *testing.T) {
 
 func ignoreHidden(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    true,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{}),
+		IgnoreHidden:        true,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	expectedFiles := []RelativePath{
@@ -123,10 +126,11 @@ func ignoreHidden(t *testing.T) {
 
 func ignoreCrypt(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: true,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     true,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	expectedFiles := []RelativePath{
@@ -143,10 +147,11 @@ func ignoreCrypt(t *testing.T) {
 
 func ignoreHiddenAndCrypt(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    true,
-		IgnoreDootCrypt: true,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{}),
+		IgnoreHidden:        true,
+		IgnoreDootCrypt:     true,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	expectedFiles := []RelativePath{
@@ -159,23 +164,25 @@ func ignoreHiddenAndCrypt(t *testing.T) {
 
 func excludeAndInclude1(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{"secret*"}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{"*.txt", "**/file6"}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*"}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{"*.txt", "**/file6"}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	assert.NotContains(t, files, RelativePath("secret2.doot-crypt"), "Excluded because it starts with 'secret'")
 	assert.Contains(t, files, RelativePath("secret1.doot-crypt.txt"), "Included because ends with .txt")
-	assert.NotContains(t, files, RelativePath("secret-dir2.doot-crypt.d/nested.doot-crypt/file6"), "Even it's included, excluded directories are not explored")
+	assert.NotContains(t, files, RelativePath("secret-dir2.doot-crypt.d/nested.doot-crypt/file6"), "Even though it's included, excluded directories are not explored")
 }
 
 func excludeAndInclude2(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{"secret*/**"}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{"secret*/nested.doot-crypt", "**/file6"}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*/**"}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*/nested.doot-crypt", "**/file6"}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	assert.NotContains(t, files, RelativePath("secret-dir1.doot-crypt/file5"), "Excluded because it starts with 'secret'")
@@ -185,10 +192,11 @@ func excludeAndInclude2(t *testing.T) {
 
 func excludeAndInclude3(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{"secret*/**"}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{"secret*/nested.doot-crypt**"}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*/**"}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*/nested.doot-crypt**"}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	assert.NotContains(t, files, RelativePath("secret-dir1.doot-crypt/file5"), "Excluded because it starts with 'secret'")
@@ -196,19 +204,33 @@ func excludeAndInclude3(t *testing.T) {
 	assert.Contains(t, files, RelativePath("secret-dir2.doot-crypt.d/nested.doot-crypt/file7.doot-crypt"), "All children of nested.doot-crypt should be included")
 }
 
+func exploreExcludedDirs(t *testing.T) {
+	filter := install.FileFilter{
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: true,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{"secret*", "dir1"}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{"**/file6", "dir1/nestedDir"}),
+	}
+	files := install.ScanDirectory(sourceDirPath(), &filter)
+	assert.Contains(t, files, RelativePath("secret-dir2.doot-crypt.d/nested.doot-crypt/file6"), "Excluded directories should be explored")
+	assert.Contains(t, files, RelativePath("dir1/nestedDir/file3"), "Excluded directories should be explored")
+}
+
 func weirdSuperAsterisk(t *testing.T) {
 	filter := install.FileFilter{
-		IgnoreHidden:    false,
-		IgnoreDootCrypt: false,
-		ExcludeGlobs:    glob_collection.NewGlobCollection([]string{"**/file2", ".hiddenDir/**/file4", "dir1/nestedDir/**"}),
-		IncludeGlobs:    glob_collection.NewGlobCollection([]string{"dir1/nestedDir/**/file3"}),
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     false,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{"**/file2", ".hiddenDir/**/file4", "dir1/nestedDir/**"}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{"dir1/nestedDir/**/file3"}),
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	assert.Contains(t, files, RelativePath("file1"), "Should not have excluded file1")
 	if slices.Contains(files, "file2") {
 		t.Log("This is a bug in gobwas/glob, see https://github.com/gobwas/glob/issues/58")
 	}
-	assert.NotContains(t, files, RelativePath(".hiddenDir/file4"), "Should have excluded this file (** shuld also match depth 0)")
+	assert.NotContains(t, files, RelativePath(".hiddenDir/file4"), "Should have excluded this file (** should also match depth 0)")
 	assert.Contains(t, files, RelativePath(".hiddenDir/.nestedHiddenFile2"), "Should not have excluded this file")
 	assert.NotContains(t, files, RelativePath("dir1/nestedDir/.nestedHiddenFile1"), "Should have excluded dir1/nestedDir/**")
 	assert.Contains(t, files, RelativePath("dir1/nestedDir/file3"), "Should have included this file (** should also match depth 0)")

@@ -354,6 +354,36 @@ func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
 	})
 }
 
+func TestInstall_ExploreExcludedDirs(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.ExploreExcludedDirs = true
+	config.ExcludeFiles = []string{"dir*", "**/nestedDir", "**/.*"}
+	config.IncludeFiles = []string{"dir1/nestedDir/file4", "dir3/file6", ".dir2/file5"}
+	setUpFiles_TestInstall(t, config)
+
+	install.Install()
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+		"dir1",
+		".dir2",
+		"dir3",
+	})
+	assertHomeDirContents(t, "dir1", []string{
+		"nestedDir",
+	})
+	assertHomeDirContents(t, "dir1/nestedDir", []string{
+		"file4",
+	})
+	assertHomeDirContents(t, ".dir2", []string{
+		"file5",
+	})
+	assertHomeDirContents(t, "dir3", []string{
+		"file6",
+	})
+}
+
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{

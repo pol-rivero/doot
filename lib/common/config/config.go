@@ -11,12 +11,13 @@ import (
 )
 
 type Config struct {
-	TargetDir         string            `toml:"target_dir"`
-	ExcludeFiles      []string          `toml:"exclude_files"`
-	IncludeFiles      []string          `toml:"include_files"`
-	ImplicitDot       bool              `toml:"implicit_dot"`
-	ImplicitDotIgnore []string          `toml:"implicit_dot_ignore"`
-	Hosts             map[string]string `toml:"hosts"`
+	TargetDir           string            `toml:"target_dir"`
+	ExcludeFiles        []string          `toml:"exclude_files"`
+	IncludeFiles        []string          `toml:"include_files"`
+	ExploreExcludedDirs bool              `toml:"explore_excluded_dirs"`
+	ImplicitDot         bool              `toml:"implicit_dot"`
+	ImplicitDotIgnore   []string          `toml:"implicit_dot_ignore"`
+	Hosts               map[string]string `toml:"hosts"`
 }
 
 func DefaultConfig() Config {
@@ -25,12 +26,13 @@ func DefaultConfig() Config {
 		log.Fatal("Error retrieving home directory: %v", err)
 	}
 	return Config{
-		TargetDir:         homedir,
-		ExcludeFiles:      []string{"**/.*", "LICENSE", "README.md"},
-		IncludeFiles:      []string{},
-		ImplicitDot:       true,
-		ImplicitDotIgnore: []string{},
-		Hosts:             map[string]string{},
+		TargetDir:           homedir,
+		ExcludeFiles:        []string{"**/.*", "LICENSE", "README.md"},
+		IncludeFiles:        []string{},
+		ExploreExcludedDirs: false,
+		ImplicitDot:         true,
+		ImplicitDotIgnore:   []string{},
+		Hosts:               map[string]string{},
 	}
 }
 
