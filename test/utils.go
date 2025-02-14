@@ -57,7 +57,8 @@ func assertHomeRegularFile(t *testing.T, path string) {
 func assertCache(t *testing.T, expectTargets []AbsolutePath) {
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
-	assert.ElementsMatch(t, cacheEntry.GetTargets(), expectTargets)
+	targetsSet := cacheEntry.GetTargets()
+	assert.ElementsMatch(t, targetsSet.ToSlice(), expectTargets)
 }
 
 func initializeGitCrypt() {
