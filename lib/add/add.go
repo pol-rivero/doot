@@ -32,7 +32,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	}
 
 	for _, file := range files {
-		dotfileRelativePath, err := processAddedFile(file, params)
+		dotfileRelativePath, err := ProcessAddedFile(file, params)
 		if err != nil {
 			log.Error("Can't add %s: %v", file, err)
 			continue

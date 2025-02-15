@@ -22,7 +22,7 @@ type ProcessAddedFileParams struct {
 	excludeFiles      glob_collection.GlobCollection
 }
 
-func processAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
+func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
 	fileInfo, err := os.Stat(input)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -33,16 +33,17 @@ func processAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 	if fileInfo.IsDir() {
 		return "", fmt.Errorf("it's a directory. Consider adding %s/**/* instead", input)
 	}
-	absFile, err := filepath.Abs(input)
+	cleanAbsFile, err := filepath.Abs(input)
 	if err != nil {
 		return "", fmt.Errorf("error getting absolute path: %v", err)
 	}
-	if !strings.HasPrefix(absFile, params.targetDir) {
+	if !strings.HasPrefix(cleanAbsFile, params.targetDir) {
 		return "", fmt.Errorf("it's not inside target directory %s", params.targetDir)
 	}
 
-	targetDirLen := len(params.targetDir) + len(string(filepath.Separator))
-	relPath := NewAbsolutePath(absFile).ExtractRelativePath(targetDirLen)
+	const SEPARATOR_LEN = len(string(filepath.Separator))
+	targetDirLen := len(strings.TrimSuffix(params.targetDir, string(filepath.Separator))) + SEPARATOR_LEN
+	relPath := NewAbsolutePath(cleanAbsFile).ExtractRelativePath(targetDirLen)
 
 	if params.implicitDot && !params.implicitDotIgnore.Contains(relPath.TopLevelDir()) {
 		if relPath.IsHidden() {
