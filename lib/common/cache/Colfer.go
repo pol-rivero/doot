@@ -41,16 +41,18 @@ func (i ColferTail) Error() string {
 	return fmt.Sprintf("colfer: data continuation at byte %d", i)
 }
 
-type InstalledFilesCache struct {
-	Targets []string
+type InstalledFile struct {
+	Path string
+
+	Content string
 }
 
 // MarshalTo encodes o as Colfer into buf and returns the number of bytes written.
 // If the buffer is too small, MarshalTo will panic.
-func (o *InstalledFilesCache) MarshalTo(buf []byte) int {
+func (o *InstalledFile) MarshalTo(buf []byte) int {
 	var i int
 
-	if l := len(o.Targets); l != 0 {
+	if l := len(o.Path); l != 0 {
 		buf[i] = 0
 		i++
 		x := uint(l)
@@ -61,16 +63,206 @@ func (o *InstalledFilesCache) MarshalTo(buf []byte) int {
 		}
 		buf[i] = byte(x)
 		i++
-		for _, a := range o.Targets {
-			x = uint(len(a))
-			for x >= 0x80 {
-				buf[i] = byte(x | 0x80)
-				x >>= 7
-				i++
-			}
-			buf[i] = byte(x)
+		i += copy(buf[i:], o.Path)
+	}
+
+	if l := len(o.Content); l != 0 {
+		buf[i] = 1
+		i++
+		x := uint(l)
+		for x >= 0x80 {
+			buf[i] = byte(x | 0x80)
+			x >>= 7
 			i++
-			i += copy(buf[i:], a)
+		}
+		buf[i] = byte(x)
+		i++
+		i += copy(buf[i:], o.Content)
+	}
+
+	buf[i] = 0x7f
+	i++
+	return i
+}
+
+// MarshalLen returns the Colfer serial byte size.
+// The error return option is cache.ColferMax.
+func (o *InstalledFile) MarshalLen() (int, error) {
+	l := 1
+
+	if x := len(o.Path); x != 0 {
+		if x > ColferSizeMax {
+			return 0, ColferMax(fmt.Sprintf("colfer: field cache.InstalledFile.path exceeds %d bytes", ColferSizeMax))
+		}
+		for l += x + 2; x >= 0x80; l++ {
+			x >>= 7
+		}
+	}
+
+	if x := len(o.Content); x != 0 {
+		if x > ColferSizeMax {
+			return 0, ColferMax(fmt.Sprintf("colfer: field cache.InstalledFile.content exceeds %d bytes", ColferSizeMax))
+		}
+		for l += x + 2; x >= 0x80; l++ {
+			x >>= 7
+		}
+	}
+
+	if l > ColferSizeMax {
+		return l, ColferMax(fmt.Sprintf("colfer: struct cache.InstalledFile exceeds %d bytes", ColferSizeMax))
+	}
+	return l, nil
+}
+
+// MarshalBinary encodes o as Colfer conform encoding.BinaryMarshaler.
+// The error return option is cache.ColferMax.
+func (o *InstalledFile) MarshalBinary() (data []byte, err error) {
+	l, err := o.MarshalLen()
+	if err != nil {
+		return nil, err
+	}
+	data = make([]byte, l)
+	o.MarshalTo(data)
+	return data, nil
+}
+
+// Unmarshal decodes data as Colfer and returns the number of bytes read.
+// The error return options are io.EOF, cache.ColferError and cache.ColferMax.
+func (o *InstalledFile) Unmarshal(data []byte) (int, error) {
+	if len(data) == 0 {
+		return 0, io.EOF
+	}
+	header := data[0]
+	i := 1
+
+	if header == 0 {
+		if i >= len(data) {
+			goto eof
+		}
+		x := uint(data[i])
+		i++
+
+		if x >= 0x80 {
+			x &= 0x7f
+			for shift := uint(7); ; shift += 7 {
+				if i >= len(data) {
+					goto eof
+				}
+				b := uint(data[i])
+				i++
+
+				if b < 0x80 {
+					x |= b << shift
+					break
+				}
+				x |= (b & 0x7f) << shift
+			}
+		}
+
+		if x > uint(ColferSizeMax) {
+			return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFile.path size %d exceeds %d bytes", x, ColferSizeMax))
+		}
+
+		start := i
+		i += int(x)
+		if i >= len(data) {
+			goto eof
+		}
+		o.Path = string(data[start:i])
+
+		header = data[i]
+		i++
+	}
+
+	if header == 1 {
+		if i >= len(data) {
+			goto eof
+		}
+		x := uint(data[i])
+		i++
+
+		if x >= 0x80 {
+			x &= 0x7f
+			for shift := uint(7); ; shift += 7 {
+				if i >= len(data) {
+					goto eof
+				}
+				b := uint(data[i])
+				i++
+
+				if b < 0x80 {
+					x |= b << shift
+					break
+				}
+				x |= (b & 0x7f) << shift
+			}
+		}
+
+		if x > uint(ColferSizeMax) {
+			return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFile.content size %d exceeds %d bytes", x, ColferSizeMax))
+		}
+
+		start := i
+		i += int(x)
+		if i >= len(data) {
+			goto eof
+		}
+		o.Content = string(data[start:i])
+
+		header = data[i]
+		i++
+	}
+
+	if header != 0x7f {
+		return 0, ColferError(i - 1)
+	}
+	if i < ColferSizeMax {
+		return i, nil
+	}
+eof:
+	if i >= ColferSizeMax {
+		return 0, ColferMax(fmt.Sprintf("colfer: struct cache.InstalledFile size exceeds %d bytes", ColferSizeMax))
+	}
+	return 0, io.EOF
+}
+
+// UnmarshalBinary decodes data as Colfer conform encoding.BinaryUnmarshaler.
+// The error return options are io.EOF, cache.ColferError, cache.ColferTail and cache.ColferMax.
+func (o *InstalledFile) UnmarshalBinary(data []byte) error {
+	i, err := o.Unmarshal(data)
+	if i < len(data) && err == nil {
+		return ColferTail(i)
+	}
+	return err
+}
+
+type InstalledFilesCache struct {
+	Links []*InstalledFile
+}
+
+// MarshalTo encodes o as Colfer into buf and returns the number of bytes written.
+// If the buffer is too small, MarshalTo will panic.
+// All nil entries in o.Links will be replaced with a new value.
+func (o *InstalledFilesCache) MarshalTo(buf []byte) int {
+	var i int
+
+	if l := len(o.Links); l != 0 {
+		buf[i] = 0
+		i++
+		x := uint(l)
+		for x >= 0x80 {
+			buf[i] = byte(x | 0x80)
+			x >>= 7
+			i++
+		}
+		buf[i] = byte(x)
+		i++
+		for vi, v := range o.Links {
+			if v == nil {
+				v = new(InstalledFile)
+				o.Links[vi] = v
+			}
+			i += v.MarshalTo(buf[i:])
 		}
 	}
 
@@ -84,23 +276,25 @@ func (o *InstalledFilesCache) MarshalTo(buf []byte) int {
 func (o *InstalledFilesCache) MarshalLen() (int, error) {
 	l := 1
 
-	if x := len(o.Targets); x != 0 {
+	if x := len(o.Links); x != 0 {
 		if x > ColferListMax {
-			return 0, ColferMax(fmt.Sprintf("colfer: field cache.InstalledFilesCache.targets exceeds %d elements", ColferListMax))
+			return 0, ColferMax(fmt.Sprintf("colfer: field cache.InstalledFilesCache.links exceeds %d elements", ColferListMax))
 		}
 		for l += 2; x >= 0x80; l++ {
 			x >>= 7
 		}
-		for _, a := range o.Targets {
-			x = len(a)
-			if x > ColferSizeMax {
-				return 0, ColferMax(fmt.Sprintf("colfer: field cache.InstalledFilesCache.targets exceeds %d bytes", ColferSizeMax))
+		for _, v := range o.Links {
+			if v == nil {
+				l++
+				continue
 			}
-			for l += x + 1; x >= 0x80; l++ {
-				x >>= 7
+			vl, err := v.MarshalLen()
+			if err != nil {
+				return 0, err
 			}
+			l += vl
 		}
-		if l >= ColferSizeMax {
+		if l > ColferSizeMax {
 			return 0, ColferMax(fmt.Sprintf("colfer: struct cache.InstalledFilesCache size exceeds %d bytes", ColferSizeMax))
 		}
 	}
@@ -112,6 +306,7 @@ func (o *InstalledFilesCache) MarshalLen() (int, error) {
 }
 
 // MarshalBinary encodes o as Colfer conform encoding.BinaryMarshaler.
+// All nil entries in o.Links will be replaced with a new value.
 // The error return option is cache.ColferMax.
 func (o *InstalledFilesCache) MarshalBinary() (data []byte, err error) {
 	l, err := o.MarshalLen()
@@ -157,46 +352,26 @@ func (o *InstalledFilesCache) Unmarshal(data []byte) (int, error) {
 		}
 
 		if x > uint(ColferListMax) {
-			return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFilesCache.targets length %d exceeds %d elements", x, ColferListMax))
+			return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFilesCache.links length %d exceeds %d elements", x, ColferListMax))
 		}
-		a := make([]string, int(x))
-		o.Targets = a
 
+		l := int(x)
+		a := make([]*InstalledFile, l)
+		malloc := make([]InstalledFile, l)
 		for ai := range a {
-			if i >= len(data) {
-				goto eof
-			}
-			x := uint(data[i])
-			i++
+			v := &malloc[ai]
+			a[ai] = v
 
-			if x >= 0x80 {
-				x &= 0x7f
-				for shift := uint(7); ; shift += 7 {
-					if i >= len(data) {
-						goto eof
-					}
-					b := uint(data[i])
-					i++
-
-					if b < 0x80 {
-						x |= b << shift
-						break
-					}
-					x |= (b & 0x7f) << shift
+			n, err := v.Unmarshal(data[i:])
+			if err != nil {
+				if err == io.EOF && len(data) >= ColferSizeMax {
+					return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFilesCache size exceeds %d bytes", ColferSizeMax))
 				}
+				return 0, err
 			}
-
-			if x > uint(ColferSizeMax) {
-				return 0, ColferMax(fmt.Sprintf("colfer: cache.InstalledFilesCache.targets element %d size %d exceeds %d bytes", ai, x, ColferSizeMax))
-			}
-
-			start := i
-			i += int(x)
-			if i >= len(data) {
-				goto eof
-			}
-			a[ai] = string(data[start:i])
+			i += n
 		}
+		o.Links = a
 
 		if i >= len(data) {
 			goto eof

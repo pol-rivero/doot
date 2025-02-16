@@ -28,6 +28,6 @@ doot-%: codegen
 	go build -o $(OUTPUT_DIR)/doot-$*
 
 lib/common/cache/Colfer.go: lib/common/cache/cache.colf
-	bin/colf -b lib Go lib/common/cache/cache.colf
+	bin/colf -b lib/common Go lib/common/cache/cache.colf
 
 .PHONY: build test

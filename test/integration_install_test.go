@@ -142,18 +142,18 @@ func TestInstall_UpdatesCache(t *testing.T) {
 	install.Install()
 
 	homePath := NewAbsolutePath(homeDir())
-	assertCache(t, []AbsolutePath{
-		homePath.Join(".file1"),
-		homePath.Join("file2.txt"),
-		homePath.Join(".dir1/.file2"),
-		homePath.Join(".dir1/file3"),
-		homePath.Join(".dir1/nestedDir/file4"),
-		homePath.Join(".dir2/file5"),
-		homePath.Join("dir3/file6"),
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join(".file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join(".dir1/.file2"), Content: sourceDir() + "/dir1/.file2"},
+		{Path: homePath.Join(".dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join(".dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join(".dir2/file5"), Content: sourceDir() + "/.dir2/file5"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
 
 	install.Clean()
-	assertCache(t, []AbsolutePath{})
+	assertCache(t, []AssertCacheEntry{})
 }
 
 func TestInstall_IncrementalInstall(t *testing.T) {
@@ -166,10 +166,19 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	// Also, someFileInstalledInAPreviousRun is no longer in dotfiles dir, so it should be removed
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
-	cacheEntry.Targets = []string{
-		homeDir() + "/file1",
-		homeDir() + "/dir1/nestedDir/file4",
-		homeDir() + "/someFileInstalledInAPreviousRun",
+	cacheEntry.Links = []*cache.InstalledFile{
+		{
+			Path:    homeDir() + "/file1",
+			Content: sourceDir() + "/file1",
+		},
+		{
+			Path:    homeDir() + "/dir1/nestedDir/file4",
+			Content: sourceDir() + "/dir1/nestedDir/file4",
+		},
+		{
+			Path:    homeDir() + "/someFileInstalledInAPreviousRun",
+			Content: sourceDir() + "/file1",
+		},
 	}
 	dootCache.Save()
 
@@ -184,12 +193,12 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	})
 
 	homePath := NewAbsolutePath(homeDir())
-	assertCache(t, []AbsolutePath{
-		homePath.Join("file1"),
-		homePath.Join("file2.txt"),
-		homePath.Join("dir1/file3"),
-		homePath.Join("dir1/nestedDir/file4"),
-		homePath.Join("dir3/file6"),
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
 }
 
@@ -212,12 +221,12 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 	})
 
 	homePath := NewAbsolutePath(homeDir())
-	assertCache(t, []AbsolutePath{
-		homePath.Join("file1"),
-		homePath.Join("file2.txt"),
-		homePath.Join("dir1/file3"),
-		homePath.Join("dir1/nestedDir/file4"),
-		homePath.Join("dir3/file6"),
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
 }
 
@@ -236,10 +245,10 @@ func TestInstall_OverwriteN(t *testing.T) {
 	assertHomeLink(t, "file2.txt", sourceDir()+"/outdatedLink")
 
 	homePath := NewAbsolutePath(homeDir())
-	assertCache(t, []AbsolutePath{
-		homePath.Join("dir1/file3"),
-		homePath.Join("dir1/nestedDir/file4"),
-		homePath.Join("dir3/file6"),
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
 }
 
@@ -258,12 +267,12 @@ func TestInstall_OverwriteY(t *testing.T) {
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
 
 	homePath := NewAbsolutePath(homeDir())
-	assertCache(t, []AbsolutePath{
-		homePath.Join("file1"),
-		homePath.Join("file2.txt"),
-		homePath.Join("dir1/file3"),
-		homePath.Join("dir1/nestedDir/file4"),
-		homePath.Join("dir3/file6"),
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
 }
 

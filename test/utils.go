@@ -54,11 +54,29 @@ func assertHomeRegularFile(t *testing.T, path string) {
 	assert.True(t, info.Mode().IsRegular(), "File is not a regular file")
 }
 
-func assertCache(t *testing.T, expectTargets []AbsolutePath) {
+type AssertCacheEntry struct {
+	Path    AbsolutePath
+	Content string
+}
+
+func assertCache(t *testing.T, expectTargets []AssertCacheEntry) {
+	t.Helper()
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
-	targetsSet := cacheEntry.GetTargets()
-	assert.ElementsMatch(t, targetsSet.ToSlice(), expectTargets)
+	expectMap := make(map[AbsolutePath]AbsolutePath)
+	for _, expectTarget := range expectTargets {
+		expectMap[AbsolutePath(expectTarget.Path)] = AbsolutePath(expectTarget.Content)
+	}
+	assertSymlinkCollection(t, cacheEntry.GetLinks(), expectMap)
+}
+
+func assertSymlinkCollection(t *testing.T, targets SymlinkCollection, expect map[AbsolutePath]AbsolutePath) {
+	t.Helper()
+	assert.Len(t, targets.Iter(), len(expect))
+	for k, v := range targets.Iter() {
+		assert.Contains(t, expect, k)
+		assert.Equal(t, v, expect[k])
+	}
 }
 
 func initializeGitCrypt() {

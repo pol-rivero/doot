@@ -7,10 +7,9 @@ import (
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
-	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
-const CURRENT_CACHE_VERSION uint32 = 1
+const CURRENT_CACHE_VERSION uint32 = 2
 
 func Load() DootCache {
 	fileContents, err := os.ReadFile(getCachePath())
@@ -71,18 +70,21 @@ func (cache *DootCache) GetEntry(cacheKey string) *InstalledFilesCache {
 	return newEntry.InstalledFiles
 }
 
-func (filesCache *InstalledFilesCache) GetTargets() set.Set[AbsolutePath] {
-	targets := make([]AbsolutePath, 0, len(filesCache.Targets))
-	for _, target := range filesCache.Targets {
-		targets = append(targets, NewAbsolutePath(target))
+func (filesCache *InstalledFilesCache) GetLinks() SymlinkCollection {
+	links := NewSymlinkCollection(len(filesCache.Links))
+	for _, link := range filesCache.Links {
+		links.Add(NewAbsolutePath(link.Path), NewAbsolutePath(link.Content))
 	}
-	return set.NewFromSlice(targets)
+	return links
 }
 
-func (filesCache *InstalledFilesCache) SetTargets(targets []AbsolutePath) {
-	filesCache.Targets = make([]string, 0, len(targets))
-	for _, target := range targets {
-		filesCache.Targets = append(filesCache.Targets, target.Str())
+func (filesCache *InstalledFilesCache) SetLinks(links SymlinkCollection) {
+	filesCache.Links = make([]*InstalledFile, 0, links.Len())
+	for path, content := range links.Iter() {
+		filesCache.Links = append(filesCache.Links, &InstalledFile{
+			Path:    path.Str(),
+			Content: content.Str(),
+		})
 	}
 }
 

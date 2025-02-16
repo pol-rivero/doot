@@ -20,7 +20,7 @@ type SourcePath struct {
 }
 
 type FileMapping struct {
-	mapping           map[AbsolutePath]SourcePath // Map target (symlink) -> source (dotfile)
+	mapping           map[AbsolutePath]SourcePath // Installed target (symlink path) -> source (dotfile, symlink content/target)
 	sourceBaseDir     AbsolutePath
 	targetBaseDir     AbsolutePath
 	implicitDot       bool
@@ -71,22 +71,26 @@ func (fm *FileMapping) Add(relativeSource RelativePath) {
 	}
 }
 
-func (fm *FileMapping) GetInstalledTargets() []AbsolutePath {
-	targets := make([]AbsolutePath, 0, len(fm.mapping))
-	for target := range fm.mapping {
-		if !slices.Contains(fm.targetsSkipped, target) {
-			targets = append(targets, target)
+func (fm *FileMapping) GetInstalledTargets() SymlinkCollection {
+	targets := NewSymlinkCollection(len(fm.mapping))
+	for targetPath, sourcePath := range fm.mapping {
+		if !slices.Contains(fm.targetsSkipped, targetPath) {
+			targets.Add(targetPath, sourcePath.path)
 		}
 	}
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(alreadyExist set.Set[AbsolutePath]) int {
+func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
 	createdLinksCount := 0
 	for target, sourceStruct := range fm.mapping {
 		source := sourceStruct.path
-		if alreadyExist.Contains(target) {
-			log.Info("Target %s already exists and will not be created", target)
+		oldSource := alreadyExist.Get(target)
+		if oldSource.HasValue() {
+			added := fm.handleOutdatedLink(oldSource.Value(), target, source)
+			if added {
+				createdLinksCount++
+			}
 			continue
 		}
 		fileInfo, err := os.Lstat(target.Str())
@@ -110,16 +114,16 @@ func (fm *FileMapping) InstallNewLinks(alreadyExist set.Set[AbsolutePath]) int {
 	return createdLinksCount
 }
 
-func (fm *FileMapping) RemoveStaleLinks(previousTargets set.Set[AbsolutePath]) int {
+func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) int {
 	removedLinksCount := 0
-	for previousTarget := range previousTargets.Iter() {
-		if _, contains := fm.mapping[previousTarget]; !contains {
-			if !canBeSafelyRemoved(previousTarget, fm.sourceBaseDir) {
-				log.Info("%s appears to have been modified externally. Skipping removal to avoid data loss.", previousTarget)
+	for previousLinkPath := range previousLinks.Iter() {
+		if _, contains := fm.mapping[previousLinkPath]; !contains {
+			if !canBeSafelyRemoved(previousLinkPath, fm.sourceBaseDir) {
+				log.Info("%s appears to have been modified externally. Skipping removal to avoid data loss.", previousLinkPath)
 				continue
 			}
-			log.Info("Removing link %s", previousTarget)
-			success := RemoveAndCleanup(previousTarget, fm.targetBaseDir)
+			log.Info("Removing link %s", previousLinkPath)
+			success := RemoveAndCleanup(previousLinkPath, fm.targetBaseDir)
 			if success {
 				removedLinksCount++
 			}
@@ -156,6 +160,16 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 	} else {
 		fm.targetsSkipped = append(fm.targetsSkipped, target)
 		return false
+	}
+}
+
+func (fm *FileMapping) handleOutdatedLink(oldSource, target, source AbsolutePath) bool {
+	if oldSource == source {
+		log.Info("Target %s already exists and will not be created", target)
+		return false
+	} else {
+		err := ReplaceWithSymlink(target, source)
+		return err == nil
 	}
 }
 

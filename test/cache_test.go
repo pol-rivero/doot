@@ -17,16 +17,22 @@ func TestCache_GetInitial(t *testing.T) {
 
 	filesCache := cacheObj.GetEntry("cacheKey1")
 	assert.NotNil(t, filesCache, "Unexpected nil files cache")
-	assert.Empty(t, filesCache.Targets, "New files cache should have no entries")
+	assert.Empty(t, filesCache.Links, "New files cache should have no entries")
 }
 
 func TestCache_SaveAndLoad(t *testing.T) {
 	SetUp(t)
 	cacheObj := cache.Load()
 	filesCache := cacheObj.GetEntry("cacheKey1")
-	filesCache.Targets = append(filesCache.Targets, "SomeFile.txt")
+	filesCache.Links = append(filesCache.Links, &cache.InstalledFile{
+		Path:    "SomeFile.txt",
+		Content: "SomeContent",
+	})
 	filesCache = cacheObj.GetEntry("cacheKey2")
-	filesCache.Targets = append(filesCache.Targets, "AnotherFile.txt")
+	filesCache.Links = append(filesCache.Links, &cache.InstalledFile{
+		Path:    "AnotherFile.txt",
+		Content: "AnotherContent",
+	})
 	cacheObj.Save()
 
 	// Check that the cache file was created and is not empty
@@ -38,11 +44,21 @@ func TestCache_SaveAndLoad(t *testing.T) {
 	// Load the cache again and check that the data is the same
 	cacheObj = cache.Load()
 	filesCache = cacheObj.GetEntry("cacheKey1")
-	assert.ElementsMatch(t, filesCache.Targets, []string{"SomeFile.txt"})
+	assert.ElementsMatch(t, filesCache.Links, []*cache.InstalledFile{
+		{
+			Path:    "SomeFile.txt",
+			Content: "SomeContent",
+		},
+	})
 	filesCache = cacheObj.GetEntry("cacheKey2")
-	assert.Equal(t, []string{"AnotherFile.txt"}, filesCache.Targets)
+	assert.ElementsMatch(t, filesCache.Links, []*cache.InstalledFile{
+		{
+			Path:    "AnotherFile.txt",
+			Content: "AnotherContent",
+		},
+	})
 	filesCache = cacheObj.GetEntry("wrongKey")
-	assert.Empty(t, filesCache.Targets, "Expected empty targets for wrong key")
+	assert.Empty(t, filesCache.Links, "Expected empty targets for wrong key")
 
 }
 
@@ -51,7 +67,10 @@ func TestCache_VersionMismatch(t *testing.T) {
 	cacheObj := cache.Load()
 	cacheObj.Version = cache.CURRENT_CACHE_VERSION + 1
 	filesCache := cacheObj.GetEntry("cacheKey1")
-	filesCache.Targets = append(filesCache.Targets, "SomeFile.txt")
+	filesCache.Links = append(filesCache.Links, &cache.InstalledFile{
+		Path:    "SomeFile.txt",
+		Content: "SomeContent",
+	})
 
 	cacheObj.Save()
 

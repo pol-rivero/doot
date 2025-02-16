@@ -41,10 +41,11 @@ func installImpl(getFiles GetFilesFunc) {
 	fileList := getFiles(&config, dotfilesDir)
 	fileMapping := NewFileMapping(dotfilesDir, &config, fileList)
 
-	added := fileMapping.InstallNewLinks(installedFilesCache.GetTargets())
-	removed := fileMapping.RemoveStaleLinks(installedFilesCache.GetTargets())
+	oldLinks := installedFilesCache.GetLinks()
+	added := fileMapping.InstallNewLinks(&oldLinks)
+	removed := fileMapping.RemoveStaleLinks(&oldLinks)
 
-	installedFilesCache.SetTargets(fileMapping.GetInstalledTargets())
+	installedFilesCache.SetLinks(fileMapping.GetInstalledTargets())
 	cache.Save()
 
 	printChanges(added, removed)

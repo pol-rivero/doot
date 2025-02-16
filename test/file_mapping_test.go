@@ -21,12 +21,11 @@ func TestFileMapping_SimpleMapping(t *testing.T) {
 		"doot/file_that_is_internal_to_doot",
 		"somedir/doot/this_is_not_the_doot_dir",
 	})
-	expected := []AbsolutePath{
-		"/target/file1",
-		"/target/.dir/.file2",
-		"/target/somedir/doot/this_is_not_the_doot_dir",
-	}
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), expected)
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/file1":       "/src/file1",
+		"/target/.dir/.file2": "/src/.dir/.file2",
+		"/target/somedir/doot/this_is_not_the_doot_dir": "/src/somedir/doot/this_is_not_the_doot_dir",
+	})
 }
 
 func TestFileMapping_WithImplicitDot(t *testing.T) {
@@ -43,13 +42,13 @@ func TestFileMapping_WithImplicitDot(t *testing.T) {
 		"not_dotted/file",
 		"dir/not_dotted/file",
 	})
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), []AbsolutePath{
-		"/target/.file1",
-		"/target/.foo/bar",
-		"/target/.dir/not_dotted/file",
-		"/target/.dir/.file2",
-		"/target/not_dotted",
-		"/target/not_dotted/file",
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/.file1":               "/src/file1",
+		"/target/.foo/bar":             "/src/foo/bar",
+		"/target/.dir/not_dotted/file": "/src/dir/not_dotted/file",
+		"/target/.dir/.file2":          "/src/.dir/.file2",
+		"/target/not_dotted":           "/src/not_dotted",
+		"/target/not_dotted/file":      "/src/not_dotted/file",
 	})
 }
 
@@ -63,12 +62,11 @@ func TestFileMapping_WithDootCrypt(t *testing.T) {
 		"file2.doot-crypt.txt",
 		"dirA.doot-crypt/dirB.doot-crypt.d/file3.doot-crypt",
 	})
-	expected := []AbsolutePath{
-		"/target/file1",
-		"/target/file2.txt",
-		"/target/dirA/dirB.d/file3",
-	}
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), expected)
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/file1":             "/src/file1.doot-crypt",
+		"/target/file2.txt":         "/src/file2.doot-crypt.txt",
+		"/target/dirA/dirB.d/file3": "/src/dirA.doot-crypt/dirB.doot-crypt.d/file3.doot-crypt",
+	})
 }
 
 func TestFileMapping_ConflictingNames(t *testing.T) {
@@ -82,11 +80,10 @@ func TestFileMapping_ConflictingNames(t *testing.T) {
 		"file2.txt",
 		"file2.doot-crypt.txt",
 	})
-	expected := []AbsolutePath{
-		"/target/file1",
-		"/target/file2.txt",
-	}
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), expected)
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/file1":     "/src/file1.doot-crypt", // Prefer the first file found
+		"/target/file2.txt": "/src/file2.txt",
+	})
 }
 
 func TestFileMapping_HostSpecificDirs(t *testing.T) {
@@ -113,13 +110,12 @@ func TestFileMapping_HostSpecificDirs(t *testing.T) {
 		"dir1/dir2/file4",
 		"HOST/dir1/dir2/file3",
 	})
-	expected := []AbsolutePath{
-		"/target/file1",
-		"/target/file2",
-		"/target/dir1/dir2/file3",
-		"/target/dir1/dir2/file4",
-	}
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), expected)
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/file1":           "/src/HOST/file1",
+		"/target/file2":           "/src/file2",
+		"/target/dir1/dir2/file3": "/src/HOST/dir1/dir2/file3",
+		"/target/dir1/dir2/file4": "/src/dir1/dir2/file4",
+	})
 }
 
 func TestFileMapping_NestedHostSpecificDirs(t *testing.T) {
@@ -143,12 +139,11 @@ func TestFileMapping_NestedHostSpecificDirs(t *testing.T) {
 		"hosts/ignore/ignore_me",
 		"hosts/ignore/some/other/ignore_me",
 	})
-	expected := []AbsolutePath{
-		"/target/.dir/file3",
-		"/target/.file1",
-		"/target/.file2",
-		"/target/.some/nested/dir",
-		"/target/.some/other/file",
-	}
-	assert.ElementsMatch(t, mapping.GetInstalledTargets(), expected)
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/.dir/file3":       "/src/dir/file3",
+		"/target/.file1":           "/src/hosts/host/file1",
+		"/target/.file2":           "/src/hosts/host/.file2",
+		"/target/.some/nested/dir": "/src/hosts/host/.some/nested/dir",
+		"/target/.some/other/file": "/src/hosts/host/some/other/file",
+	})
 }

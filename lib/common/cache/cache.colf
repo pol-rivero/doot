@@ -1,7 +1,12 @@
 package cache
 
+type InstalledFile struct {
+	path    text
+	content text
+}
+
 type InstalledFilesCache struct {
-	targets []text
+	links []InstalledFile
 }
 
 type CacheEntry struct {
