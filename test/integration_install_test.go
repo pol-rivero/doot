@@ -202,6 +202,32 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	})
 }
 
+func TestInstall_IncrementalUpdateLink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	createSymlink(homeDir(), "file1", sourceDir()+"/correct-target")
+	createSymlink(homeDir(), "file2.txt", sourceDir()+"/incorrect-target")
+
+	dootCache := cache.Load()
+	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
+	cacheEntry.Links = []*cache.InstalledFile{
+		{
+			Path:    homeDir() + "/file1",
+			Content: sourceDir() + "/file1", // Lie to the cache and see that the link is not updated
+		},
+		{
+			Path:    homeDir() + "/file2.txt",
+			Content: sourceDir() + "/incorrect-target",
+		},
+	}
+	dootCache.Save()
+
+	install.Install()
+	assertHomeLink(t, "file1", sourceDir()+"/correct-target") // Not updated
+	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
+}
+
 func TestInstall_SilentOverwrite(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false

@@ -84,10 +84,10 @@ func (fm *FileMapping) GetInstalledTargets() SymlinkCollection {
 func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
 	createdLinksCount := 0
 	for target, sourceStruct := range fm.mapping {
-		source := sourceStruct.path
+		newSource := sourceStruct.path
 		oldSource := alreadyExist.Get(target)
 		if oldSource.HasValue() {
-			added := fm.handleOutdatedLink(oldSource.Value(), target, source)
+			added := fm.handleOutdatedLink(target, oldSource.Value(), newSource)
 			if added {
 				createdLinksCount++
 			}
@@ -95,21 +95,21 @@ func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
 		}
 		fileInfo, err := os.Lstat(target.Str())
 		if err == nil {
-			added := fm.handleTargetAlreadyExists(fileInfo, target, source)
+			added := fm.handleTargetAlreadyExists(fileInfo, target, newSource)
 			if added {
 				createdLinksCount++
 			}
 			continue
 		}
 		if os.IsNotExist(err) && EnsureParentDir(target) {
-			log.Info("Linking %s -> %s", target, source)
-			err = os.Symlink(source.Str(), target.Str())
+			log.Info("Linking %s -> %s", target, newSource)
+			err = os.Symlink(newSource.Str(), target.Str())
 			if err == nil {
 				createdLinksCount++
 				continue
 			}
 		}
-		log.Error("Failed to create link %s -> %s: %s", target, source, err)
+		log.Error("Failed to create link %s -> %s: %s", target, newSource, err)
 	}
 	return createdLinksCount
 }
@@ -163,12 +163,13 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 	}
 }
 
-func (fm *FileMapping) handleOutdatedLink(oldSource, target, source AbsolutePath) bool {
-	if oldSource == source {
+func (fm *FileMapping) handleOutdatedLink(target, oldSource, newSource AbsolutePath) bool {
+	if oldSource == newSource {
 		log.Info("Target %s already exists and will not be created", target)
 		return false
 	} else {
-		err := ReplaceWithSymlink(target, source)
+		log.Info("Link %s is outdated (was %s, changing to %s)", target, oldSource, newSource)
+		err := ReplaceWithSymlink(target, newSource)
 		return err == nil
 	}
 }
