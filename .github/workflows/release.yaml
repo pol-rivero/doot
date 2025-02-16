@@ -42,8 +42,8 @@ jobs:
       - name: Populate version string
         shell: bash
         run: |
-          sed -i "s/[[VERSION]]/${{ env.VERSION }}/g" cmd/version.go
-          sed -i "s/[[COMMIT]]/${{ github.sha }}/g" cmd/version.go
+          sed -i "s/\[\[VERSION\]\]/${{ env.VERSION }}/g" cmd/version.go
+          sed -i "s/\[\[COMMIT\]\]/${{ github.sha }}/g" cmd/version.go
 
       - name: Run tests
         run: make test

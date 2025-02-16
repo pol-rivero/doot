@@ -20,8 +20,8 @@ build() {
     tar -xzf "${pkgname}-${pkgver}.tar.gz"
     cd "${pkgname}-${pkgver}"
 
-    sed -i "s/[[VERSION]]/${pkgver}/g" cmd/version.go
-    sed -i "s/[[COMMIT]]/aur/g" cmd/version.go
+    sed -i "s/\[\[VERSION\]\]/${pkgver}/g" cmd/version.go
+    sed -i "s/\[\[COMMIT\]\]/aur/g" cmd/version.go
     
     export CGO_ENABLED=0
     export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
