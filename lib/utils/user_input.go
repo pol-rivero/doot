@@ -10,23 +10,21 @@ var USER_INPUT_MOCK_RESPONSE *string = nil
 func RequestInput(options string, format string, args ...interface{}) rune {
 	suffix := fmt.Sprintf(" [%s] ", addSlashes(options))
 	fmt.Printf(format+suffix, args...)
-	defaultResponse := getFirstUpperRune(options)
+	defaultResponse := ensureLower(getFirstUpperRune(options))
 	responseStr := getUserInput()
-	fmt.Printf("\n")
 
 	var responseRune rune
 	if responseStr == "" {
-		fmt.Println(defaultResponse)
+		fmt.Printf("> %c\n", defaultResponse)
 		responseRune = defaultResponse
 	} else {
-		responseRune = getFirstRune(responseStr)
+		responseRune = ensureLower(getFirstRune(responseStr))
 	}
-	responseRune = ensureLower(responseRune)
 
 	acceptedResponses := strings.ToLower(options)
 	if !strings.ContainsRune(acceptedResponses, responseRune) {
 		fmt.Printf("Invalid response: '%c', defaulting to '%c'\n", responseRune, defaultResponse)
-		responseRune = ensureLower(defaultResponse)
+		responseRune = defaultResponse
 	}
 
 	return responseRune
@@ -49,7 +47,6 @@ func getUserInput() string {
 	}
 	var response string
 	fmt.Scanf("%s", &response)
-	response = strings.ToLower(response)
 	return response
 }
 

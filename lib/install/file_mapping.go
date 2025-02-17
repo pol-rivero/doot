@@ -235,6 +235,6 @@ func printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Error("Failed to run diff: %s", err)
+		log.Info("Diff command had non-zero exit code: %s. This is usually not a problem.", err)
 	}
 }
