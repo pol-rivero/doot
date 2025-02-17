@@ -1,7 +1,6 @@
 package test
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/common/config"
@@ -227,9 +226,7 @@ func weirdSuperAsterisk(t *testing.T) {
 	}
 	files := install.ScanDirectory(sourceDirPath(), &filter)
 	assert.Contains(t, files, RelativePath("file1"), "Should not have excluded file1")
-	if slices.Contains(files, "file2") {
-		t.Log("This is a bug in gobwas/glob, see https://github.com/gobwas/glob/issues/58")
-	}
+	assert.NotContains(t, files, RelativePath("file2"), "Should have excluded file2 (** should also match depth 0)")
 	assert.NotContains(t, files, RelativePath(".hiddenDir/file4"), "Should have excluded this file (** should also match depth 0)")
 	assert.Contains(t, files, RelativePath(".hiddenDir/.nestedHiddenFile2"), "Should not have excluded this file")
 	assert.NotContains(t, files, RelativePath("dir1/nestedDir/.nestedHiddenFile1"), "Should have excluded dir1/nestedDir/**")
