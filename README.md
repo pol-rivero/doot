@@ -56,9 +56,9 @@ If you have more than one machine and this file is only applicable to the curren
 
 - [`doot crypt`: Manage private (encrypted) files](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files)
 
-- [`doot bootstrap`: Automatically download and apply your dotfiles](docs/bootstrap.md)
+- [`doot bootstrap`: Automatically download and apply your dotfiles](https://github.com/pol-rivero/doot/wiki/Bootstrap)
 
-- [Hooks: Run custom scripts before and after the installation process](docs/hooks.md)
+- [Hooks: Run custom scripts before and after the installation process](https://github.com/pol-rivero/doot/wiki/Hooks)
 
 
 ## Dotfiles directory
@@ -110,6 +110,9 @@ implicit_dot = true
 implicit_dot_ignore = [
   "bin"
 ]
+
+# Command and flags to use for displaying diffs. Use any tool and format you like, but it must accept 2 positional arguments for the files to compare.
+diff_command = "diff --unified --color=always"
 
 # Key-value pairs of "host name" -> "host-specific directory".
 # In the example below, <dotfiles dir>/laptop-dots/.zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/.zshrc, if the hostname is "my-laptop".

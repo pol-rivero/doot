@@ -2,7 +2,6 @@ package install
 
 import (
 	"os"
-	"os/exec"
 	"slices"
 	"strings"
 
@@ -26,6 +25,7 @@ type FileMapping struct {
 	implicitDot       bool
 	implicitDotIgnore set.Set[string]
 	hostnameFilter    HostnameFilter
+	diffCommand       string
 	targetsSkipped    []AbsolutePath
 }
 
@@ -37,6 +37,7 @@ func NewFileMapping(dotfilesDir AbsolutePath, config *config.Config, sourceFiles
 		implicitDot:       config.ImplicitDot,
 		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),
 		hostnameFilter:    getHostnameFilter(config.Hosts),
+		diffCommand:       config.DiffCommand,
 		targetsSkipped:    make([]AbsolutePath, 0),
 	}
 	for _, sourceFile := range sourceFiles {
@@ -200,7 +201,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 			fm.targetsSkipped = append(fm.targetsSkipped, target)
 			return false
 		case 'd':
-			printDiff(target, source)
+			fm.printDiff(target, source)
 		}
 	}
 }
@@ -229,11 +230,8 @@ func canBeSafelyRemoved(linkPath AbsolutePath, expectedDestinationDir AbsolutePa
 	return strings.HasPrefix(linkSource, expectedDestinationDir.Str())
 }
 
-func printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {
-	cmd := exec.Command("diff", "-u", leftFile.Str(), rightFile.Str())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+func (fm *FileMapping) printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {
+	err := utils.RunCommandStr(fm.sourceBaseDir, fm.diffCommand, leftFile.Str(), rightFile.Str())
 	if err != nil {
 		log.Info("Diff command had non-zero exit code: %s. This is usually not a problem.", err)
 	}

@@ -16,9 +16,12 @@ func RunCommand(pwd AbsolutePath, command string, args ...string) error {
 	cmd.Stderr = os.Stderr
 
 	log.Info("Running command: '%s %s' (PWD: %s)", command, strings.Join(args, " "), pwd)
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
+}
+
+func RunCommandStr(pwd AbsolutePath, commandAndArgsStr string, extraArgs ...string) error {
+	commandAndArgs := strings.Fields(commandAndArgsStr)
+	command := commandAndArgs[0]
+	args := append(commandAndArgs[1:], extraArgs...)
+	return RunCommand(pwd, command, args...)
 }
