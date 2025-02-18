@@ -94,3 +94,25 @@ func initializeGitCrypt() {
 		}),
 	}))
 }
+
+func createHookFile(hook string, scriptName string, content string) {
+	createNode(sourceDir(), Dir("doot", []FsNode{
+		Dir("hooks", []FsNode{
+			Dir(hook, []FsNode{
+				FsFile{
+					Name:    scriptName,
+					Content: content,
+				},
+			}),
+		}),
+	}))
+	os.Chmod(filepath.Join(sourceDir(), "doot", "hooks", hook, scriptName), 0755)
+}
+
+func readFile(path string) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return string(content)
+}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
 	"github.com/pol-rivero/doot/lib/install"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
@@ -417,6 +418,54 @@ func TestInstall_ExploreExcludedDirs(t *testing.T) {
 	assertHomeDirContents(t, "dir3", []string{
 		"file6",
 	})
+}
+
+func TestInstall_Hooks(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	createHookFile("before-update", "before1.sh", `#!/bin/bash
+		echo "before1 $PWD" >> before.txt`)
+	createHookFile("before-update", "before2.sh", `#!/bin/bash
+		echo "before2" >> before.txt`)
+	createHookFile("after-update", "after1.sh", `#!/bin/bash
+		echo "after" >> before.txt && echo "after" >> after.txt`)
+
+	install.Install()
+	assertHomeDirContents(t, "", []string{
+		"before.txt",
+		// after.txt should not be linked because it was created after the install
+		"file1",
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
+	assertHomeLink(t, "before.txt", sourceDir()+"/before.txt")
+	beforeContent := readFile(sourceDir() + "/before.txt")
+	assert.Equal(t, "before1 "+sourceDir()+"\nbefore2\nafter\n", beforeContent)
+	afterContent := readFile(sourceDir() + "/after.txt")
+	assert.Equal(t, "after\n", afterContent, "after hook was not executed")
+}
+
+func TestInstall_HooksFail(t *testing.T) {
+	log.PanicInsteadOfExit = true
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	createHookFile("before-update", "before1.sh", `#!/bin/bash
+		echo "i will fail" >> hook.txt
+		exit 1`)
+	createHookFile("before-update", "before2.sh", `#!/bin/bash
+		echo "this should not be executed" >> hook.txt`)
+	createHookFile("after-update", "after.sh", `#!/bin/bash
+		echo "i shouldn't be executed either" >> hook.txt`)
+
+	assert.Panics(t, func() {
+		install.Install()
+	})
+	assertHomeDirContents(t, "", []string{}) // Install process should have been aborted
+	beforeContent := readFile(sourceDir() + "/hook.txt")
+	assert.Equal(t, "i will fail\n", beforeContent)
 }
 
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {

@@ -118,7 +118,7 @@ func createNode(parentDir string, node FsNode) {
 func createDir(parentDir string, dir FsDir) {
 	dirPath := filepath.Join(parentDir, dir.GetName())
 	err := os.Mkdir(dirPath, 0755)
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		panic(err)
 	}
 	for _, child := range dir.GetChildren() {

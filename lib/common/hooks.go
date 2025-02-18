@@ -24,7 +24,7 @@ func RunHooks(dotfilesDir AbsolutePath, hookName string) {
 		hookPath := filepath.Join(hookDir, entry.Name())
 		err := utils.RunCommand(dotfilesDir, hookPath)
 		if err != nil {
-			log.Error("Error running hook %s: %v", hookPath, err)
+			log.Fatal("Error running hook %s: %v", hookPath, err)
 		}
 	}
 }
