@@ -169,6 +169,7 @@ func TestAdd_WithCryptExtensionUninitialized(t *testing.T) {
 func TestAdd_WithCryptExtension(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
+	config.ExcludeFiles = []string{}
 	setUpFiles_TestAdd(t, config)
 	initializeGitCrypt()
 	t.Chdir(homeDir())
@@ -179,6 +180,8 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 		"dir1/nestedDir/file4",
 		"dir.with.dots/file.with.some.dots",
 		"dir.with.dots/file-without-dots",
+		".dir2/.foo",
+		".dir2/.foo.txt",
 	}, true, false)
 	assertSourceDirContents(t, "", []string{
 		".git",
@@ -187,6 +190,7 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 		"file2.doot-crypt.txt",
 		"dir1",
 		"dir.with.dots",
+		".dir2",
 	})
 	assertSourceDirContents(t, "dir1", []string{
 		"nestedDir",
@@ -198,11 +202,45 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 		"file.with.some.doot-crypt.dots",
 		"file-without-dots.doot-crypt",
 	})
+	assertSourceDirContents(t, ".dir2", []string{
+		".foo.doot-crypt",
+		".foo.doot-crypt.txt",
+	})
 	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.doot-crypt.txt")
 	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4.doot-crypt")
 	assertHomeLink(t, "dir.with.dots/file.with.some.dots", sourceDir()+"/dir.with.dots/file.with.some.doot-crypt.dots")
 	assertHomeLink(t, "dir.with.dots/file-without-dots", sourceDir()+"/dir.with.dots/file-without-dots.doot-crypt")
+	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
+	assertHomeLink(t, ".dir2/.foo.txt", sourceDir()+"/.dir2/.foo.doot-crypt.txt")
+}
+
+func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.ExcludeFiles = []string{"file1.doot-crypt", "*.txt", "dir1", "dir3/**"}
+	config.IncludeFiles = []string{"**/file6.doot-crypt", "file2.doot-crypt.txt"}
+	setUpFiles_TestAdd(t, config)
+	initializeGitCrypt()
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",                // Excluded
+		"file2.txt",            // Excluded but then included
+		"dir1/nestedDir/file4", // Parent dir excluded
+		"dir3/file6",           // Excluded but then included
+		"dir3/file7",           // Excluded
+		".dir2/.foo",           // Not excluded
+	}, true, false)
+	assertSourceDirContents(t, "", []string{
+		".git",
+		"doot",
+		"file2.doot-crypt.txt",
+		"dir3",
+		".dir2",
+	})
+	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6.doot-crypt")
+	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
 }
 
 func TestAdd_HostSpecificNotFound(t *testing.T) {
@@ -256,6 +294,40 @@ func TestAdd_HostSpecificDir(t *testing.T) {
 	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/host/dir/dir1/nestedDir/file4")
 }
 
+func TestAdd_IsIdempotent(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+		"file2.txt",
+		"dir1/file3",
+	}, false, false)
+
+	os.Remove(homeDir() + "/file2.txt")
+	os.Remove(homeDir() + "/file1")
+	createNode(homeDir(), File("file1"))
+	createSymlink(homeDir(), "file2.txt", "./file1")
+
+	add.Add([]string{
+		"file1",      // Dotfile already exists and this is a regular file, fails with error
+		"file2.txt",  // Dotfile already exists and this points to wrong location, fails with error
+		"dir1/file3", // Already points to the same source, skipped
+	}, false, false)
+
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"file1",
+		"file2.txt",
+		"dir1",
+	})
+	assertHomeRegularFile(t, "file1")
+	assertHomeLink(t, "file2.txt", "./file1")
+	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+}
+
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{
@@ -275,6 +347,7 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 		Dir(".dir2", []FsNode{
 			File("file5"),
 			File(".foo"),
+			File(".foo.txt"),
 		}),
 		Dir("dir3", []FsNode{
 			File("file6"),

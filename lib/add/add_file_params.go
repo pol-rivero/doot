@@ -53,12 +53,12 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 		}
 	}
 
-	if err := checkIsIncluded(relPath, params.includeFiles, params.excludeFiles); err != nil {
-		return "", err
-	}
-
 	if params.crypt {
 		relPath = addDootCryptExtension(relPath)
+	}
+
+	if err := checkIsIncluded(relPath, params.includeFiles, params.excludeFiles); err != nil {
+		return "", err
 	}
 
 	relPath = relPath.AppendLeft(params.hostSpecificDir)
@@ -79,10 +79,15 @@ func checkIsIncluded(relPath RelativePath, includeFiles glob_collection.GlobColl
 func addDootCryptExtension(relPath RelativePath) RelativePath {
 	dir, file := relPath.Split()
 	parts := strings.Split(file, ".")
-	if len(parts) > 1 {
-		parts = append(parts[:len(parts)-1], common.DOOT_CRYPT_EXT_WITHOUT_DOT, parts[len(parts)-1])
-	} else {
+	if len(parts) == 0 {
+		panic("impossible according to strings.Split spec, since sep is not empty")
+	}
+	if len(parts) == 1 || (len(parts) == 2 && parts[0] == "") {
+		// file.DOOT-CRYPT or .file.DOOT-CRYPT
 		parts = append(parts, common.DOOT_CRYPT_EXT_WITHOUT_DOT)
+	} else {
+		// some.file.DOOT-CRYPT.ext
+		parts = append(parts[:len(parts)-1], common.DOOT_CRYPT_EXT_WITHOUT_DOT, parts[len(parts)-1])
 	}
 	return RelativePath(filepath.Join(dir.Str(), strings.Join(parts, ".")))
 }

@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -218,7 +219,7 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) (optional.Optional
 	if fm.implicitDot && !fm.implicitDotIgnore.Contains(source.TopLevelDir()) && !strings.HasPrefix(target.Str(), ".") {
 		target = "." + target
 	}
-	target = target.Replace(".doot-crypt", "")
+	target = target.Replace(common.DOOT_CRYPT_EXT, "")
 	return optional.WrapString(target), isHostSpecific
 }
 
