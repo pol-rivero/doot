@@ -24,8 +24,8 @@ var bootstrapCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(bootstrapCmd)
 
-	addCmd.Args = cobra.ExactArgs(2)
-	addCmd.ArgAliases = []string{"repo", "dotfiles-dir"}
+	bootstrapCmd.Args = cobra.ExactArgs(2)
+	bootstrapCmd.ArgAliases = []string{"repo", "dotfiles-dir"}
 
 	bootstrapCmd.Flags().String("key", "", "Path to the private key file to use for decryption.")
 }

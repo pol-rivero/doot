@@ -76,6 +76,8 @@ func init() {
 	cryptCmd.AddCommand(cryptExportKeyCmd)
 	cryptCmd.AddCommand(cryptAddGpgUserCmd)
 
+	cryptInitCmd.Args = cobra.NoArgs
+
 	cryptUnlockCmd.Args = cobra.MaximumNArgs(1)
 	cryptUnlockCmd.ArgAliases = []string{"key_file"}
 
@@ -85,5 +87,6 @@ func init() {
 	cryptAddGpgUserCmd.Args = cobra.ExactArgs(1)
 	cryptAddGpgUserCmd.ArgAliases = []string{"user_id"}
 
+	cryptLockCmd.Args = cobra.NoArgs
 	cryptLockCmd.Flags().Bool("force", false, "Lock even if unclean (you may lose uncommited work)")
 }

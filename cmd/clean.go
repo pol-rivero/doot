@@ -17,5 +17,7 @@ var cleanCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(cleanCmd)
+
+	cleanCmd.Args = cobra.NoArgs
 	cleanCmd.Flags().Bool("full-clean", false, "Ignore the cache and remove all symlinks that point to the dotfiles directory,\neven if they were created by another program. Can be slow.")
 }

@@ -41,6 +41,7 @@ var otherCommandsGroup = &cobra.Group{
 }
 
 func init() {
+	installCmd.Args = cobra.NoArgs
 	rootCmd.AddGroup(basicCommandsGroup)
 	rootCmd.AddGroup(advancedCommandsGroup)
 	rootCmd.AddGroup(otherCommandsGroup)
