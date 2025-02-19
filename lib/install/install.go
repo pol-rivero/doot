@@ -3,11 +3,9 @@ package install
 import (
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
-	"github.com/pol-rivero/doot/lib/common/log"
 	"github.com/pol-rivero/doot/lib/crypt"
 	. "github.com/pol-rivero/doot/lib/types"
 )
@@ -51,30 +49,4 @@ func installImpl(getFiles GetFilesFunc) {
 
 	common.RunHooks(dotfilesDir, "after-update")
 	printChanges(added, removed)
-}
-
-func printChanges(added int, removed int) {
-	if added == 0 && removed == 0 {
-		log.Printlnf("No changes made")
-		return
-	}
-	if added > 0 {
-		boldGreen := color.New(color.FgGreen, color.Bold).SprintFunc()
-		log.Printf(boldGreen("%d")+color.GreenString(" %s added"), added, links(added))
-	}
-	if added > 0 && removed > 0 {
-		log.Printf(", ")
-	}
-	if removed > 0 {
-		boldRed := color.New(color.FgRed, color.Bold).SprintFunc()
-		log.Printf(boldRed("%d")+color.RedString(" %s removed"), removed, links(removed))
-	}
-	log.Printlnf("")
-}
-
-func links(num int) string {
-	if num == 1 {
-		return "link"
-	}
-	return "links"
 }

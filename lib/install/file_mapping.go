@@ -83,15 +83,15 @@ func (fm *FileMapping) GetInstalledTargets() SymlinkCollection {
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
-	createdLinksCount := 0
+func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) []AbsolutePath {
+	createdLinks := make([]AbsolutePath, 0, 5)
 	for target, sourceStruct := range fm.mapping {
 		newSource := sourceStruct.path
 		oldSource := alreadyExist.Get(target)
 		if oldSource.HasValue() {
 			added := fm.handleOutdatedLink(target, oldSource.Value(), newSource)
 			if added {
-				createdLinksCount++
+				createdLinks = append(createdLinks, target)
 			}
 			continue
 		}
@@ -99,7 +99,7 @@ func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
 		if err == nil {
 			added := fm.handleTargetAlreadyExists(fileInfo, target, newSource)
 			if added {
-				createdLinksCount++
+				createdLinks = append(createdLinks, target)
 			}
 			continue
 		}
@@ -107,17 +107,17 @@ func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) int {
 			log.Info("Linking %s -> %s", target, newSource)
 			err = os.Symlink(newSource.Str(), target.Str())
 			if err == nil {
-				createdLinksCount++
+				createdLinks = append(createdLinks, target)
 				continue
 			}
 		}
 		log.Error("Failed to create link %s -> %s: %s", target, newSource, err)
 	}
-	return createdLinksCount
+	return createdLinks
 }
 
-func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) int {
-	removedLinksCount := 0
+func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) []AbsolutePath {
+	removedLinks := make([]AbsolutePath, 0, 5)
 	for previousLinkPath := range previousLinks.Iter() {
 		if _, contains := fm.mapping[previousLinkPath]; !contains {
 			if !canBeSafelyRemoved(previousLinkPath, fm.sourceBaseDir) {
@@ -127,11 +127,11 @@ func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) int {
 			log.Info("Removing link %s", previousLinkPath)
 			success := RemoveAndCleanup(previousLinkPath, fm.targetBaseDir)
 			if success {
-				removedLinksCount++
+				removedLinks = append(removedLinks, previousLinkPath)
 			}
 		}
 	}
-	return removedLinksCount
+	return removedLinks
 }
 
 func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) bool {

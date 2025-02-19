@@ -33,12 +33,6 @@ func Info(format string, v ...interface{}) {
 	}
 }
 
-func Printf(format string, v ...interface{}) {
-	if !isQuiet {
-		fmt.Printf(format, v...)
-	}
-}
-
 func Printlnf(format string, v ...interface{}) {
 	if !isQuiet {
 		fmt.Printf(format, v...)
