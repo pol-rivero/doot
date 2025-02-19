@@ -1,6 +1,9 @@
 package crypt
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -9,8 +12,17 @@ import (
 )
 
 func Unlock(keyFile optional.Optional[string]) {
-	ensureGitCryptInstalled()
 	dotfilesDir := common.FindDotfilesDir()
+	err := UnlockOrErr(dotfilesDir, keyFile)
+	if err != nil {
+		log.Error("Unlock error: %s", err)
+	} else {
+		log.Printlnf("Repository (%s) unlocked successfully, you now have access to the encrypted files", dotfilesDir)
+	}
+}
+
+func UnlockOrErr(dotfilesDir AbsolutePath, keyFile optional.Optional[string]) error {
+	ensureGitCryptInstalled()
 
 	if gitAttributesIsSet(dotfilesDir) {
 		log.Info("Git attributes already set, skipping...")
@@ -22,24 +34,29 @@ func Unlock(keyFile optional.Optional[string]) {
 	}
 
 	if keyFile.HasValue() {
-		unlockWithKeyFile(dotfilesDir, keyFile.Value())
+		return unlockWithKeyFile(dotfilesDir, keyFile.Value())
 	} else {
-		unlockGPG(dotfilesDir)
+		return unlockGPG(dotfilesDir)
 	}
-
-	log.Printlnf("Repository (%s) unlocked successfully, you now have access to the encrypted files", dotfilesDir)
 }
 
-func unlockWithKeyFile(dotfilesDir AbsolutePath, keyFile string) {
-	err := utils.RunCommand(dotfilesDir, "git-crypt", "unlock", keyFile)
+func unlockWithKeyFile(dotfilesDir AbsolutePath, keyFile string) error {
+	keyFile, err := filepath.Abs(keyFile)
 	if err != nil {
-		log.Fatal("Failed to unlock repository")
+		log.Fatal("Failed to get absolute path for '%s': %v", keyFile, err)
 	}
+
+	err = utils.RunCommand(dotfilesDir, "git-crypt", "unlock", keyFile)
+	if err != nil {
+		return fmt.Errorf("failed to unlock repository, make sure the provided key file is correct")
+	}
+	return nil
 }
 
-func unlockGPG(dotfilesDir AbsolutePath) {
+func unlockGPG(dotfilesDir AbsolutePath) error {
 	err := utils.RunCommand(dotfilesDir, "git-crypt", "unlock")
 	if err != nil {
-		log.Fatal("Failed to unlock repository with GPG: %s", err)
+		return fmt.Errorf("failed to unlock repository with GPG, make sure you have the correct private key installed")
 	}
+	return nil
 }

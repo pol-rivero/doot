@@ -12,6 +12,13 @@ func Of[T any](value T) Optional[T] {
 	}
 }
 
+func WrapString[T ~string](value T) Optional[T] {
+	if value == "" {
+		return Empty[T]()
+	}
+	return Of(value)
+}
+
 func Empty[T any]() Optional[T] {
 	return Optional[T]{
 		hasValue: false,

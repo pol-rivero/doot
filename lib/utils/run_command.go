@@ -14,6 +14,7 @@ func RunCommand(pwd AbsolutePath, command string, args ...string) error {
 	cmd.Dir = pwd.Str()
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 
 	log.Info("Running command: '%s %s' (PWD: %s)", command, strings.Join(args, " "), pwd)
 	return cmd.Run()

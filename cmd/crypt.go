@@ -28,7 +28,7 @@ var cryptUnlockCmd = &cobra.Command{
 		SetUpLogger(cmd)
 		keyFile := optional.Empty[string]()
 		if len(args) > 0 {
-			keyFile = optional.Of(args[0])
+			keyFile = optional.WrapString(args[0])
 		}
 		crypt.Unlock(keyFile)
 	},

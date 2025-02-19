@@ -37,9 +37,14 @@ func getGitAttributesContent(withPadding bool) string {
 }
 
 func ensureGitCryptInstalled() {
-	if _, err := exec.LookPath("git-crypt"); err != nil {
+	if !GitCryptIsInstalled() {
 		log.Fatal("git-crypt does not seem to be installed. Make sure it is available in your PATH.")
 	}
+}
+
+func GitCryptIsInstalled() bool {
+	_, err := exec.LookPath("git-crypt")
+	return err == nil
 }
 
 func ensureGitCryptIsInitialized(dotfilesDir AbsolutePath) {

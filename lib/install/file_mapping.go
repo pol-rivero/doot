@@ -219,7 +219,7 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) (optional.Optional
 		target = "." + target
 	}
 	target = target.Replace(".doot-crypt", "")
-	return optional.Of(target), isHostSpecific
+	return optional.WrapString(target), isHostSpecific
 }
 
 func canBeSafelyRemoved(linkPath AbsolutePath, expectedDestinationDir AbsolutePath) bool {
