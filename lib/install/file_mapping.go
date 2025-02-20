@@ -83,12 +83,12 @@ func (fm *FileMapping) GetInstalledTargets() SymlinkCollection {
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection) []AbsolutePath {
+func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection, forceCreate bool) []AbsolutePath {
 	createdLinks := make([]AbsolutePath, 0, 5)
 	for target, sourceStruct := range fm.mapping {
 		newSource := sourceStruct.path
 		oldSource := alreadyExist.Get(target)
-		if oldSource.HasValue() {
+		if !forceCreate && oldSource.HasValue() {
 			added := fm.handleOutdatedLink(target, oldSource.Value(), newSource)
 			if added {
 				createdLinks = append(createdLinks, target)

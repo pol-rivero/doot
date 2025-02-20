@@ -22,6 +22,6 @@ func Bootstrap(repo string, dotfilesDirRel string, keyPath optional.Optional[str
 	UnlockIfNeeded(dotfilesDir, keyPath)
 
 	common.RunHooks(dotfilesDir, "before-bootstrap")
-	install.Install()
+	install.Install(false, false)
 	common.RunHooks(dotfilesDir, "after-bootstrap")
 }
