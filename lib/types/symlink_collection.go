@@ -1,6 +1,12 @@
 package types
 
-import "github.com/pol-rivero/doot/lib/utils/optional"
+import (
+	"encoding/json"
+	"slices"
+	"strings"
+
+	"github.com/pol-rivero/doot/lib/utils/optional"
+)
 
 type SymlinkCollection struct {
 	// link path -> link content (target)
@@ -29,4 +35,31 @@ func (sc *SymlinkCollection) Len() int {
 
 func (sc *SymlinkCollection) Iter() map[AbsolutePath]AbsolutePath {
 	return sc.links
+}
+
+func (sc *SymlinkCollection) PrintList() string {
+	paths := make([]string, 0, len(sc.links))
+	for path := range sc.links {
+		paths = append(paths, path.Str())
+	}
+	slices.Sort(paths)
+
+	var sb strings.Builder
+	for _, pathStr := range paths {
+		path := AbsolutePath(pathStr)
+		content := sc.links[path]
+		sb.WriteString(path.Str())
+		sb.WriteString(" -> ")
+		sb.WriteString(content.Str())
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
+func (sc *SymlinkCollection) ToJson() string {
+	jsonBytes, err := json.Marshal(sc.links)
+	if err != nil {
+		return ""
+	}
+	return string(jsonBytes)
 }
