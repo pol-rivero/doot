@@ -56,7 +56,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	}
 
 	log.Info("Files have been copied to the dotfiles directory, now running 'install'...")
-	install.Install(false, false)
+	install.Install(false)
 }
 
 func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {

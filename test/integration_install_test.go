@@ -18,7 +18,7 @@ func TestInstall_DefaultConfig(t *testing.T) {
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"file1",
 		"file2.txt",
@@ -48,7 +48,7 @@ func TestInstall_HiddenFiles(t *testing.T) {
 	config.ExcludeFiles = []string{"file2.txt"}
 	setUpFiles_TestInstall(t, config)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"file1",
 		"dir1",
@@ -73,7 +73,7 @@ func TestInstall_ImplicitDot(t *testing.T) {
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 	setUpFiles_TestInstall(t, config)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		".file1",
 		"file2.txt",
@@ -109,7 +109,7 @@ func TestInstall_MixedWithRegularFiles(t *testing.T) {
 		"dir1",
 	})
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"existingFile",
 		"file1",
@@ -140,7 +140,7 @@ func TestInstall_UpdatesCache(t *testing.T) {
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 
 	setUpFiles_TestInstall(t, config)
-	install.Install(false, false)
+	install.Install(false)
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AssertCacheEntry{
@@ -183,7 +183,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	}
 	dootCache.Save()
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"file2.txt",
 		"dir1",
@@ -224,7 +224,7 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 	}
 	dootCache.Save()
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeLink(t, "file1", sourceDir()+"/correct-target") // Not updated
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
 }
@@ -238,7 +238,7 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/file2.txt")
 	assertHomeRegularFile(t, "file1")
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeDirContents(t, "", []string{
 		"file1",
@@ -267,7 +267,7 @@ func TestInstall_OverwriteN(t *testing.T) {
 	response := "n"
 	utils.USER_INPUT_MOCK_RESPONSE = &response
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeRegularFile(t, "file1")
 	assertHomeLink(t, "file2.txt", sourceDir()+"/outdatedLink")
 
@@ -289,7 +289,7 @@ func TestInstall_OverwriteY(t *testing.T) {
 	response := "y"
 	utils.USER_INPUT_MOCK_RESPONSE = &response
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
 
@@ -309,7 +309,7 @@ func TestInstall_WithCryptInitialized(t *testing.T) {
 	setUpFiles_TestInstall(t, config)
 	initializeGitCrypt()
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "dir3", []string{
 		"file6",
 		"file7",
@@ -345,7 +345,7 @@ func TestInstall_WithHostSpecificDir(t *testing.T) {
 		}),
 	}))
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		".file1",
 		".file2.txt",
@@ -370,7 +370,7 @@ func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"file1",
 		"file2.txt",
@@ -398,7 +398,7 @@ func TestInstall_ExploreExcludedDirs(t *testing.T) {
 	config.IncludeFiles = []string{"dir1/nestedDir/file4", "dir3/file6", ".dir2/file5"}
 	setUpFiles_TestInstall(t, config)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"file1",
 		"file2.txt",
@@ -431,7 +431,7 @@ func TestInstall_Hooks(t *testing.T) {
 	createHookFile("after-update", "after1.sh", `#!/bin/bash
 		echo "after" >> before.txt && echo "after" >> after.txt`)
 
-	install.Install(false, false)
+	install.Install(false)
 	assertHomeDirContents(t, "", []string{
 		"before.txt",
 		// after.txt should not be linked because it was created after the install
@@ -461,7 +461,7 @@ func TestInstall_HooksFail(t *testing.T) {
 		echo "i shouldn't be executed either" >> hook.txt`)
 
 	assert.Panics(t, func() {
-		install.Install(false, false)
+		install.Install(false)
 	})
 	assertHomeDirContents(t, "", []string{}) // Install process should have been aborted
 	beforeContent := readFile(sourceDir() + "/hook.txt")

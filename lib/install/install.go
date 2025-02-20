@@ -12,23 +12,23 @@ import (
 
 type GetFilesFunc func(*config.Config, AbsolutePath) []RelativePath
 
-func Install(forceCreate bool, fullClean bool) {
+func Install(fullClean bool) {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
 		ignoreDootCrypt := !crypt.GitCryptIsInitialized(dotfilesDir)
 		filter := CreateFilter(config, ignoreDootCrypt)
 		return ScanDirectory(dotfilesDir, &filter)
 	}
-	installImpl(getFiles, forceCreate, fullClean)
+	installImpl(getFiles, fullClean)
 }
 
 func Clean(fullClean bool) {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
 		return []RelativePath{}
 	}
-	installImpl(getFiles, false, fullClean)
+	installImpl(getFiles, fullClean)
 }
 
-func installImpl(getFiles GetFilesFunc, forceCreate bool, fullClean bool) {
+func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
@@ -44,7 +44,7 @@ func installImpl(getFiles GetFilesFunc, forceCreate bool, fullClean bool) {
 	fileMapping := NewFileMapping(dotfilesDir, &config, fileList)
 
 	oldLinks := installedFilesCache.GetLinks()
-	added := fileMapping.InstallNewLinks(&oldLinks, forceCreate)
+	added := fileMapping.InstallNewLinks()
 	removed := fileMapping.RemoveStaleLinks(&oldLinks)
 
 	installedFilesCache.SetLinks(fileMapping.GetInstalledTargets())

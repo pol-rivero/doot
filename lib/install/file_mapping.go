@@ -83,18 +83,14 @@ func (fm *FileMapping) GetInstalledTargets() SymlinkCollection {
 	return targets
 }
 
-func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection, forceCreate bool) []AbsolutePath {
+func (fm *FileMapping) InstallNewLinks() []AbsolutePath {
 	createdLinks := make([]AbsolutePath, 0, 5)
 	for target, sourceStruct := range fm.mapping {
 		newSource := sourceStruct.path
-		oldSource := alreadyExist.Get(target)
-		if !forceCreate && oldSource.HasValue() {
-			added := fm.handleOutdatedLink(target, oldSource.Value(), newSource)
-			if added {
-				createdLinks = append(createdLinks, target)
-			}
+		if earlySkipTarget(target, newSource) {
 			continue
 		}
+
 		fileInfo, err := os.Lstat(target.Str())
 		if err == nil {
 			added := fm.handleTargetAlreadyExists(fileInfo, target, newSource)
@@ -114,6 +110,19 @@ func (fm *FileMapping) InstallNewLinks(alreadyExist *SymlinkCollection, forceCre
 		log.Error("Failed to create link %s -> %s: %s", target, newSource, err)
 	}
 	return createdLinks
+}
+
+func earlySkipTarget(target AbsolutePath, newSource AbsolutePath) bool {
+	linkSource, linkErr := os.Readlink(target.Str())
+	if linkErr != nil {
+		// Either the link doesn't exist or it's not a symlink. In either case, proceed with the installation
+		return false
+	}
+	if linkSource == newSource.Str() {
+		log.Info("Link %s is already correct", target)
+		return true
+	}
+	return false
 }
 
 func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) []AbsolutePath {
@@ -151,10 +160,6 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 		log.Error("Failed to read link %s: %s", target, linkErr)
 		return false
 	}
-	if linkSource == source.Str() {
-		log.Info("Link %s -> %s already existed (cache was outdated)", target, source)
-		return false
-	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
 		err := ReplaceWithSymlink(target, source)
@@ -162,17 +167,6 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 	} else {
 		fm.targetsSkipped = append(fm.targetsSkipped, target)
 		return false
-	}
-}
-
-func (fm *FileMapping) handleOutdatedLink(target, oldSource, newSource AbsolutePath) bool {
-	if oldSource == newSource {
-		log.Info("Target %s already exists and will not be created", target)
-		return false
-	} else {
-		log.Info("Link %s is outdated (was %s, changing to %s)", target, oldSource, newSource)
-		err := ReplaceWithSymlink(target, newSource)
-		return err == nil
 	}
 }
 
