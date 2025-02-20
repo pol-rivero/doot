@@ -8,8 +8,8 @@ import (
 
 var bootstrapCmd = &cobra.Command{
 	GroupID: advancedCommandsGroup.ID,
-	Use:     "bootstrap",
-	Short:   "Download and install your dotfiles.",
+	Use:     "bootstrap <repo> <dotfiles_dir>",
+	Short:   "Download and install your dotfiles. See wiki for usage.",
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
 

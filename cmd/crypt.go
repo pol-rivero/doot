@@ -9,7 +9,7 @@ import (
 var cryptCmd = &cobra.Command{
 	GroupID: advancedCommandsGroup.ID,
 	Use:     "crypt",
-	Short:   "Manage private (encrypted) files.",
+	Short:   "Manage private (encrypted) files. See wiki for usage.",
 }
 
 var cryptInitCmd = &cobra.Command{
