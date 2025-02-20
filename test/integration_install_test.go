@@ -163,8 +163,8 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 	setUpFiles_TestInstall(t, config)
 	createSymlink(homeDir(), "someFileInstalledInAPreviousRun", sourceDir()+"/file1")
 
-	// Lie to the cache and see that only the other files were added.
-	// Also, someFileInstalledInAPreviousRun is no longer in dotfiles dir, so it should be removed
+	// someFileInstalledInAPreviousRun is no longer in dotfiles dir, so it should be removed
+	// file1 and file4 are already installed, but the disk is checked to catch changes like these
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
 	cacheEntry.Links = []*cache.InstalledFile{
@@ -185,12 +185,14 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
+		"file1",
 		"file2.txt",
 		"dir1",
 		"dir3",
 	})
 	assertHomeDirContents(t, "dir1", []string{
 		"file3",
+		"nestedDir",
 	})
 
 	homePath := NewAbsolutePath(homeDir())
@@ -207,26 +209,25 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
-	createSymlink(homeDir(), "file1", sourceDir()+"/correct-target")
-	createSymlink(homeDir(), "file2.txt", sourceDir()+"/incorrect-target")
+	createSymlink(homeDir(), "file1", sourceDir()+"/incorrect-target")
 
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
 	cacheEntry.Links = []*cache.InstalledFile{
 		{
 			Path:    homeDir() + "/file1",
-			Content: sourceDir() + "/file1", // Lie to the cache and see that the link is not updated
-		},
-		{
-			Path:    homeDir() + "/file2.txt",
-			Content: sourceDir() + "/incorrect-target",
+			Content: sourceDir() + "/file1", // Even though it's in the cache, it should be checked for changes
 		},
 	}
 	dootCache.Save()
 
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/correct-target") // Not updated
-	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
+	assertHomeLink(t, "file1", sourceDir()+"/incorrect-target")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	install.Install(false)
+	assertHomeLink(t, "file1", sourceDir()+"/file1")
 }
 
 func TestInstall_SilentOverwrite(t *testing.T) {
@@ -258,14 +259,13 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 }
 
 func TestInstall_OverwriteN(t *testing.T) {
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
-
-	response := "n"
-	utils.USER_INPUT_MOCK_RESPONSE = &response
 
 	install.Install(false)
 	assertHomeRegularFile(t, "file1")
@@ -280,14 +280,13 @@ func TestInstall_OverwriteN(t *testing.T) {
 }
 
 func TestInstall_OverwriteY(t *testing.T) {
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
-
-	response := "y"
-	utils.USER_INPUT_MOCK_RESPONSE = &response
 
 	install.Install(false)
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
@@ -466,6 +465,35 @@ func TestInstall_HooksFail(t *testing.T) {
 	assertHomeDirContents(t, "", []string{}) // Install process should have been aborted
 	beforeContent := readFile(sourceDir() + "/hook.txt")
 	assert.Equal(t, "i will fail\n", beforeContent)
+}
+
+func TestInstall_FullClean(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
+	createSymlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/im-not-in-cache")
+
+	install.Install(false)
+	assert.FileExists(t, homeDir()+"/nested/dir/outdatedLink")
+
+	install.Install(true)
+	assert.NoFileExists(t, homeDir()+"/nested/dir/outdatedLink")
+	assert.NoDirExists(t, homeDir()+"/nested")
+}
+
+func TestInstall_FullClean2(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
+	createSymlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/im-not-in-cache")
+
+	install.Clean(false)
+	assert.FileExists(t, homeDir()+"/nested/dir/outdatedLink")
+
+	install.Clean(true)
+	assertDirContents(t, homeDir(), []string{})
 }
 
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {

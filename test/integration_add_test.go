@@ -7,6 +7,7 @@ import (
 	"github.com/pol-rivero/doot/lib/add"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -306,11 +307,12 @@ func TestAdd_IsIdempotent(t *testing.T) {
 		"dir1/file3",
 	}, false, false)
 
-	os.Remove(homeDir() + "/file2.txt")
 	os.Remove(homeDir() + "/file1")
-	createNode(homeDir(), File("file1"))
+	createNode(homeDir(), FsFile{Name: "file1", Content: "new content"})
+	os.Remove(homeDir() + "/file2.txt")
 	createSymlink(homeDir(), "file2.txt", "./file1")
 
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	add.Add([]string{
 		"file1",      // Dotfile already exists and this is a regular file, fails with error
 		"file2.txt",  // Dotfile already exists and this points to wrong location, fails with error

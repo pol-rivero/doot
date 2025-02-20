@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var USER_INPUT_MOCK_RESPONSE *string = nil
+var USER_INPUT_MOCK_RESPONSE string = ""
 
 func RequestInput(options string, format string, args ...interface{}) rune {
 	suffix := fmt.Sprintf(" [%s] ", addSlashes(options))
@@ -42,8 +42,8 @@ func addSlashes(s string) string {
 }
 
 func getUserInput() string {
-	if USER_INPUT_MOCK_RESPONSE != nil {
-		return *USER_INPUT_MOCK_RESPONSE
+	if USER_INPUT_MOCK_RESPONSE != "" {
+		return USER_INPUT_MOCK_RESPONSE
 	}
 	var response string
 	fmt.Scanf("%s", &response)
