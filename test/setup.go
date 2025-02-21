@@ -9,9 +9,11 @@ import (
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
 	. "github.com/pol-rivero/doot/lib/types"
+	"github.com/pol-rivero/doot/lib/utils"
 )
 
 func SetUp(t *testing.T) {
+	utils.USER_INPUT_MOCK_RESPONSE = utils.MOCK_NO_INPUT
 	tempDootDir := t.TempDir()
 	tempCacheDir := t.TempDir()
 	tempHomeDir := t.TempDir()

@@ -209,7 +209,7 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
-	createSymlink(homeDir(), "file1", sourceDir()+"/incorrect-target")
+	createSymlink(homeDir(), "file1", "/incorrect-target")
 
 	dootCache := cache.Load()
 	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
@@ -223,7 +223,7 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 
 	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/incorrect-target")
+	assertHomeLink(t, "file1", "/incorrect-target")
 
 	utils.USER_INPUT_MOCK_RESPONSE = "y"
 	install.Install(false)
@@ -259,17 +259,17 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 }
 
 func TestInstall_OverwriteN(t *testing.T) {
-	utils.USER_INPUT_MOCK_RESPONSE = "n"
-
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
-	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
-	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
 
+	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
+	createSymlink(homeDir(), "file2.txt", "/outdatedLink")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	install.Install(false)
 	assertHomeRegularFile(t, "file1")
-	assertHomeLink(t, "file2.txt", sourceDir()+"/outdatedLink")
+	assertHomeLink(t, "file2.txt", "/outdatedLink")
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AssertCacheEntry{
@@ -280,14 +280,13 @@ func TestInstall_OverwriteN(t *testing.T) {
 }
 
 func TestInstall_OverwriteY(t *testing.T) {
-	utils.USER_INPUT_MOCK_RESPONSE = "y"
-
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	setUpFiles_TestInstall(t, config)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
-	createSymlink(homeDir(), "file2.txt", sourceDir()+"/outdatedLink")
+	createSymlink(homeDir(), "file2.txt", "/outdatedLink")
 
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
 	install.Install(false)
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
@@ -494,6 +493,23 @@ func TestInstall_FullClean2(t *testing.T) {
 
 	install.Clean(true)
 	assertDirContents(t, homeDir(), []string{})
+}
+
+func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	initializeGitCrypt()
+
+	install.Install(false)
+	assertHomeLink(t, "file1", sourceDir()+"/file1")
+
+	err := os.Rename(sourceDir()+"/file1", sourceDir()+"/file1.doot-crypt")
+	assert.NoError(t, err)
+
+	// Shouldn't wait for user input
+	install.Install(false)
+	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
 }
 
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {

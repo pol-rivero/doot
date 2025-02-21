@@ -160,6 +160,11 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 		log.Error("Failed to read link %s: %s", target, linkErr)
 		return false
 	}
+	if strings.HasPrefix(linkSource, fm.sourceBaseDir.Str()) {
+		log.Info("Link %s is incorrect (%s) but points to the source directory, replacing silently with %s", target, linkSource, source)
+		err := ReplaceWithSymlink(target, source)
+		return err == nil
+	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
 		err := ReplaceWithSymlink(target, source)

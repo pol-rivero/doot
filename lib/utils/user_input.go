@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const MOCK_NO_INPUT string = "__NoInput__"
+
 var USER_INPUT_MOCK_RESPONSE string = ""
 
 func RequestInput(options string, format string, args ...interface{}) rune {
@@ -43,6 +45,9 @@ func addSlashes(s string) string {
 
 func getUserInput() string {
 	if USER_INPUT_MOCK_RESPONSE != "" {
+		if USER_INPUT_MOCK_RESPONSE == MOCK_NO_INPUT {
+			panic("Test was not expecting user input")
+		}
 		return USER_INPUT_MOCK_RESPONSE
 	}
 	var response string
