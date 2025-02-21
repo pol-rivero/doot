@@ -31,6 +31,20 @@ func ReplaceWithSymlink(target AbsolutePath, dotfilesSource AbsolutePath) error 
 	return nil
 }
 
+func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath) error {
+	log.Info("Adding changes from %s into %s", target, dotfilesSource)
+	targetContent, err := os.ReadFile(target.Str())
+	if err != nil {
+		log.Error("Failed to read file %s: %s", target, err)
+		return err
+	}
+	if err := os.WriteFile(dotfilesSource.Str(), targetContent, 0644); err != nil {
+		log.Error("Failed to write file %s: %s", dotfilesSource, err)
+		return err
+	}
+	return ReplaceWithSymlink(target, dotfilesSource)
+}
+
 func EnsureParentDir(target AbsolutePath) bool {
 	parentDir := filepath.Dir(target.Str())
 	if err := os.MkdirAll(parentDir, 0755); err != nil {

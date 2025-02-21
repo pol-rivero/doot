@@ -512,6 +512,34 @@ func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
 	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
 }
 
+func TestInstall_AdoptChanges(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+
+	install.Install(false)
+	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assert.Equal(t, "dummy text for file file1", readFile(sourceDir()+"/file1"))
+
+	os.Remove(homeDir() + "/file1")
+	createFile(homeDir(), FsFile{Name: "file1", Content: "Some external program has replaced this"})
+	assertHomeRegularFile(t, "file1")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "a"
+	install.Install(false)
+	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assert.Equal(t, "Some external program has replaced this", readFile(sourceDir()+"/file1"))
+
+	homePath := NewAbsolutePath(homeDir())
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
+	})
+}
+
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {
 	SetUpFiles(t, []FsNode{
 		Dir("doot", []FsNode{

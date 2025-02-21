@@ -192,7 +192,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 		return err == nil
 	}
 	for {
-		replace := utils.RequestInput("yNd", "File %s already exists, but its contents differ from %s. Replace it? (press D to see diff)", target, source)
+		replace := utils.RequestInput("yNda", "File %s already exists, but its contents differ from %s. Replace it? (D to see diff, A to adopt changes into dotfiles repo)", target, source)
 		switch replace {
 		case 'y':
 			err := ReplaceWithSymlink(target, source)
@@ -202,6 +202,9 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 			return false
 		case 'd':
 			fm.printDiff(target, source)
+		case 'a':
+			err := AdoptChanges(target, source)
+			return err == nil
 		}
 	}
 }
