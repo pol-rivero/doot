@@ -201,7 +201,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 			fm.targetsSkipped = append(fm.targetsSkipped, target)
 			return false
 		case 'd':
-			fm.printDiff(target, source)
+			fm.printDiff(source, target)
 		case 'a':
 			err := AdoptChanges(target, source)
 			return err == nil
