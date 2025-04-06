@@ -60,6 +60,8 @@ If you have more than one machine and this file is only applicable to the curren
 
 - [Hooks: Run custom scripts before and after the installation process](https://github.com/pol-rivero/doot/wiki/Hooks)
 
+- [Need more control? Create your own custom commands](https://github.com/pol-rivero/doot/wiki/Custom-Commands)
+
 
 ## Dotfiles directory
 
