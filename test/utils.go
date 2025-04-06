@@ -109,6 +109,18 @@ func createHookFile(hook string, scriptName string, content string) {
 	os.Chmod(filepath.Join(sourceDir(), "doot", "hooks", hook, scriptName), 0755)
 }
 
+func createCustomCommandFile(name string, content string) {
+	createNode(sourceDir(), Dir("doot", []FsNode{
+		Dir("commands", []FsNode{
+			FsFile{
+				Name:    name,
+				Content: content,
+			},
+		}),
+	}))
+	os.Chmod(filepath.Join(sourceDir(), "doot", "commands", name), 0755)
+}
+
 func readFile(path string) string {
 	content, err := os.ReadFile(path)
 	if err != nil {

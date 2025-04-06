@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/pol-rivero/doot/lib/install"
+	"github.com/pol-rivero/doot/lib"
 	"github.com/spf13/cobra"
 )
 
@@ -12,11 +12,7 @@ var rootCmd = &cobra.Command{
 	Short: "A fast and simple dotfiles manager that just gets the job done.\nVersion: " + VERSION_STRING,
 	Run: func(cmd *cobra.Command, args []string) {
 		SetUpLogger(cmd)
-		fullClean, err := cmd.Flags().GetBool("full-clean")
-		if err != nil {
-			panic(err)
-		}
-		install.Install(fullClean)
+		lib.ExecuteRootCmd(cmd, args)
 	},
 }
 
@@ -45,7 +41,10 @@ var otherCommandsGroup = &cobra.Group{
 }
 
 func init() {
-	installCmd.Args = cobra.NoArgs
+	// This is required for custom commands
+	rootCmd.Args = cobra.ArbitraryArgs
+	rootCmd.Flags().SetInterspersed(false)
+
 	rootCmd.AddGroup(basicCommandsGroup)
 	rootCmd.AddGroup(advancedCommandsGroup)
 	rootCmd.AddGroup(otherCommandsGroup)
