@@ -10,7 +10,7 @@ import (
 func Pull() {
 	dotfilesDir := common.FindDotfilesDir()
 
-	err := utils.RunCommand(dotfilesDir, "git", "pull")
+	err := utils.RunCommand(dotfilesDir, "git", "pull", "--recurse-submodules")
 	if err != nil {
 		log.Fatal("git pull failed, check the error above for more information.")
 	}
