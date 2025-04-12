@@ -1,0 +1,4 @@
+target_dir = "/"
+
+# Root-based configs do not use a leading dot in the filename.
+implicit_dot = false

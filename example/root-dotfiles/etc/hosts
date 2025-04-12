@@ -1,0 +1,3 @@
+# This file will be installed to /etc/hosts
+
+192.168.1.2   my-server

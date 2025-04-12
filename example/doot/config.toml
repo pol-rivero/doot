@@ -1,0 +1,15 @@
+exclude_files = [
+  "**/.*",
+  "README.md",
+]
+include_files = [
+  "GitHub/**/.vscode",
+]
+
+implicit_dot = true
+implicit_dot_ignore = [ "bin" ]
+
+# Files in `laptop-dotfiles` will override the ones in the dotfiles repo only if
+# the machine hostname is `my-laptop`.
+[hosts]
+my-laptop = "laptop-dotfiles"

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "Hello!"
+
+# This file will be installed as `~/bin/say-hello`.
+# Additionally, it will be available globally as `say-hello`, because `~/bin` has been added to the PATH in `bashrc`.
+
+# In `doot/config.toml`, `implicit_dot` is set to true, which means that it should have been `~/.bin/say-hello`.
+# However, notice the line `implicit_dot_ignore = [ "bin" ]`, meaning that the `bin` directory does not get the `.` prefix.
+

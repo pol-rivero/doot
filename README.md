@@ -26,9 +26,9 @@ Simply run `doot` (or `doot install`) from anywhere in your system. It will syml
 The subsequent runs will incrementally update the symlinks, adding the new files and directories, and removing references to files that are no longer in the dotfiles directory.
 
 ```sh
-git clone https://your-dotfiles.git ~/.dotfiles # or any other directory
+git clone https://your-dotfiles.git ~/.dotfiles # (or any other directory)
 
-doot
+doot  # Installs or updates the symlinks
 ```
 
 To remove the symlinks, run:
@@ -63,7 +63,11 @@ If you have more than one machine and this file is only applicable to the curren
 - [Need more control? Create your own custom commands](https://github.com/pol-rivero/doot/wiki/Custom-Commands)
 
 
-## Dotfiles directory
+## Example
+
+See the [`example`](example) directory for a complete example of a simple dotfiles repository.
+
+## Dotfiles directory location
 
 By default, `doot` searches for your dotfiles in commonly used directories. In order of priority, it looks for the first directory that exists:
 
@@ -83,7 +87,7 @@ After that, if you have `DOOT_DIR` set in your shell configuration file (`~/.bas
 
 ## Configuration file
 
-`doot` reads an optional configuration file `<dotfiles dir>/doot/config.toml` in the root of the dotfiles directory. This file won't be symlinked by default. These are the available options and their default values:
+`doot` reads an optional configuration file: `<dotfiles dir>/doot/config.toml`. This file won't be symlinked when installing. These are the available options and their default values:
 
 ```toml
 # The target directory for the symlinks. Can contain environment variables.

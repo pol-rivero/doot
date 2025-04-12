@@ -1,0 +1,18 @@
+# The .local/share/applications directory allows you to create or override
+# .desktop files for GUI applications.
+
+[Desktop Entry]
+Version=1.0
+Name=Firewall Configuration
+Comment=An easy way to configure your firewall
+Keywords=gufw;security;firewall;network;
+Categories=GNOME;GTK;Settings;Security;X-GNOME-Settings-Panel;X-GNOME-SystemSettings;X-Unity-Settings-Panel;X-XFCE-SettingsDialog;X-XFCE-SystemSettings;
+Icon=gufw
+Terminal=false
+Type=Application
+X-GNOME-Settings-Panel=gufw
+X-Unity-Settings-Panel=gufw
+X-Ubuntu-Gettext-Domain=gufw
+
+# https://unix.stackexchange.com/q/594183
+Exec=sh -c "xhost +si:localuser:root && gufw && xhost -si:localuser:root"

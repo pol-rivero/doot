@@ -1,0 +1,18 @@
+# This file will be installed as `~/.bashrc`.
+
+# Add ~/bin to the PATH
+export PATH="$HOME/bin:$PATH"
+
+# If your dotfiles directory is `~/.dotfiles` or `~/.local/share/dotfiles`, you don't need to set this variable.
+# If you want to use a custom directory, you can set it here.
+export DOOT_DIR="$HOME/.doot"
+
+
+# Common configurations
+export EDITOR="nano"
+alias ls="ls --color=auto"
+# ...
+
+# The file `~/.laptop-config.sh` will only exist if the hostname of the machine is `my-laptop` (see `[hosts]` in `doot/config.toml`).
+# If the file exists, it will be sourced so you can add custom configurations for your laptop.
+[ -f ~/.laptop-config.sh ] && . ~/.laptop-config.sh

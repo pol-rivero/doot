@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# This is a custom command for `doot`. Since it's located in `doot/commands/git`, it will be available to run as `doot git`.
+
+# The command is executed in the dotfiles directory, regardless of where you run doot from.
+# $@ passes all provided arguments to the git command.
+
+# Example usage: Show status of the dotfiles repository and commit changes.
+# doot git status
+# doot git commit -m "Update dotfiles"
+# doot git push
+
+git $@

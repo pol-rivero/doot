@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Use this custom command (`doot root`) to install the root config files.
+
+# Custom commands are always executed from the dotfiles directory. This means that the working
+# directory of the script will NOT match the location the command was run from.
+# If the command arguments contain relative paths (for example: `doot root add file.txt`),
+# we need to change the working directory to the original location so that they can be resolved
+# correctly.
+root_dotfiles="$PWD/root-dotfiles"  # Do this BEFORE changing the working directory.
+cd "$ORIGINAL_PWD"
+
+# Set DOOT_DIR to our root dotfiles directory, and run doot with root privileges (sudo).
+sudo DOOT_DIR="$root_dotfiles" doot $@
