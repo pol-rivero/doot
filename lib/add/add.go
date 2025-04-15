@@ -20,6 +20,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	params := ProcessAddedFileParams{
 		crypt:             isCrypt,
 		hostSpecificDir:   getHostSpecificDir(&config, isHostSpecific),
+		dotfilesDir:       dotfilesDir.Str(),
 		targetDir:         config.TargetDir,
 		implicitDot:       config.ImplicitDot,
 		implicitDotIgnore: set.NewFromSlice(config.ImplicitDotIgnore),

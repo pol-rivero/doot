@@ -244,6 +244,50 @@ func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
 	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
 }
 
+func TestAdd_WithCryptDirectory(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = true
+	config.ImplicitDotIgnore = []string{
+		"cryptTest",
+		"cryptTest.doot-crypt",
+	}
+	config.ExcludeFiles = []string{}
+	setUpFiles_TestAdd(t, config)
+	initializeGitCrypt()
+	t.Chdir(homeDir())
+
+	createNode(sourceDir(), Dir("cryptTest.doot-crypt", []FsNode{}))
+	createNode(sourceDir(), Dir("cryptTest", []FsNode{
+		Dir("foo.doot-crypt", []FsNode{}),
+	}))
+
+	// Prefers cryptTest over cryptTest.doot-crypt. Uses foo.doot-crypt because foo doesn't exist
+	// Also, doesn't add .doot-crypt to the name because the path already contains .doot-crypt
+	add.Add([]string{
+		"cryptTest/foo/secret1.txt",
+	}, true, false)
+	assertHomeLink(t, "cryptTest/foo/secret1.txt", sourceDir()+"/cryptTest/foo.doot-crypt/secret1.txt")
+
+	os.RemoveAll(sourceDir() + "/cryptTest")
+	// Now there's no choice but to use the cryptTest.doot-crypt directory and create 'foo'
+	add.Add([]string{
+		"cryptTest/foo/secret2.txt",
+	}, true, false)
+	assertHomeLink(t, "cryptTest/foo/secret2.txt", sourceDir()+"/cryptTest.doot-crypt/foo/secret2.txt")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	add.Add([]string{
+		"cryptTest/foo/not-really-a-secret1.txt",
+	}, false, false)
+	assertHomeLink(t, "cryptTest/foo/not-really-a-secret1.txt", sourceDir()+"/cryptTest.doot-crypt/foo/not-really-a-secret1.txt")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	add.Add([]string{
+		"cryptTest/foo/not-really-a-secret2.txt",
+	}, false, false)
+	assertHomeLink(t, "cryptTest/foo/not-really-a-secret2.txt", sourceDir()+"/cryptTest/foo/not-really-a-secret2.txt")
+}
+
 func TestAdd_HostSpecificNotFound(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
@@ -360,6 +404,14 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 			File("file-without-dots"),
 		}),
 		Dir("emptyDir", []FsNode{}),
+		Dir("cryptTest", []FsNode{
+			Dir("foo", []FsNode{
+				File("secret1.txt"),
+				File("secret2.txt"),
+				File("not-really-a-secret1.txt"),
+				File("not-really-a-secret2.txt"),
+			}),
+		}),
 	}
 	for _, node := range testFiles {
 		createNode(homeDir(), node)

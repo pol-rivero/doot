@@ -8,13 +8,16 @@ import (
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/glob_collection"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
+	"github.com/pol-rivero/doot/lib/utils"
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
 type ProcessAddedFileParams struct {
 	crypt             bool
 	hostSpecificDir   string
+	dotfilesDir       string
 	targetDir         string
 	implicitDot       bool
 	implicitDotIgnore set.Set[string]
@@ -41,9 +44,10 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 		return "", fmt.Errorf("it's not inside target directory %s", params.targetDir)
 	}
 
-	const SEPARATOR_LEN = len(string(filepath.Separator))
-	targetDirLen := len(strings.TrimSuffix(params.targetDir, string(filepath.Separator))) + SEPARATOR_LEN
-	relPath := NewAbsolutePath(cleanAbsFile).ExtractRelativePath(targetDirLen)
+	relPath, err := constructRelativePath(cleanAbsFile, params)
+	if err != nil {
+		return "", fmt.Errorf("error getting relative path: %v", err)
+	}
 
 	if params.implicitDot && !params.implicitDotIgnore.Contains(relPath.TopLevelDir()) {
 		if relPath.IsHidden() {
@@ -53,7 +57,7 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 		}
 	}
 
-	if params.crypt {
+	if params.crypt && !strings.Contains(relPath.Str(), common.DOOT_CRYPT_EXT) {
 		relPath = addDootCryptExtension(relPath)
 	}
 
@@ -64,6 +68,41 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 	relPath = relPath.AppendLeft(params.hostSpecificDir)
 
 	return relPath, nil
+}
+
+func constructRelativePath(absPath string, params ProcessAddedFileParams) (RelativePath, error) {
+	relPathStr, err := filepath.Rel(params.targetDir, absPath)
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(relPathStr, string(filepath.Separator))
+	if len(parts) == 0 {
+		return "", fmt.Errorf("empty relative path")
+	}
+
+	for i := range len(parts) - 1 {
+		currentAbsDir := filepath.Join(appendTo(params.dotfilesDir, parts[:i+1])...)
+		if stat, err := os.Stat(currentAbsDir); err == nil && stat.IsDir() {
+			continue
+		}
+
+		log.Info("%s does not exist, checking for crypt directory", currentAbsDir)
+		parentDir := filepath.Join(appendTo(params.dotfilesDir, parts[:i])...)
+		cryptDir := filepath.Join(parentDir, parts[i]+common.DOOT_CRYPT_EXT)
+		if stat, err := os.Stat(cryptDir); err == nil && stat.IsDir() {
+			canUseCrypt := params.crypt || utils.RequestInput("Yn", "Do you want to add '%s' inside the existing directory '%s'? It will become encrypted even though you didn't use the --crypt flag. Press N to create a new directory '%s'", absPath, cryptDir, currentAbsDir) == 'y'
+			if !canUseCrypt {
+				continue
+			}
+			log.Info("Using crypt directory %s", cryptDir)
+			parts[i] = parts[i] + common.DOOT_CRYPT_EXT
+		}
+	}
+	return RelativePath(filepath.Join(parts...)), nil
+}
+
+func appendTo(base string, elements []string) []string {
+	return append([]string{base}, elements...)
 }
 
 func checkIsIncluded(relPath RelativePath, includeFiles glob_collection.GlobCollection, excludeFiles glob_collection.GlobCollection) error {
