@@ -18,7 +18,7 @@ func recalculateCache(installedFilesCache *cache.InstalledFilesCache, dotfilesDi
 func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir AbsolutePath, scanPath string) {
 	entries, err := os.ReadDir(scanPath)
 	if err != nil {
-		log.Error("Full clean error when scanning %s: %v", scanPath, err)
+		log.Warning("Skipping '%s' due to error: %v", scanPath, err)
 		return
 	}
 	for _, entry := range entries {
@@ -29,7 +29,7 @@ func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir Absolute
 		} else if entry.Type()&os.ModeSymlink != 0 {
 			target, err := os.Readlink(entryPath)
 			if err != nil {
-				log.Error("Full clean error reading symlink %s: %v", entryPath, err)
+				log.Warning("Failed to read symlink %s: %v", entryPath, err)
 				continue
 			}
 			if !strings.HasPrefix(target, dotfilesDir.Str()) {
