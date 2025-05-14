@@ -2,27 +2,84 @@
 
 A fast and simple dotfiles manager that just gets the job done.
 
-<table>
-  <tr>
-    <th>Install from the AUR <br> <a href="https://aur.archlinux.org/packages/doot-bin"><img src="https://img.shields.io/aur/version/doot-bin"/></a></th>
-    <td><strong>Pre-compiled binary</strong> <br> <code>yay -S doot-bin</code></td>
-    <td><strong>Build from source</strong> <br> <code>yay -S doot</code></td>
-    <td><strong>Latest Git commit</strong> <br> <code>yay -S doot-git</code></td>
-  </tr>
-  <tr>
-    <th>Download from GitHub <br> <a href="https://github.com/pol-rivero/doot/releases/latest"><img src="https://img.shields.io/github/v/release/pol-rivero/doot"/></a></th>
-    <td><strong><a href="https://github.com/pol-rivero/doot/releases/latest">Download latest</a></strong></td>
-    <td><a href="https://github.com/pol-rivero/doot/releases">Older releases</a></td>
-    <td></td>
-  </tr>
-</table>
+## Install
 
+<details>
+<summary>Arch Linux, Manjaro, and other Arch-based distributions</summary>
+
+Simply install `doot-bin` from the AUR:
+
+|Pre-compiled binary|Build from source|Latest Git commit|
+|---|---|---|
+|`yay -S doot-bin`|`yay -S doot`|`yay -S doot-git`|
+
+</details>
+
+<details>
+<summary>Linux (all other distributions)</summary>
+
+**Option 1:** Automatic installer script
+
+```sh
+curl -sSL get-doot.polrivero.com | sh
+```
+
+- You can inspect the script before running it: `curl -sSL get-doot.polrivero.com | cat`
+
+- Consider running this command periodically or setting up a cron job in order to keep `doot` up to date.
+
+**Option 2:** Manual installation
+
+1. Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest).
+
+1. Download either `doot-linux-x86_64` or `doot-linux-arm64` depending on your architecture, rename it to `doot`.
+
+1. Make it executable and move it to any directory in your `PATH`:
+
+   ```sh
+   chmod +x doot
+   sudo mv doot /usr/local/bin
+   ```
+
+</details>
+
+<details>
+<summary>macOS</summary>
+
+**Option 1:** Automatic installer script
+
+```sh
+curl -sSL get-doot.polrivero.com | sh
+```
+- You can inspect the script before running it: `curl -sSL get-doot.polrivero.com | cat`
+- Consider running this command periodically or setting up a cron job in order to keep `doot` up to date.
+
+**Option 2:** Manual installation
+1. Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest).
+
+1. Download either `doot-darwin-x86_64` or `doot-darwin-arm64` depending on your architecture, rename it to `doot`.
+
+1. Make it executable and move it to any directory in your `PATH`:
+
+   ```sh
+   chmod +x doot
+   sudo mv doot /usr/local/bin
+   ```
+</details>
+
+<details>
+<summary>Windows</summary>
+
+**Windows is not officially supported.** I'm not sure how Windows handles symlinks, so I can't guarantee that `doot` will work as expected.  
+If you want to give it a try, you can download the latest release from the [GitHub releases page](https://github.com/pol-rivero/doot/releases/latest).
+
+</details>
 
 ## Usage
 
 ### Create or update symlinks
 
-Simply run `doot` (or `doot install`) from anywhere in your system. It will symlink all files in your dotfiles directory to your home directory, creating directories as needed.  
+Simply run `doot` (or `doot install`) from anywhere in your system. It will symlink all files in your dotfiles directory to your home directory, creating directories as needed.
 The subsequent runs will incrementally update the symlinks, adding the new files and directories, and removing references to files that are no longer in the dotfiles directory.
 
 ```sh
@@ -37,7 +94,7 @@ To remove the symlinks, run:
 doot clean
 ```
 
-Pass `--full-clean` to the `install` or `clean` commands to search for all symlinks that point to the dotfiles directory, even if they were created by another program. This is useful if you created symlinks manually or your dotfiles installation has somehow become corrupted. 
+Pass `--full-clean` to the `install` or `clean` commands to search for all symlinks that point to the dotfiles directory, even if they were created by another program. This is useful if you created symlinks manually or your dotfiles installation has somehow become corrupted.
 
 
 ### Add a new file to the dotfiles directory
@@ -48,7 +105,7 @@ You could manually move the file to the dotfiles directory and run `doot` to sym
 doot add ./some/file [/other/file ...]
 ```
 
-Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files) for more information.  
+Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files) for more information.
 If you have more than one machine and this file is only applicable to the current one, pass `--host` to add it as a host-specific file. See `hosts` in the configuration file below.
 
 
