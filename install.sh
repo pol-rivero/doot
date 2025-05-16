@@ -1,6 +1,4 @@
-#/bin/sh
-
-# Begin by checking the OS
+#!/bin/sh
 
 REPO_NAME="pol-rivero/doot"
 

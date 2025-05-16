@@ -2,9 +2,6 @@ exclude_files = [
   "**/.*",
   "README.md",
 ]
-include_files = [
-  "GitHub/**/.vscode",
-]
 
 implicit_dot = true
 implicit_dot_ignore = [ "bin" ]

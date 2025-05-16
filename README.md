@@ -1,12 +1,13 @@
 # doot
 
-A fast and simple dotfiles manager that just gets the job done.
+A fast, simple and intuitive dotfiles manager that just gets the job done. **[Should you try it?](https://github.com/pol-rivero/doot/wiki/Should-I-use-doot%3F)**
 
 ## Install
 
 <details>
 <summary>Arch Linux, Manjaro, and other Arch-based distributions</summary>
 
+&nbsp;  
 Simply install `doot-bin` from the AUR:
 
 |Pre-compiled binary|Build from source|Latest Git commit|
@@ -18,6 +19,7 @@ Simply install `doot-bin` from the AUR:
 <details>
 <summary>Linux (all other distributions)</summary>
 
+&nbsp;  
 **Option 1:** Automatic installer script
 
 ```sh
@@ -41,11 +43,15 @@ curl -sSL get-doot.polrivero.com | sh
    sudo mv doot /usr/local/bin
    ```
 
+**Want to contribute?**  
+If your distribution doesn't have a package for `doot`, consider helping out by creating and submitting it to your distribution's package manager. Please [open an issue](https://github.com/pol-rivero/doot/issues) in order to discuss it and coordinate the effort.
+
 </details>
 
 <details>
 <summary>macOS</summary>
 
+&nbsp;  
 **Option 1:** Automatic installer script
 
 ```sh
@@ -70,6 +76,7 @@ curl -sSL get-doot.polrivero.com | sh
 <details>
 <summary>Windows</summary>
 
+&nbsp;  
 **Windows is not officially supported.** I'm not sure how Windows handles symlinks, so I can't guarantee that `doot` will work as expected.  
 If you want to give it a try, you can download the latest release from the [GitHub releases page](https://github.com/pol-rivero/doot/releases/latest).
 
