@@ -147,7 +147,7 @@ Notice how you can set the `DOOT_DIR` environment variable to use any custom dir
 DOOT_DIR=/path/to/your/dotfiles doot
 ```
 
-After that, if you have `DOOT_DIR` set in your shell configuration file (`~/.bashrc` or equivalent), you can just run `doot` as usual.
+After that, if you have set `DOOT_DIR` in your shell configuration file (`~/.bashrc` or equivalent), you can just run `doot` as usual.
 
 ## Configuration file
 
@@ -165,7 +165,7 @@ exclude_files = [
   "README.md",
 ]
 
-# Files and directories that are always symlinked, even if they start with a dot or match a pattern in `exclude_files`. Each entry is a glob pattern relative to the dotfiles directory.
+# Files and directories that are always symlinked, overriding `exclude_files`. Each entry is a glob pattern relative to the dotfiles directory.
 include_files = []
 
 # You can get a large performance boost by setting this to `false`, but read this first:
