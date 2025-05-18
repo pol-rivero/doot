@@ -5,22 +5,42 @@ A fast, simple and intuitive dotfiles manager that just gets the job done. **[Sh
 ## Install
 
 <details>
-<summary>Arch Linux, Manjaro, and other Arch-based distributions</summary>
+<summary>From the <b>AUR</b> (Arch Linux, Manjaro, and other Arch-based distributions)</summary>
 
 &nbsp;  
-Simply install `doot-bin` from the AUR:
+I recommend installing the `doot-bin` package, which is a pre-compiled binary.
 
 |Pre-compiled binary|Build from source|Latest Git commit|
 |---|---|---|
 |`yay -S doot-bin`|`yay -S doot`|`yay -S doot-git`|
 
+&nbsp;  
 </details>
 
+
+
 <details>
-<summary>Linux (all other distributions)</summary>
+<summary>Using <b>Homebrew</b> (Linux and macOS)</summary>
 
 &nbsp;  
-**Option 1:** Automatic installer script
+Install `doot` from Homebrew:
+
+```sh
+brew install pol-rivero/tap/doot
+```
+
+Make sure to run `brew update && brew upgrade` periodically to keep `doot` up to date.
+
+&nbsp;  
+</details>
+
+
+
+<details>
+<summary>Using the automatic <b>installer script</b> (Linux and macOS)</summary>
+
+&nbsp;  
+Run the following command:
 
 ```sh
 curl -sSL get-doot.polrivero.com | sh
@@ -28,50 +48,49 @@ curl -sSL get-doot.polrivero.com | sh
 
 - You can inspect the script before running it: `curl -sSL get-doot.polrivero.com | cat`
 
-- Consider running this command periodically or setting up a cron job in order to keep `doot` up to date.
+- Make sure to run this command periodically or set up a cron job in order to keep `doot` up to date.
 
-**Option 2:** Manual installation
+&nbsp;  
+</details>
 
-1. Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest).
 
-1. Download either `doot-linux-x86_64` or `doot-linux-arm64` depending on your architecture, rename it to `doot`.
 
-1. Make it executable and move it to any directory in your `PATH`:
+<details>
+<summary>Linux manual installation</summary>
 
-   ```sh
-   chmod +x doot
-   sudo mv doot /usr/local/bin
-   ```
+&nbsp;  
+Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest) and download either `doot-linux-x86_64` or `doot-linux-arm64` depending on your architecture, rename it to `doot`.  
+Make it executable and move it to any directory in your `PATH`:
+
+```sh
+chmod +x doot
+sudo mv doot /usr/local/bin
+```
 
 **Want to contribute?**  
 If your distribution doesn't have a package for `doot`, consider helping out by creating and submitting it to your distribution's package manager. Please [open an issue](https://github.com/pol-rivero/doot/issues) in order to discuss it and coordinate the effort.
 
+&nbsp;  
 </details>
+
+
 
 <details>
-<summary>macOS</summary>
+<summary>macOS manual installation</summary>
 
 &nbsp;  
-**Option 1:** Automatic installer script
+Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest) and download either `doot-darwin-x86_64` or `doot-darwin-arm64` depending on your architecture, rename it to `doot`.  
+Make it executable and move it to any directory in your `PATH`:
 
 ```sh
-curl -sSL get-doot.polrivero.com | sh
+chmod +x doot
+sudo mv doot /usr/local/bin
 ```
-- You can inspect the script before running it: `curl -sSL get-doot.polrivero.com | cat`
-- Consider running this command periodically or setting up a cron job in order to keep `doot` up to date.
 
-**Option 2:** Manual installation
-1. Go to the [latest GitHub release](https://github.com/pol-rivero/doot/releases/latest).
-
-1. Download either `doot-darwin-x86_64` or `doot-darwin-arm64` depending on your architecture, rename it to `doot`.
-
-1. Make it executable and move it to any directory in your `PATH`:
-
-   ```sh
-   chmod +x doot
-   sudo mv doot /usr/local/bin
-   ```
+&nbsp;  
 </details>
+
+
 
 <details>
 <summary>Windows</summary>
@@ -80,6 +99,7 @@ curl -sSL get-doot.polrivero.com | sh
 **Windows is not officially supported.** I'm not sure how Windows handles symlinks, so I can't guarantee that `doot` will work as expected.  
 If you want to give it a try, you can download the latest release from the [GitHub releases page](https://github.com/pol-rivero/doot/releases/latest).
 
+&nbsp;  
 </details>
 
 ## Usage

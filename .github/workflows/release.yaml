@@ -90,10 +90,22 @@ jobs:
             doot-PKGBUILD
             doot-git-PKGBUILD
             doot-bin-PKGBUILD
+            doot.homebrew-formula.rb
+
+  publish_aur:
+    needs: build_release
+    runs-on: ubuntu-latest
+    if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
+    env:
+      VERSION: ${{ needs.build_release.outputs.VERSION }}
+    steps:
+      - name: Download PKGBUILD Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pkgbuilds
 
       - name: Publish AUR package (doot)
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
-        if: ${{ env.RELEASE_TYPE == 'release' }}
         with:
           pkgname: doot
           pkgbuild: ./doot-PKGBUILD
@@ -105,7 +117,6 @@ jobs:
 
       - name: Publish AUR package (doot-bin)
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
-        if: ${{ env.RELEASE_TYPE == 'release' }}
         with:
           pkgname: doot-bin
           pkgbuild: ./doot-bin-PKGBUILD
@@ -117,7 +128,6 @@ jobs:
 
       - name: Publish AUR package (doot-git)
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
-        if: ${{ env.RELEASE_TYPE == 'release' }}
         with:
           pkgname: doot-git
           pkgbuild: ./doot-git-PKGBUILD
@@ -126,3 +136,27 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "Update AUR package"
           ssh_keyscan_types: rsa,ecdsa,ed25519
+
+  publish_homebrew:
+    needs: build_release
+    runs-on: ubuntu-latest
+    if: ${{ env.RELEASE_TYPE == 'release' }}
+    steps:
+      - name: Download PKGBUILD Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pkgbuilds
+
+      - name: Clone Homebrew Tap
+        uses: actions/checkout@v4
+        with:
+          repository: "pol-rivero/tap"
+
+      - name: Update Homebrew Formula
+        run: |
+          cp doot.homebrew-formula.rb Formula/doot.rb
+          git config --global user.name "Formula Updater"
+          git config --global user.email "formula-updater@example.com"
+          git add .
+          git commit -m "Update doot to version ${{ env.VERSION }}"
+          git push origin main
