@@ -157,6 +157,6 @@ jobs:
           cp doot.homebrew-formula.rb Formula/doot.rb
           git config --global user.name "Formula Updater"
           git config --global user.email "formula-updater@example.com"
-          git add .
+          git add Formula/doot.rb
           git commit -m "Update doot to version ${{ env.VERSION }}"
           git push origin main
