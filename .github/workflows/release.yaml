@@ -74,16 +74,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate PKGBUILD files from templates
+      - name: Compute tarball checksum
         run: |
-          sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot.PKGBUILD.template > doot-PKGBUILD
-          sed "s/{{VERSION}}/${{ env.VERSION }}/g" .github/doot-bin.PKGBUILD.template > doot-bin-PKGBUILD
-          cp .github/doot-git.PKGBUILD.template doot-git-PKGBUILD
+          TARBALL_CHECKSUM=$(curl -sSL "https://github.com/${{ github.repository }}/archive/refs/tags/${{ env.VERSION }}.tar.gz" | sha256sum | cut -d' ' -f1)
+          echo "TARBALL_CHECKSUM=${TARBALL_CHECKSUM}" >> $GITHUB_ENV
 
-          X86_CHECKSUM=$(sha256sum dist/doot-linux-x86_64 | cut -d ' ' -f 1)
-          ARM64_CHECKSUM=$(sha256sum dist/doot-linux-arm64 | cut -d ' ' -f 1)
-          sed -i "s/{{X86_CHECKSUM}}/${X86_CHECKSUM}/" doot-bin-PKGBUILD
-          sed -i "s/{{ARM64_CHECKSUM}}/${ARM64_CHECKSUM}/" doot-bin-PKGBUILD
+      - name: Generate PKGBUILD files from templates
+        run: .github/generate-pkgbuild.sh ${{ env.VERSION }} ${{ env.TARBALL_CHECKSUM }}
 
       - name: Upload PKGBUILD Artifacts
         uses: actions/upload-artifact@v4

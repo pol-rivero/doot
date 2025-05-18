@@ -2,7 +2,7 @@
 pkgname=doot
 pkgver={{VERSION}}
 pkgrel=1
-pkgdesc="A fast and simple dotfiles manager that just gets the job done"
+pkgdesc="A fast, simple and intuitive dotfiles manager that just gets the job done"
 arch=('x86_64' 'aarch64')
 url="https://github.com/pol-rivero/doot"
 license=('MIT')
@@ -14,7 +14,7 @@ makedepends=('git' 'go' 'sed')
 optdepends=('diffutils: To display changes before overwriting a file')
 
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/pol-rivero/doot/archive/refs/tags/${pkgver}.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('{{TARBALL_CHECKSUM}}')
 
 build() {
     tar -xzf "${pkgname}-${pkgver}.tar.gz"
