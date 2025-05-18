@@ -149,18 +149,20 @@ jobs:
     env:
       VERSION: ${{ needs.build_release.outputs.VERSION }}
     steps:
+      - name: Clone Homebrew Tap
+        uses: actions/checkout@v4
+        with:
+          repository: "pol-rivero/homebrew-tap"
+          token: ${{ secrets.HOMEBREW_TAP_PERSONAL_ACCESS_TOKEN }}
+
       - name: Download PKGBUILD Artifacts
         uses: actions/download-artifact@v4
         with:
           name: pkgbuilds
 
-      - name: Clone Homebrew Tap
-        uses: actions/checkout@v4
-        with:
-          repository: "pol-rivero/tap"
-
       - name: Update Homebrew Formula
         run: |
+          mkdir -p Formula
           cp doot.homebrew-formula.rb Formula/doot.rb
           git config --global user.name "Formula Updater"
           git config --global user.email "formula-updater@example.com"

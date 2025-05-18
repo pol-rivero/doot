@@ -1,8 +1,8 @@
 class Doot < Formula
-  desc     "A fast, simple and intuitive dotfiles manager that just gets the job done"
+  desc     "Fast, simple and intuitive dotfiles manager that just gets the job done"
   homepage "https://github.com/pol-rivero/doot"
-  license  "MIT"
   version  "{{VERSION}}"
+  license  "MIT"
   head     "https://github.com/pol-rivero/doot.git", branch: "main"
 
   depends_on "git"
@@ -29,7 +29,6 @@ class Doot < Formula
       sha256 "{{LINUX_X86_CHECKSUM}}"
     end
   end
-
 
   def install
     mv Dir["doot-*"].first, "doot"
