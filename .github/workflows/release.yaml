@@ -1,4 +1,4 @@
-name: Build, Release, and AUR Update
+name: Build and Release
 
 on:
   push:
@@ -11,6 +11,9 @@ permissions:
 jobs:
   build_release:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.determine_version.outputs.VERSION }}
+      RELEASE_TYPE: ${{ steps.determine_version.outputs.RELEASE_TYPE }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,7 +43,9 @@ jobs:
           fi
 
           echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
+          echo "VERSION=${TAG_NAME}" >> $GITHUB_OUTPUT
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
 
       - name: Populate version string
         shell: bash
@@ -140,7 +145,9 @@ jobs:
   publish_homebrew:
     needs: build_release
     runs-on: ubuntu-latest
-    if: ${{ env.RELEASE_TYPE == 'release' }}
+    if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
+    env:
+      VERSION: ${{ needs.build_release.outputs.VERSION }}
     steps:
       - name: Download PKGBUILD Artifacts
         uses: actions/download-artifact@v4

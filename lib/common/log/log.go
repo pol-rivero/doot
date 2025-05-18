@@ -13,6 +13,7 @@ var (
 	warningLogger      *log.Logger = log.New(color.Error, color.YellowString("WARNING: "), 0)
 	errorLogger        *log.Logger = log.New(color.Error, color.RedString("ERROR: "), 0)
 	isQuiet            bool
+	isVerbose          bool
 	PanicInsteadOfExit bool
 )
 
@@ -21,6 +22,7 @@ func Init(verbose bool, quiet bool) {
 		infolnLogger = log.New(color.Output, "INFO: ", 0)
 	}
 	isQuiet = quiet
+	isVerbose = verbose
 	if quiet {
 		warningLogger.SetOutput(io.Discard)
 		errorLogger.SetOutput(io.Discard)
@@ -58,4 +60,8 @@ func Fatal(format string, v ...interface{}) {
 
 func IsQuiet() bool {
 	return isQuiet
+}
+
+func IsVerbose() bool {
+	return isVerbose
 }
