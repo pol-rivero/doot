@@ -86,8 +86,15 @@ func appendGitAttributes(dotfilesDir AbsolutePath) error {
 		return fmt.Errorf("the dotfiles directory (%s) is not a git repository", dotfilesDir)
 	}
 	attributesPath := repoDir.Value().JoinPath(gitAttributesPath)
-	content := []byte(getGitAttributesContent(true))
-	return os.WriteFile(attributesPath.Str(), content, 0644)
+	content := getGitAttributesContent(true)
+
+	f, err := os.OpenFile(attributesPath.Str(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(content)
+	return err
 }
 
 func getRepoRootPath(dirInRepo AbsolutePath) optional.Optional[AbsolutePath] {
