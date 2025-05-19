@@ -37,7 +37,7 @@ Make sure to run `brew update && brew upgrade` periodically to keep `doot` up to
 
 
 <details>
-<summary>Using the automatic <b>installer script</b> (Linux and macOS)</summary>
+<summary>Using the <b>installer script</b> (Linux and macOS)</summary>
 
 &nbsp;  
 Run the following command:
@@ -49,6 +49,8 @@ curl -sSL get-doot.polrivero.com | sh
 - You can inspect the script before running it: `curl -sSL get-doot.polrivero.com | cat`
 
 - Make sure to run this command periodically or set up a cron job in order to keep `doot` up to date.
+
+- To uninstall, run the following command: `sudo rm $(which doot)`
 
 &nbsp;  
 </details>

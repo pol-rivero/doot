@@ -5,8 +5,8 @@ class Doot < Formula
   license  "MIT"
   head     "https://github.com/pol-rivero/doot.git", branch: "main"
 
-  depends_on "git"
   depends_on "git-crypt"
+  uses_from_macos "git"
 
   on_macos do
     on_arm do
