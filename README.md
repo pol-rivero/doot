@@ -106,6 +106,8 @@ If you want to give it a try, you can download the latest release from the [GitH
 
 ## Usage
 
+If this is your first time setting up a dotfiles repository, read the [Getting Started](https://github.com/pol-rivero/doot/wiki/Getting-Started) guide.
+
 ### Create or update symlinks
 
 Simply run `doot` (or `doot install`) from anywhere in your system. It will symlink all files in your dotfiles directory to your home directory, creating directories as needed.
