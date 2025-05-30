@@ -2,7 +2,6 @@ package common
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -10,8 +9,8 @@ import (
 )
 
 func RunHooks(dotfilesDir AbsolutePath, hookName string) {
-	hookDir := filepath.Join(dotfilesDir.Str(), HOOKS_DIR, hookName)
-	dirEntries, err := os.ReadDir(hookDir)
+	hookDir := dotfilesDir.Join(HOOKS_DIR).Join(hookName)
+	dirEntries, err := os.ReadDir(hookDir.Str())
 	if err != nil {
 		log.Info("No hooks found for %s", hookName)
 		return
@@ -21,10 +20,18 @@ func RunHooks(dotfilesDir AbsolutePath, hookName string) {
 			log.Warning("Unexpected directory (%s) in hooks directory. The hooks directory should only contain files or links to files", entry.Name())
 			continue
 		}
-		hookPath := filepath.Join(hookDir, entry.Name())
-		err := utils.RunCommand(dotfilesDir, hookPath)
+		hookPath := hookDir.Join(entry.Name())
+		err := utils.RunCommand(dotfilesDir, hookPath.Str())
 		if err != nil {
-			log.Fatal("Error running hook %s: %v", hookPath, err)
+			handleError(err, hookName, hookPath)
 		}
+	}
+}
+
+func handleError(err error, hookName string, hookPath AbsolutePath) {
+	if os.IsPermission(err) {
+		log.Fatal("Permission denied for %s hook. Consider making it executable with 'chmod +x %s'", hookName, hookPath)
+	} else {
+		log.Fatal("Error running %s hook %s: %v", hookName, hookPath, err)
 	}
 }

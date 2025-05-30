@@ -16,7 +16,7 @@ func CustomCommand(command string, args []string) {
 
 	err := utils.RunCommand(dotfilesDir, commandPath.Str(), args...)
 	if err != nil {
-		log.Fatal("Error running hook %s: %v", commandPath, err)
+		handleError(err, commandPath)
 	} else {
 		log.Info("Custom command '%s' executed successfully", commandPath)
 	}
@@ -33,4 +33,12 @@ func verifyCommand(dotfilesDir AbsolutePath, commandName string) AbsolutePath {
 	}
 	log.Fatal("Error reading command file '%s': %v", commandPath, err)
 	panic("Unreachable")
+}
+
+func handleError(err error, commandPath AbsolutePath) {
+	if os.IsPermission(err) {
+		log.Fatal("Permission denied for custom command. Consider making it executable with 'chmod +x %s'", commandPath)
+	} else {
+		log.Fatal("Error running custom command %s: %v", commandPath, err)
+	}
 }
