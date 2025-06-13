@@ -10,6 +10,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
+	"github.com/pol-rivero/doot/lib/utils/files"
 	"github.com/pol-rivero/doot/lib/utils/optional"
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
@@ -99,7 +100,7 @@ func (fm *FileMapping) InstallNewLinks() []AbsolutePath {
 			}
 			continue
 		}
-		if os.IsNotExist(err) && EnsureParentDir(target) {
+		if os.IsNotExist(err) && files.EnsureParentDir(target) {
 			log.Info("Linking %s -> %s", target, newSource)
 			err = os.Symlink(newSource.Str(), target.Str())
 			if err == nil {
@@ -134,7 +135,7 @@ func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) []Abso
 				continue
 			}
 			log.Info("Removing link %s", previousLinkPath)
-			success := RemoveAndCleanup(previousLinkPath, fm.targetBaseDir)
+			success := files.RemoveAndCleanup(previousLinkPath, fm.targetBaseDir)
 			if success {
 				removedLinks = append(removedLinks, previousLinkPath)
 			}
@@ -162,12 +163,12 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 	}
 	if strings.HasPrefix(linkSource, fm.sourceBaseDir.Str()) {
 		log.Info("Link %s is incorrect (%s) but points to the source directory, replacing silently with %s", target, linkSource, source)
-		err := ReplaceWithSymlink(target, source)
+		err := files.ReplaceWithSymlink(target, source)
 		return err == nil
 	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
-		err := ReplaceWithSymlink(target, source)
+		err := files.ReplaceWithSymlink(target, source)
 		return err == nil
 	} else {
 		fm.targetsSkipped = append(fm.targetsSkipped, target)
@@ -188,14 +189,14 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 	}
 	if string(contents) == string(sourceContents) {
 		log.Info("File %s exists but its contents are identical to %s, replacing silently", target, source)
-		err := ReplaceWithSymlink(target, source)
+		err := files.ReplaceWithSymlink(target, source)
 		return err == nil
 	}
 	for {
 		replace := utils.RequestInput("yNda", "File %s already exists, but its contents differ from %s. Replace it? (D to see diff, A to adopt changes into dotfiles repo)", target, source)
 		switch replace {
 		case 'y':
-			err := ReplaceWithSymlink(target, source)
+			err := files.ReplaceWithSymlink(target, source)
 			return err == nil
 		case 'n':
 			fm.targetsSkipped = append(fm.targetsSkipped, target)
@@ -203,7 +204,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 		case 'd':
 			fm.printDiff(source, target)
 		case 'a':
-			err := AdoptChanges(target, source)
+			err := files.AdoptChanges(target, source)
 			return err == nil
 		}
 	}

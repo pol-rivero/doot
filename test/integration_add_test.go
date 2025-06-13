@@ -7,6 +7,8 @@ import (
 	"github.com/pol-rivero/doot/lib/add"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/restore"
+	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,6 +36,45 @@ func TestAdd_BasicMapping(t *testing.T) {
 	})
 	assertHomeLink(t, "file1", sourceDir()+"/file1")
 	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/file1"), sourceDir() + "/file1"},
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/dir1/file3"},
+	})
+
+	assert.DirExists(t, sourceDir()+"/dir1")
+	restore.Restore([]string{
+		"file1",
+	})
+	assertHomeRegularFile(t, "file1")
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/dir1/file3"},
+	})
+}
+
+func TestAdd_RestoreCleansUpDirectories(t *testing.T) {
+	setUpFiles_TestAdd(t, config.DefaultConfig())
+	t.Chdir(homeDir())
+
+	os.RemoveAll(sourceDir() + "/doot")
+	assertSourceDirContents(t, "", []string{})
+
+	add.Add([]string{
+		".dir2/file5",
+		".dir2/nested/nestedFile",
+	}, false, false)
+	assertSourceDirContents(t, "dir2", []string{
+		"file5",
+		"nested",
+	})
+
+	restore.Restore([]string{
+		homeDir() + "/.dir2/file5",
+		sourceDir() + "/dir2/nested/nestedFile",
+	})
+	assert.DirExists(t, sourceDir())
+	assertSourceDirContents(t, "", []string{})
+	assertCache(t, []AssertCacheEntry{})
 }
 
 func TestAdd_IncorrectInputs(t *testing.T) {
@@ -394,6 +435,9 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config) {
 			File("file5"),
 			File(".foo"),
 			File(".foo.txt"),
+			Dir("nested", []FsNode{
+				File("nestedFile"),
+			}),
 		}),
 		Dir("dir3", []FsNode{
 			File("file6"),

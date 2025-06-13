@@ -1,4 +1,4 @@
-package install
+package files
 
 import (
 	"os"
@@ -57,7 +57,7 @@ func EnsureParentDir(target AbsolutePath) bool {
 func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) bool {
 	err := os.Remove(removeFile.Str())
 	if err == nil {
-		cleanupEmptyDir(removeFile.Parent(), stopAt)
+		CleanupEmptyDir(removeFile.Parent(), stopAt)
 		return true
 	} else if os.IsNotExist(err) {
 		log.Info("Link %s does not exist, it may have been removed manually", removeFile)
@@ -67,7 +67,7 @@ func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) bool {
 	return false
 }
 
-func cleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
+func CleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
 	if dir == stopAt {
 		return
 	}
@@ -83,6 +83,6 @@ func cleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
 	if err != nil {
 		log.Warning("Could not clean up %s: %s", dir, err)
 	} else {
-		cleanupEmptyDir(dir.Parent(), stopAt)
+		CleanupEmptyDir(dir.Parent(), stopAt)
 	}
 }

@@ -492,7 +492,7 @@ func TestInstall_FullClean2(t *testing.T) {
 	assert.FileExists(t, homeDir()+"/nested/dir/outdatedLink")
 
 	install.Clean(true)
-	assertDirContents(t, homeDir(), []string{})
+	assertHomeDirContents(t, "", []string{})
 }
 
 func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {

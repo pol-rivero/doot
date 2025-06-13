@@ -10,6 +10,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
+	"github.com/pol-rivero/doot/lib/utils/files"
 )
 
 func Restore(inputFiles []string) {
@@ -21,7 +22,7 @@ func Restore(inputFiles []string) {
 	installedFilesCache := cache.GetEntry(cacheKey)
 
 	installedLinks := installedFilesCache.GetLinks()
-	successCount := restoreFiles(inputFiles, installedLinks)
+	successCount := restoreFiles(inputFiles, installedLinks, dotfilesDir)
 
 	installedFilesCache.SetLinks(installedLinks)
 	cache.Save()
@@ -34,12 +35,12 @@ func Restore(inputFiles []string) {
 	}
 }
 
-func restoreFiles(inputFiles []string, installedLinks SymlinkCollection) int {
+func restoreFiles(inputFiles []string, installedLinks SymlinkCollection, dotfilesDir AbsolutePath) int {
 	successCount := 0
 	for _, rawInput := range inputFiles {
 		filePath, err := ensureFileExists(rawInput)
 		if err == nil {
-			err = restoreFile(filePath, installedLinks)
+			err = restoreFile(filePath, installedLinks, dotfilesDir)
 		}
 
 		if err != nil {
@@ -70,10 +71,10 @@ func ensureFileExists(rawInput string) (AbsolutePath, error) {
 	return NewAbsolutePath(cleanAbsFile), nil
 }
 
-func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection) error {
+func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfilesDir AbsolutePath) error {
 	for linkPath, linkContent := range installedLinks.Iter() {
 		if linkPath == filePath || linkContent == filePath {
-			err := overwriteLink(linkPath, linkContent)
+			err := overwriteLink(linkPath, linkContent, dotfilesDir)
 			if err == nil {
 				installedLinks.Remove(linkPath)
 			}
@@ -83,7 +84,11 @@ func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection) error 
 	return fmt.Errorf("it's not a dotfile managed by doot")
 }
 
-func overwriteLink(linkPath, linkContent AbsolutePath) error {
-	log.Info("Moving '%s' -> '%s'", linkContent, linkPath)
-	return os.Rename(linkContent.Str(), linkPath.Str())
+func overwriteLink(symlinkPath, dotfilePath, dotfilesDir AbsolutePath) error {
+	log.Info("Moving '%s' -> '%s'", dotfilePath, symlinkPath)
+	if err := os.Rename(dotfilePath.Str(), symlinkPath.Str()); err != nil {
+		return err
+	}
+	files.CleanupEmptyDir(dotfilePath.Parent(), dotfilesDir)
+	return nil
 }

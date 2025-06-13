@@ -136,9 +136,11 @@ You could manually move the file to the dotfiles directory and run `doot` to sym
 doot add ./some/file [/other/file ...]
 ```
 
-Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files) for more information.
-If you have more than one machine and this file is only applicable to the current one, pass `--host` to add it as a host-specific file. See `hosts` in the configuration file below.
+- Pass `--crypt` to add a file as a private (encrypted) file. See [the documentation](https://github.com/pol-rivero/doot/wiki/Private-(encrypted)-files) for more information.
 
+- If you have more than one machine and this file is only applicable to the current one, pass `--host` to add it as a host-specific file. See `hosts` in the configuration file below.
+
+- You can undo this operation by running `doot restore <file1> ...`, which will replace the symlink with the original regular file, removing it from the dotfiles repository.
 
 ### Advanced usage
 
