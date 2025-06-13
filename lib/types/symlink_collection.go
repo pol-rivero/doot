@@ -29,6 +29,10 @@ func (sc *SymlinkCollection) Get(linkPath AbsolutePath) optional.Optional[Absolu
 	return optional.Empty[AbsolutePath]()
 }
 
+func (sc *SymlinkCollection) Remove(linkPath AbsolutePath) {
+	delete(sc.links, linkPath)
+}
+
 func (sc *SymlinkCollection) Len() int {
 	return len(sc.links)
 }
