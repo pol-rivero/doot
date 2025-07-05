@@ -1,4 +1,4 @@
-package linkmode
+package linkmode_hardlink
 
 import (
 	"fmt"

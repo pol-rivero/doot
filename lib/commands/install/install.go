@@ -7,7 +7,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
-	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/linkmode"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -32,16 +32,13 @@ func Clean(fullClean bool) {
 func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
-
-	if config.UseHardlinks && fullClean {
-		log.Fatal("--full-clean is not supported because you have set use_hardlinks=true")
-	}
+	linkMode := linkmode.GetLinkMode(&config)
 
 	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
 	cache := cache.Load()
 	installedFilesCache := cache.GetEntry(cacheKey)
 	if fullClean {
-		recalculateCache(installedFilesCache, dotfilesDir, config.TargetDir)
+		installedFilesCache.Links = linkMode.RecalculateCache(dotfilesDir, config.TargetDir)
 	}
 
 	common.RunHooks(dotfilesDir, "before-update")

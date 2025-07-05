@@ -1,4 +1,4 @@
-package install
+package linkmode_symlink
 
 import (
 	"os"
@@ -10,9 +10,10 @@ import (
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
-func recalculateCache(installedFilesCache *cache.InstalledFilesCache, dotfilesDir AbsolutePath, scanPath string) {
-	installedFilesCache.Links = make([]*cache.InstalledFile, 0, 128)
-	fullCleanScanRecursive(&installedFilesCache.Links, dotfilesDir, scanPath)
+func (l *SymlinkLinkMode) RecalculateCache(dotfilesDir AbsolutePath, scanPath string) []*cache.InstalledFile {
+	result := make([]*cache.InstalledFile, 0, 128)
+	fullCleanScanRecursive(&result, dotfilesDir, scanPath)
+	return result
 }
 
 func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir AbsolutePath, scanPath string) {

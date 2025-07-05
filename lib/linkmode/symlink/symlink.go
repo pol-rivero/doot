@@ -1,4 +1,4 @@
-package linkmode
+package linkmode_symlink
 
 import (
 	"os"
