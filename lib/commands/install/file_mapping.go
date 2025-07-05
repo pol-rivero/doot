@@ -106,7 +106,7 @@ func (fm *FileMapping) InstallNewLinks() []AbsolutePath {
 		}
 		if os.IsNotExist(err) && files.EnsureParentDir(target) {
 			log.Info("Linking %s -> %s", target, newSource)
-			err = os.Symlink(newSource.Str(), target.Str())
+			err = fm.linkMode.CreateLink(newSource, target)
 			if err == nil {
 				createdLinks = append(createdLinks, target)
 				continue

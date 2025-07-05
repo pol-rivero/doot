@@ -149,3 +149,11 @@ func createSymlink(parentDir string, name string, target string) {
 		panic(err)
 	}
 }
+
+func createHardlink(parentDir string, name string, otherFile string) {
+	hardlinkPath := filepath.Join(parentDir, name)
+	err := os.Link(otherFile, hardlinkPath)
+	if err != nil {
+		panic(err)
+	}
+}

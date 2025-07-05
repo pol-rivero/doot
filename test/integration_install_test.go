@@ -42,6 +42,36 @@ func TestInstall_DefaultConfig(t *testing.T) {
 	assertHomeDirContents(t, "", []string{})
 }
 
+func TestInstall_Hardlinks(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+
+	install.Install(false)
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
+	assertHomeDirContents(t, "dir1", []string{
+		"file3",
+		"nestedDir",
+	})
+	assertHomeDirContents(t, "dir1/nestedDir", []string{
+		"file4",
+	})
+	assertHomeDirContents(t, "dir3", []string{
+		"file6",
+	})
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assertHomeHardlink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4")
+
+	install.Clean(false)
+	assertHomeDirContents(t, "", []string{})
+}
+
 func TestInstall_HiddenFiles(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
@@ -230,6 +260,32 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 }
 
+func TestInstall_IncrementalUpdateSymlinkToHardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+	createSymlink(homeDir(), "file1", "/incorrect-target")
+
+	dootCache := cache.Load()
+	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
+	cacheEntry.Links = []*cache.InstalledFile{
+		{
+			Path:    homeDir() + "/file1",
+			Content: sourceDir() + "/file1",
+		},
+	}
+	dootCache.Save()
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	install.Install(false)
+	assertHomeSymlink(t, "file1", "/incorrect-target")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	install.Install(false)
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+}
+
 func TestInstall_SilentOverwrite(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
@@ -256,6 +312,51 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
 		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
+}
+
+func TestInstall_SilentOverwriteSymlinkToHardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+	correctTarget := sourceDir() + "/file1"
+	createSymlink(homeDir(), "file1", correctTarget)
+
+	dootCache := cache.Load()
+	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
+	cacheEntry.Links = []*cache.InstalledFile{
+		{
+			Path:    homeDir() + "/file1",
+			Content: correctTarget,
+		},
+	}
+	dootCache.Save()
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	install.Install(false)
+	assertHomeHardlink(t, "file1", correctTarget)
+}
+
+func TestInstall_SilentOverwriteHardlinkToSymlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config)
+	correctTarget := sourceDir() + "/file1"
+	createHardlink(homeDir(), "file1", correctTarget)
+
+	dootCache := cache.Load()
+	cacheEntry := dootCache.GetEntry(sourceDir() + ":" + homeDir())
+	cacheEntry.Links = []*cache.InstalledFile{
+		{
+			Path:    homeDir() + "/file1",
+			Content: correctTarget,
+		},
+	}
+	dootCache.Save()
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	install.Install(false)
+	assertHomeSymlink(t, "file1", correctTarget)
 }
 
 func TestInstall_OverwriteN(t *testing.T) {
@@ -388,6 +489,32 @@ func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
 	})
 }
 
+func TestInstall_DoNotRemoveUnexpectedFilesHardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+
+	install.Install(false)
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
+	// User manually changes some files, which should NOT be removed when cleaning
+	os.Remove(homeDir() + "/file1")
+	createNode(homeDir(), File("file1"))
+	os.Remove(homeDir() + "/file2.txt")
+	createNode(homeDir(), File("file2.txt"))
+
+	install.Clean(false)
+	assertHomeDirContents(t, "", []string{
+		"file1",
+		"file2.txt",
+	})
+}
+
 func TestInstall_ExploreExcludedDirs(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
@@ -495,6 +622,41 @@ func TestInstall_FullClean2(t *testing.T) {
 	assertHomeDirContents(t, "", []string{})
 }
 
+func TestInstall_FullCleanHardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
+	createNode(homeDir(), File("doNotRemoveUnrelatedFile"))
+	createHardlink(homeDir(), "doNotRemoveUnrelatedFile2", homeDir()+"/doNotRemoveUnrelatedFile")
+	createHardlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/file1")
+
+	install.Install(false)
+	assert.FileExists(t, homeDir()+"/nested/dir/outdatedLink")
+
+	install.Install(true)
+	assert.NoFileExists(t, homeDir()+"/nested/dir/outdatedLink")
+	assert.NoDirExists(t, homeDir()+"/nested")
+	assert.FileExists(t, homeDir()+"/doNotRemoveUnrelatedFile")
+	assert.FileExists(t, homeDir()+"/doNotRemoveUnrelatedFile2")
+}
+
+func TestInstall_FullCleanHardlink2(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
+	createHardlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/file1")
+
+	install.Clean(false)
+	assert.FileExists(t, homeDir()+"/nested/dir/outdatedLink")
+
+	install.Clean(true)
+	assertHomeDirContents(t, "", []string{})
+}
+
 func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
@@ -528,6 +690,35 @@ func TestInstall_AdoptChanges(t *testing.T) {
 	utils.USER_INPUT_MOCK_RESPONSE = "a"
 	install.Install(false)
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+	assert.Equal(t, "Some external program has replaced this", readFile(sourceDir()+"/file1"))
+
+	homePath := NewAbsolutePath(homeDir())
+	assertCache(t, []AssertCacheEntry{
+		{Path: homePath.Join("file1"), Content: sourceDir() + "/file1"},
+		{Path: homePath.Join("file2.txt"), Content: sourceDir() + "/file2.txt"},
+		{Path: homePath.Join("dir1/file3"), Content: sourceDir() + "/dir1/file3"},
+		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
+		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
+	})
+}
+
+func TestInstall_AdoptChangesHardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config)
+
+	install.Install(false)
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assert.Equal(t, "dummy text for file file1", readFile(sourceDir()+"/file1"))
+
+	os.Remove(homeDir() + "/file1")
+	createFile(homeDir(), FsFile{Name: "file1", Content: "Some external program has replaced this"})
+	assertHomeRegularFile(t, "file1")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "a"
+	install.Install(false)
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
 	assert.Equal(t, "Some external program has replaced this", readFile(sourceDir()+"/file1"))
 
 	homePath := NewAbsolutePath(homeDir())
