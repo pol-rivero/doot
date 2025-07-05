@@ -18,6 +18,7 @@ type Config struct {
 	ImplicitDot         bool              `toml:"implicit_dot"`
 	ImplicitDotIgnore   []string          `toml:"implicit_dot_ignore"`
 	DiffCommand         string            `toml:"diff_command"`
+	HardlinkMode        bool              `toml:"hardlink_mode"`
 	Hosts               map[string]string `toml:"hosts"`
 }
 
@@ -34,6 +35,7 @@ func DefaultConfig() Config {
 		ImplicitDot:         true,
 		ImplicitDotIgnore:   []string{},
 		DiffCommand:         "diff --unified --color=always",
+		HardlinkMode:        false,
 		Hosts:               map[string]string{},
 	}
 }

@@ -6,32 +6,33 @@ import (
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/linkmode"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
 // https://stackoverflow.com/a/58148921
-func ReplaceWithSymlink(target AbsolutePath, dotfilesSource AbsolutePath) error {
-	tempLocation := target.Str() + common.DOOT_BACKUP_EXT
-	if err := os.Remove(tempLocation); err != nil && !os.IsNotExist(err) {
+func ReplaceWithLink(target AbsolutePath, dotfilesSource AbsolutePath, linkMode linkmode.LinkMode) error {
+	tempLocation := target.AppendExtension(common.DOOT_BACKUP_EXT)
+	if err := os.Remove(tempLocation.Str()); err != nil && !os.IsNotExist(err) {
 		log.Error("Failed to remove temporary file %s, consider removing it manually.\n%s", tempLocation, err)
 		return err
 	}
 
-	if err := os.Symlink(dotfilesSource.Str(), tempLocation); err != nil {
+	if err := linkMode.CreateLink(dotfilesSource, tempLocation); err != nil {
 		log.Error("Failed to create link %s -> %s: %s", tempLocation, dotfilesSource, err)
 		return err
 	}
 
-	if err := os.Rename(tempLocation, target.Str()); err != nil {
+	if err := os.Rename(tempLocation.Str(), target.Str()); err != nil {
 		log.Error("Failed to update %s: %s", target, err)
-		os.Remove(tempLocation)
+		os.Remove(tempLocation.Str())
 		return err
 	}
 
 	return nil
 }
 
-func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath) error {
+func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath, linkMode linkmode.LinkMode) error {
 	log.Info("Adding changes from %s into %s", target, dotfilesSource)
 	targetContent, err := os.ReadFile(target.Str())
 	if err != nil {
@@ -42,7 +43,7 @@ func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath) error {
 		log.Error("Failed to write file %s: %s", dotfilesSource, err)
 		return err
 	}
-	return ReplaceWithSymlink(target, dotfilesSource)
+	return ReplaceWithLink(target, dotfilesSource, linkMode)
 }
 
 func EnsureParentDir(target AbsolutePath) bool {

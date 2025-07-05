@@ -34,8 +34,8 @@ func TestAdd_BasicMapping(t *testing.T) {
 	assertSourceDirContents(t, "dir1", []string{
 		"file3",
 	})
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
-	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
 
 	assertCache(t, []AssertCacheEntry{
 		{NewAbsolutePath(homeDir() + "/file1"), sourceDir() + "/file1"},
@@ -110,7 +110,7 @@ func TestAdd_FromAnotherPWD(t *testing.T) {
 	assertSourceDirContents(t, "dir1", []string{
 		"file3",
 	})
-	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
 }
 
 func TestAdd_WeirdInputPath(t *testing.T) {
@@ -129,7 +129,7 @@ func TestAdd_WeirdInputPath(t *testing.T) {
 	assertSourceDirContents(t, "dir1", []string{
 		"file3",
 	})
-	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
 }
 
 func TestAdd_ExcludeInclude(t *testing.T) {
@@ -154,8 +154,8 @@ func TestAdd_ExcludeInclude(t *testing.T) {
 		"dir3",
 		".dir2",
 	})
-	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6")
-	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo")
+	assertHomeSymlink(t, "dir3/file6", sourceDir()+"/dir3/file6")
+	assertHomeSymlink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo")
 }
 
 func TestAdd_ImplicitDot(t *testing.T) {
@@ -184,9 +184,9 @@ func TestAdd_ImplicitDot(t *testing.T) {
 		"file5",
 		".foo",
 	})
-	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
-	assertHomeLink(t, ".dir2/file5", sourceDir()+"/dir2/file5")
-	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6")
+	assertHomeSymlink(t, "file2.txt", sourceDir()+"/file2.txt")
+	assertHomeSymlink(t, ".dir2/file5", sourceDir()+"/dir2/file5")
+	assertHomeSymlink(t, "dir3/file6", sourceDir()+"/dir3/file6")
 }
 
 func TestAdd_WithCryptExtensionUninitialized(t *testing.T) {
@@ -248,13 +248,13 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 		".foo.doot-crypt",
 		".foo.doot-crypt.txt",
 	})
-	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
-	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.doot-crypt.txt")
-	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4.doot-crypt")
-	assertHomeLink(t, "dir.with.dots/file.with.some.dots", sourceDir()+"/dir.with.dots/file.with.some.doot-crypt.dots")
-	assertHomeLink(t, "dir.with.dots/file-without-dots", sourceDir()+"/dir.with.dots/file-without-dots.doot-crypt")
-	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
-	assertHomeLink(t, ".dir2/.foo.txt", sourceDir()+"/.dir2/.foo.doot-crypt.txt")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1.doot-crypt")
+	assertHomeSymlink(t, "file2.txt", sourceDir()+"/file2.doot-crypt.txt")
+	assertHomeSymlink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4.doot-crypt")
+	assertHomeSymlink(t, "dir.with.dots/file.with.some.dots", sourceDir()+"/dir.with.dots/file.with.some.doot-crypt.dots")
+	assertHomeSymlink(t, "dir.with.dots/file-without-dots", sourceDir()+"/dir.with.dots/file-without-dots.doot-crypt")
+	assertHomeSymlink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
+	assertHomeSymlink(t, ".dir2/.foo.txt", sourceDir()+"/.dir2/.foo.doot-crypt.txt")
 }
 
 func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
@@ -281,8 +281,8 @@ func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
 		"dir3",
 		".dir2",
 	})
-	assertHomeLink(t, "dir3/file6", sourceDir()+"/dir3/file6.doot-crypt")
-	assertHomeLink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
+	assertHomeSymlink(t, "dir3/file6", sourceDir()+"/dir3/file6.doot-crypt")
+	assertHomeSymlink(t, ".dir2/.foo", sourceDir()+"/.dir2/.foo.doot-crypt")
 }
 
 func TestAdd_WithCryptDirectory(t *testing.T) {
@@ -307,26 +307,26 @@ func TestAdd_WithCryptDirectory(t *testing.T) {
 	add.Add([]string{
 		"cryptTest/foo/secret1.txt",
 	}, true, false)
-	assertHomeLink(t, "cryptTest/foo/secret1.txt", sourceDir()+"/cryptTest/foo.doot-crypt/secret1.txt")
+	assertHomeSymlink(t, "cryptTest/foo/secret1.txt", sourceDir()+"/cryptTest/foo.doot-crypt/secret1.txt")
 
 	os.RemoveAll(sourceDir() + "/cryptTest")
 	// Now there's no choice but to use the cryptTest.doot-crypt directory and create 'foo'
 	add.Add([]string{
 		"cryptTest/foo/secret2.txt",
 	}, true, false)
-	assertHomeLink(t, "cryptTest/foo/secret2.txt", sourceDir()+"/cryptTest.doot-crypt/foo/secret2.txt")
+	assertHomeSymlink(t, "cryptTest/foo/secret2.txt", sourceDir()+"/cryptTest.doot-crypt/foo/secret2.txt")
 
 	utils.USER_INPUT_MOCK_RESPONSE = "y"
 	add.Add([]string{
 		"cryptTest/foo/not-really-a-secret1.txt",
 	}, false, false)
-	assertHomeLink(t, "cryptTest/foo/not-really-a-secret1.txt", sourceDir()+"/cryptTest.doot-crypt/foo/not-really-a-secret1.txt")
+	assertHomeSymlink(t, "cryptTest/foo/not-really-a-secret1.txt", sourceDir()+"/cryptTest.doot-crypt/foo/not-really-a-secret1.txt")
 
 	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	add.Add([]string{
 		"cryptTest/foo/not-really-a-secret2.txt",
 	}, false, false)
-	assertHomeLink(t, "cryptTest/foo/not-really-a-secret2.txt", sourceDir()+"/cryptTest/foo/not-really-a-secret2.txt")
+	assertHomeSymlink(t, "cryptTest/foo/not-really-a-secret2.txt", sourceDir()+"/cryptTest/foo/not-really-a-secret2.txt")
 }
 
 func TestAdd_HostSpecificNotFound(t *testing.T) {
@@ -376,8 +376,8 @@ func TestAdd_HostSpecificDir(t *testing.T) {
 	assertSourceDirContents(t, "host/dir/dir1/nestedDir", []string{
 		"file4",
 	})
-	assertHomeLink(t, "file2.txt", sourceDir()+"/host/dir/file2.txt")
-	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/host/dir/dir1/nestedDir/file4")
+	assertHomeSymlink(t, "file2.txt", sourceDir()+"/host/dir/file2.txt")
+	assertHomeSymlink(t, "dir1/nestedDir/file4", sourceDir()+"/host/dir/dir1/nestedDir/file4")
 }
 
 func TestAdd_IsIdempotent(t *testing.T) {
@@ -411,8 +411,8 @@ func TestAdd_IsIdempotent(t *testing.T) {
 		"dir1",
 	})
 	assertHomeRegularFile(t, "file1")
-	assertHomeLink(t, "file2.txt", "./file1")
-	assertHomeLink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, "file2.txt", "./file1")
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
 }
 
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {

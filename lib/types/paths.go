@@ -8,6 +8,8 @@ import (
 type RelativePath string
 type AbsolutePath string
 
+// ---- RelativePath ----
+
 func (rp RelativePath) Str() string {
 	return string(rp)
 }
@@ -56,6 +58,8 @@ func (ap RelativePath) Parent() RelativePath {
 	return RelativePath(filepath.Dir(ap.Str()))
 }
 
+// ---- AbsolutePath ----
+
 func (ap AbsolutePath) Str() string {
 	return string(ap)
 }
@@ -89,4 +93,8 @@ func (ap AbsolutePath) ExtractRelativePath(baseDirLen int) RelativePath {
 
 func (ap AbsolutePath) Parent() AbsolutePath {
 	return AbsolutePath(filepath.Dir(ap.Str()))
+}
+
+func (ap AbsolutePath) AppendExtension(ext string) AbsolutePath {
+	return AbsolutePath(ap.Str() + ext)
 }

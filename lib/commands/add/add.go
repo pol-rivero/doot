@@ -10,6 +10,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/glob_collection"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/linkmode"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
@@ -17,6 +18,7 @@ import (
 func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
+	linkMode := linkmode.GetLinkMode(&config)
 	params := ProcessAddedFileParams{
 		crypt:             isCrypt,
 		hostSpecificDir:   getHostSpecificDir(&config, isHostSpecific),
@@ -50,7 +52,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		if err == nil {
 			log.Info("Created hardlink %s -> %s", file, dotfilePath)
 		} else if os.IsExist(err) {
-			handleDotfileAlreadyExists(file, dotfilePath)
+			handleDotfileAlreadyExists(file, dotfilePath, linkMode)
 		} else {
 			log.Error("Error hardlinking %s to %s: %v", file, dotfilePath, err)
 		}
@@ -78,22 +80,10 @@ func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {
 	return hostSpecificDir
 }
 
-func handleDotfileAlreadyExists(targetFile string, dotfilePath AbsolutePath) {
-	fileInfo, err := os.Lstat(targetFile)
-	if err != nil {
-		panic("Should have been checked in ProcessAddedFile")
-	}
-	if fileInfo.Mode()&os.ModeSymlink != 0 && getSymlinkTarget(targetFile) == dotfilePath.Str() {
+func handleDotfileAlreadyExists(targetFile string, dotfilePath AbsolutePath, linkMode linkmode.LinkMode) {
+	if linkMode.IsInstalledLinkOf(targetFile, dotfilePath) {
 		log.Warning("Link %s -> %s already exists, skipping", targetFile, dotfilePath)
 	} else {
 		log.Error("Dotfile %s already exists. If you really want to overwrite it, delete it first", dotfilePath)
 	}
-}
-
-func getSymlinkTarget(linkPath string) string {
-	linkSource, linkErr := os.Readlink(linkPath)
-	if linkErr != nil {
-		log.Fatal("Failed to read link %s: %v", linkPath, linkErr)
-	}
-	return linkSource
 }

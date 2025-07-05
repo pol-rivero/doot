@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/crypt"
@@ -32,7 +33,7 @@ func assertDirContents(t *testing.T, path string, expected []string) {
 	assert.ElementsMatch(t, expected, fileNames)
 }
 
-func assertHomeLink(t *testing.T, link string, target string) {
+func assertHomeSymlink(t *testing.T, link string, target string) {
 	t.Helper()
 	linkPath := filepath.Join(homeDir(), link)
 	info, err := os.Lstat(linkPath)
@@ -41,6 +42,21 @@ func assertHomeLink(t *testing.T, link string, target string) {
 	targetPath, err := os.Readlink(linkPath)
 	assert.NoError(t, err, "Failed to read link")
 	assert.Equal(t, target, targetPath)
+}
+
+func assertHomeHardlink(t *testing.T, link string, target string) {
+	t.Helper()
+	linkPath := filepath.Join(homeDir(), link)
+	info1, err := os.Stat(linkPath)
+	assert.NoError(t, err, "Failed to get link info")
+	info2, err := os.Stat(target)
+	assert.NoError(t, err, "Failed to get target info")
+	stat1, ok1 := info1.Sys().(*syscall.Stat_t)
+	stat2, ok2 := info2.Sys().(*syscall.Stat_t)
+	assert.True(t, ok1 && ok2, "Failed to convert FileInfo.Sys() to *syscall.Stat_t")
+	assert.Equal(t, stat1.Dev, stat2.Dev, "Device numbers do not match")
+	assert.Equal(t, stat1.Ino, stat2.Ino, "Inode numbers do not match")
+	assert.Equal(t, info1.Mode(), info2.Mode(), "File modes do not match")
 }
 
 func assertHomeRegularFile(t *testing.T, path string) {

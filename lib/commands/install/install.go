@@ -7,6 +7,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
+	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
@@ -31,6 +32,10 @@ func Clean(fullClean bool) {
 func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
+
+	if config.HardlinkMode && fullClean {
+		log.Fatal("--full-clean is not supported with hardlink mode.")
+	}
 
 	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
 	cache := cache.Load()

@@ -35,8 +35,8 @@ func TestInstall_DefaultConfig(t *testing.T) {
 	assertHomeDirContents(t, "dir3", []string{
 		"file6",
 	})
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
-	assertHomeLink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4")
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -60,7 +60,7 @@ func TestInstall_HiddenFiles(t *testing.T) {
 		"file3",
 		"nestedDir",
 	})
-	assertHomeLink(t, ".dir2/file5", sourceDir()+"/.dir2/file5")
+	assertHomeSymlink(t, ".dir2/file5", sourceDir()+"/.dir2/file5")
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -89,8 +89,8 @@ func TestInstall_ImplicitDot(t *testing.T) {
 	assertHomeDirContents(t, "dir3", []string{
 		"file6",
 	})
-	assertHomeLink(t, ".file1", sourceDir()+"/file1")
-	assertHomeLink(t, ".dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, ".file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, ".dir1/file3", sourceDir()+"/dir1/file3")
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -223,11 +223,11 @@ func TestInstall_IncrementalUpdateLink(t *testing.T) {
 
 	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	install.Install(false)
-	assertHomeLink(t, "file1", "/incorrect-target")
+	assertHomeSymlink(t, "file1", "/incorrect-target")
 
 	utils.USER_INPUT_MOCK_RESPONSE = "y"
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 }
 
 func TestInstall_SilentOverwrite(t *testing.T) {
@@ -240,7 +240,7 @@ func TestInstall_SilentOverwrite(t *testing.T) {
 	assertHomeRegularFile(t, "file1")
 
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 	assertHomeDirContents(t, "", []string{
 		"file1",
 		"file2.txt",
@@ -269,7 +269,7 @@ func TestInstall_OverwriteN(t *testing.T) {
 	utils.USER_INPUT_MOCK_RESPONSE = "n"
 	install.Install(false)
 	assertHomeRegularFile(t, "file1")
-	assertHomeLink(t, "file2.txt", "/outdatedLink")
+	assertHomeSymlink(t, "file2.txt", "/outdatedLink")
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AssertCacheEntry{
@@ -288,8 +288,8 @@ func TestInstall_OverwriteY(t *testing.T) {
 
 	utils.USER_INPUT_MOCK_RESPONSE = "y"
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
-	assertHomeLink(t, "file2.txt", sourceDir()+"/file2.txt")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file2.txt", sourceDir()+"/file2.txt")
 
 	homePath := NewAbsolutePath(homeDir())
 	assertCache(t, []AssertCacheEntry{
@@ -312,7 +312,7 @@ func TestInstall_WithCryptInitialized(t *testing.T) {
 		"file6",
 		"file7",
 	})
-	assertHomeLink(t, "dir3/file7", sourceDir()+"/dir3/file7.doot-crypt")
+	assertHomeSymlink(t, "dir3/file7", sourceDir()+"/dir3/file7.doot-crypt")
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -354,10 +354,10 @@ func TestInstall_WithHostSpecificDir(t *testing.T) {
 		".inMyHostDir",
 	})
 	assertHomeDirContents(t, ".inMyHostDir", []string{"inMyHostDirFile"})
-	assertHomeLink(t, ".inMyHost", sourceDir()+"/hosts/HOST/inMyHost")
-	assertHomeLink(t, ".file2.txt", sourceDir()+"/hosts/HOST/file2.doot-crypt.txt")
-	assertHomeLink(t, ".dir1/file3", sourceDir()+"/dir1/file3")
-	assertHomeLink(t, ".dir2/file5", sourceDir()+"/hosts/HOST/dir2/file5")
+	assertHomeSymlink(t, ".inMyHost", sourceDir()+"/hosts/HOST/inMyHost")
+	assertHomeSymlink(t, ".file2.txt", sourceDir()+"/hosts/HOST/file2.doot-crypt.txt")
+	assertHomeSymlink(t, ".dir1/file3", sourceDir()+"/dir1/file3")
+	assertHomeSymlink(t, ".dir2/file5", sourceDir()+"/hosts/HOST/dir2/file5")
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -438,7 +438,7 @@ func TestInstall_Hooks(t *testing.T) {
 		"dir1",
 		"dir3",
 	})
-	assertHomeLink(t, "before.txt", sourceDir()+"/before.txt")
+	assertHomeSymlink(t, "before.txt", sourceDir()+"/before.txt")
 	beforeContent := readFile(sourceDir() + "/before.txt")
 	assert.Equal(t, "before1 "+sourceDir()+"\nbefore2\nafter\n", beforeContent)
 	afterContent := readFile(sourceDir() + "/after.txt")
@@ -502,14 +502,14 @@ func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
 	initializeGitCrypt()
 
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 
 	err := os.Rename(sourceDir()+"/file1", sourceDir()+"/file1.doot-crypt")
 	assert.NoError(t, err)
 
 	// Shouldn't wait for user input
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1.doot-crypt")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1.doot-crypt")
 }
 
 func TestInstall_AdoptChanges(t *testing.T) {
@@ -518,7 +518,7 @@ func TestInstall_AdoptChanges(t *testing.T) {
 	setUpFiles_TestInstall(t, config)
 
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 	assert.Equal(t, "dummy text for file file1", readFile(sourceDir()+"/file1"))
 
 	os.Remove(homeDir() + "/file1")
@@ -527,7 +527,7 @@ func TestInstall_AdoptChanges(t *testing.T) {
 
 	utils.USER_INPUT_MOCK_RESPONSE = "a"
 	install.Install(false)
-	assertHomeLink(t, "file1", sourceDir()+"/file1")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 	assert.Equal(t, "Some external program has replaced this", readFile(sourceDir()+"/file1"))
 
 	homePath := NewAbsolutePath(homeDir())
