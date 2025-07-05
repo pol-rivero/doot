@@ -47,9 +47,9 @@ func assertHomeSymlink(t *testing.T, link string, target string) {
 func assertHomeHardlink(t *testing.T, link string, target string) {
 	t.Helper()
 	linkPath := filepath.Join(homeDir(), link)
-	info1, err := os.Stat(linkPath)
+	info1, err := os.Lstat(linkPath)
 	assert.NoError(t, err, "Failed to get link info")
-	info2, err := os.Stat(target)
+	info2, err := os.Lstat(target)
 	assert.NoError(t, err, "Failed to get target info")
 	stat1, ok1 := info1.Sys().(*syscall.Stat_t)
 	stat2, ok2 := info2.Sys().(*syscall.Stat_t)

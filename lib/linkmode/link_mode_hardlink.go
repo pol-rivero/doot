@@ -45,7 +45,7 @@ func (l *HardlinkLinkMode) CanBeSafelyRemoved(linkPath AbsolutePath, _ string) b
 }
 
 func unixStat(path string) (*syscall.Stat_t, error) {
-	info, err := os.Stat(path)
+	info, err := os.Lstat(path)
 	if err != nil {
 		return nil, err
 	}
