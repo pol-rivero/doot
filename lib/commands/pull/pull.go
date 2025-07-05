@@ -1,9 +1,9 @@
 package pull
 
 import (
+	"github.com/pol-rivero/doot/lib/commands/install"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
-	"github.com/pol-rivero/doot/lib/install"
 	"github.com/pol-rivero/doot/lib/utils"
 )
 

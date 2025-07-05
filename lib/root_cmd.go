@@ -1,8 +1,8 @@
 package lib
 
 import (
+	"github.com/pol-rivero/doot/lib/commands/install"
 	"github.com/pol-rivero/doot/lib/customcmd"
-	"github.com/pol-rivero/doot/lib/install"
 	"github.com/spf13/cobra"
 )
 

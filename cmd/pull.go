@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/pol-rivero/doot/lib/pull"
+	"github.com/pol-rivero/doot/lib/commands/pull"
 	"github.com/spf13/cobra"
 )
 

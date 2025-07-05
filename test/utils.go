@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/common/cache"
-	"github.com/pol-rivero/doot/lib/crypt"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/stretchr/testify/assert"
 )

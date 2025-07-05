@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/pol-rivero/doot/lib/commands/install"
 	"github.com/pol-rivero/doot/lib/common/config"
-	"github.com/pol-rivero/doot/lib/install"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/stretchr/testify/assert"
 )

@@ -4,9 +4,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
-	"github.com/pol-rivero/doot/lib/crypt"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils/optional"
 )

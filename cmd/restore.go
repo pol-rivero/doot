@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/pol-rivero/doot/lib/restore"
+	"github.com/pol-rivero/doot/lib/commands/restore"
 	"github.com/spf13/cobra"
 )
 

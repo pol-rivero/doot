@@ -3,10 +3,10 @@ package install
 import (
 	"path/filepath"
 
+	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
-	"github.com/pol-rivero/doot/lib/crypt"
 	. "github.com/pol-rivero/doot/lib/types"
 )
 

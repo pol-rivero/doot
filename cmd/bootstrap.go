@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/pol-rivero/doot/lib/bootstrap"
+	"github.com/pol-rivero/doot/lib/commands/bootstrap"
 	"github.com/pol-rivero/doot/lib/utils/optional"
 	"github.com/spf13/cobra"
 )
