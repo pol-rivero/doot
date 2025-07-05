@@ -208,6 +208,9 @@ implicit_dot_ignore = [
   "bin"
 ]
 
+# If set to true, the dotfiles will be installed as hardlinks instead of symlinks. I recommend leaving this as false unless you explicitly need hardlinks.
+use_hardlinks = false
+
 # Command and flags to use for displaying diffs. Use any tool and format you like, but it must accept 2 positional arguments for the files to compare.
 diff_command = "diff --unified --color=always"
 

@@ -51,7 +51,7 @@ func unixStat(path string) (*syscall.Stat_t, error) {
 	}
 	stat, ok := info.Sys().(*syscall.Stat_t)
 	if !ok {
-		return nil, fmt.Errorf("failed to get Stat_t for %s (hardlink_mode is not supported on Windows)", path)
+		return nil, fmt.Errorf("failed to get Stat_t for %s (use_hardlinks is not supported on Windows)", path)
 	}
 	return stat, nil
 }

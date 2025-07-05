@@ -33,8 +33,8 @@ func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
-	if config.HardlinkMode && fullClean {
-		log.Fatal("--full-clean is not supported with hardlink mode.")
+	if config.UseHardlinks && fullClean {
+		log.Fatal("--full-clean is not supported because you have set use_hardlinks=true")
 	}
 
 	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir

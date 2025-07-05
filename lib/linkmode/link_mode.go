@@ -12,7 +12,7 @@ type LinkMode interface {
 }
 
 func GetLinkMode(config *config.Config) LinkMode {
-	if config.HardlinkMode {
+	if config.UseHardlinks {
 		return &HardlinkLinkMode{}
 	}
 	return &SymlinkLinkMode{}
