@@ -87,7 +87,7 @@ jobs:
       - name: Generate PKGBUILD files from templates
         run: .github/generate-pkgbuild.sh ${{ env.VERSION }} ${{ env.TARBALL_CHECKSUM }}
 
-      - name: Upload PKGBUILD Artifacts
+      - name: Upload PKGBUILD and Homebrew Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pkgbuilds
@@ -155,7 +155,7 @@ jobs:
           repository: "pol-rivero/homebrew-tap"
           token: ${{ secrets.HOMEBREW_TAP_PERSONAL_ACCESS_TOKEN }}
 
-      - name: Download PKGBUILD Artifacts
+      - name: Download Homebrew Artifacts
         uses: actions/download-artifact@v4
         with:
           name: pkgbuilds
