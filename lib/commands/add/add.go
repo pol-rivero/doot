@@ -7,6 +7,7 @@ import (
 	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/commands/install"
 	"github.com/pol-rivero/doot/lib/common"
+	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/glob_collection"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -19,6 +20,11 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 	linkMode := linkmode.GetLinkMode(&config)
+
+	cacheKey := cache.ComputeCacheKey(dotfilesDir, config.TargetDir)
+	cache := cache.Load()
+	installedLinks := cache.GetEntry(cacheKey).GetLinks()
+
 	params := ProcessAddedFileParams{
 		crypt:             isCrypt,
 		hostSpecificDir:   getHostSpecificDir(&config, isHostSpecific),
@@ -36,6 +42,10 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	}
 
 	for _, file := range files {
+		if alreadyManaged(file, &installedLinks, linkMode) {
+			log.Printlnf("%s is already managed by doot", file)
+			continue
+		}
 		dotfileRelativePath, err := ProcessAddedFile(file, params)
 		if err != nil {
 			log.Error("Can't add %s: %v", file, err)
@@ -52,7 +62,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		if err == nil {
 			log.Info("Created hardlink %s -> %s", file, dotfilePath)
 		} else if os.IsExist(err) {
-			handleDotfileAlreadyExists(file, dotfilePath, linkMode)
+			log.Error("Dotfile %s already exists. If you really want to overwrite it, delete it first", dotfilePath)
 		} else {
 			log.Error("Error hardlinking %s to %s: %v", file, dotfilePath, err)
 		}
@@ -80,10 +90,11 @@ func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {
 	return hostSpecificDir
 }
 
-func handleDotfileAlreadyExists(targetFile string, dotfilePath AbsolutePath, linkMode linkmode.LinkMode) {
-	if linkMode.IsInstalledLinkOf(targetFile, dotfilePath) {
-		log.Warning("Link %s -> %s already exists, skipping", targetFile, dotfilePath)
-	} else {
-		log.Error("Dotfile %s already exists. If you really want to overwrite it, delete it first", dotfilePath)
+func alreadyManaged(file string, installedLinks *SymlinkCollection, linkMode linkmode.LinkMode) bool {
+	installedLink := RelativeToPWD(file)
+	dotfilePath := installedLinks.Get(installedLink)
+	if dotfilePath.IsEmpty() {
+		return false
 	}
+	return linkMode.IsInstalledLinkOf(installedLink.Str(), dotfilePath.Value())
 }
