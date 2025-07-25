@@ -1,8 +1,6 @@
 package ls
 
 import (
-	"path/filepath"
-
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
@@ -13,7 +11,7 @@ func ListInstalledFiles(asJson bool) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
-	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
+	cacheKey := cache.ComputeCacheKey(dotfilesDir, config.TargetDir)
 	cache := cache.Load()
 	installedFilesCache := cache.GetEntry(cacheKey)
 

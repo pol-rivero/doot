@@ -1,8 +1,6 @@
 package install
 
 import (
-	"path/filepath"
-
 	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
@@ -34,7 +32,7 @@ func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	config := config.FromDotfilesDir(dotfilesDir)
 	linkMode := linkmode.GetLinkMode(&config)
 
-	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
+	cacheKey := cache.ComputeCacheKey(dotfilesDir, config.TargetDir)
 	cache := cache.Load()
 	installedFilesCache := cache.GetEntry(cacheKey)
 	if fullClean {

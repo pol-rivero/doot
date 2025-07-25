@@ -17,7 +17,7 @@ func Restore(inputFiles []string) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 
-	cacheKey := dotfilesDir.Str() + string(filepath.ListSeparator) + config.TargetDir
+	cacheKey := cache.ComputeCacheKey(dotfilesDir, config.TargetDir)
 	cache := cache.Load()
 	installedFilesCache := cache.GetEntry(cacheKey)
 
