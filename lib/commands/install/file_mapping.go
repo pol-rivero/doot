@@ -135,10 +135,10 @@ func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) []Abso
 	return removedLinks
 }
 
-func (fm *FileMapping) handleTargetAlreadyExists(fileInfo os.FileInfo, target, source AbsolutePath) bool {
-	if fileInfo.Mode()&os.ModeSymlink != 0 {
+func (fm *FileMapping) handleTargetAlreadyExists(targetFileInfo os.FileInfo, target, source AbsolutePath) bool {
+	if targetFileInfo.Mode()&os.ModeSymlink != 0 {
 		return fm.handleExistingSymlink(target, source)
-	} else if fileInfo.Mode().IsRegular() {
+	} else if targetFileInfo.Mode().IsRegular() {
 		return fm.handleExistingFile(target, source)
 	} else {
 		log.Warning("Target %s exists but is not a symlink or a regular file, skipping", target)
@@ -168,14 +168,23 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 }
 
 func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
+	sourceFileInfo, statErr := os.Lstat(source.Str())
+	if statErr != nil {
+		log.Error("Failed to lstat source file %s: %s", source, statErr)
+		return false
+	}
+	if sourceFileInfo.Mode()&os.ModeSymlink != 0 {
+		return fm.handleReplaceRegularFileWithSymlink(target, source)
+	}
+
 	contents, readErr := os.ReadFile(target.Str())
 	if readErr != nil {
-		log.Error("Failed to read file %s: %s", target, readErr)
+		log.Error("Failed to read target file %s: %s", target, readErr)
 		return false
 	}
 	sourceContents, readErr := os.ReadFile(source.Str())
 	if readErr != nil {
-		log.Error("Failed to read file %s: %s", source, readErr)
+		log.Error("Failed to read source file %s: %s", source, readErr)
 		return false
 	}
 	if string(contents) == string(sourceContents) {
@@ -196,6 +205,28 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 			fm.printDiff(source, target)
 		case 'a':
 			err := files.AdoptChanges(target, source, fm.linkMode)
+			return err == nil
+		}
+	}
+}
+
+func (fm *FileMapping) handleReplaceRegularFileWithSymlink(target, sourceSymlink AbsolutePath) bool {
+	sourceSymlinkTarget, err := os.Readlink(sourceSymlink.Str())
+	if err != nil {
+		log.Error("Failed to read symlink target %s: %s", sourceSymlink, err)
+		return false
+	}
+	for {
+		replace := utils.RequestInput("yNa", "File %s already exists, but it is a regular file and you are trying to replace it with a symlink to '%s'. Replace it? (A to adopt the regular file into dotfiles repo)", target, sourceSymlinkTarget)
+		switch replace {
+		case 'y':
+			err := files.ReplaceWithLink(target, sourceSymlink, fm.linkMode)
+			return err == nil
+		case 'n':
+			fm.targetsSkipped = append(fm.targetsSkipped, target)
+			return false
+		case 'a':
+			err := files.AdoptChanges(target, sourceSymlink, fm.linkMode)
 			return err == nil
 		}
 	}
