@@ -720,6 +720,47 @@ func TestInstall_AdoptChangesHardlink(t *testing.T) {
 	})
 }
 
+func TestInstall_ReplaceRegularFileWithSymlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+
+	// Home directory contains a regular file that should be replaced with a symlink
+	setUpFiles_TestInstall(t, config)
+	os.Remove(sourceDir() + "/file1")
+	createSymlink(sourceDir(), "file1", "/some-file")
+
+	createFile(homeDir(), File("file1"))
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	install.Install(false)
+	assertHomeRegularFile(t, "file1")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	install.Install(false)
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+}
+
+func TestInstall_ReplaceRegularFileWithSymlinkUsingHardlinks(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+
+	// Home directory contains a regular file that should be replaced with a symlink
+	setUpFiles_TestInstall(t, config)
+	os.Remove(sourceDir() + "/file1")
+	replaceWithSymlink(sourceDir(), "file1", "/some-file")
+
+	createFile(homeDir(), File("file1"))
+
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	install.Install(false)
+	assertHomeRegularFile(t, "file1")
+
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	install.Install(false)
+	assertHomeSymlink(t, "file1", "/some-file")
+}
+
 func TestInstall_AdoptRegularFileReplacingSymlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
