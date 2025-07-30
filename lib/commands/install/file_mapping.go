@@ -136,7 +136,7 @@ func (fm *FileMapping) RemoveStaleLinks(previousLinks *SymlinkCollection) []Abso
 }
 
 func (fm *FileMapping) handleTargetAlreadyExists(targetFileInfo os.FileInfo, target, source AbsolutePath) bool {
-	if targetFileInfo.Mode()&os.ModeSymlink != 0 {
+	if common.IsSymlink(targetFileInfo) {
 		return fm.handleExistingSymlink(target, source)
 	} else if targetFileInfo.Mode().IsRegular() {
 		return fm.handleExistingFile(target, source)
@@ -173,7 +173,7 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 		log.Error("Failed to lstat source file %s: %s", source, statErr)
 		return false
 	}
-	if sourceFileInfo.Mode()&os.ModeSymlink != 0 {
+	if common.IsSymlink(sourceFileInfo) {
 		return fm.handleReplaceRegularFileWithSymlink(target, source)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -27,7 +28,7 @@ func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir Absolute
 		entryPath := filepath.Join(scanPath, entryName)
 		if entry.IsDir() {
 			fullCleanScanRecursive(result, dotfilesDir, entryPath)
-		} else if entry.Type()&os.ModeSymlink != 0 {
+		} else if common.DirEntryIsSymlink(entry) {
 			target, err := os.Readlink(entryPath)
 			if err != nil {
 				log.Warning("Failed to read symlink %s: %v", entryPath, err)

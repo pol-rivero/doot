@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
@@ -20,10 +21,7 @@ func (l *SymlinkLinkMode) IsInstalledLinkOf(maybeInstalledLinkPath string, dotfi
 		log.Info("Failed to stat %s: %v", maybeInstalledLinkPath, err)
 		return false
 	}
-	if fileInfo.Mode()&os.ModeSymlink != 0 && getSymlinkTarget(maybeInstalledLinkPath) == dotfilePath.Str() {
-		return true
-	}
-	return false
+	return common.IsSymlink(fileInfo) && getSymlinkTarget(maybeInstalledLinkPath) == dotfilePath.Str()
 }
 
 func getSymlinkTarget(linkPath string) string {

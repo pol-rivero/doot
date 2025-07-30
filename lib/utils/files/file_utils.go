@@ -54,7 +54,7 @@ func deleteIfSymlink(target AbsolutePath) {
 		log.Error("Failed to stat %s: %s", target, err)
 		return
 	}
-	if info.Mode()&os.ModeSymlink != 0 {
+	if common.IsSymlink(info) {
 		if err := os.Remove(target.Str()); err != nil {
 			log.Error("Failed to remove symlink %s: %s", target, err)
 		} else {
