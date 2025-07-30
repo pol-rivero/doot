@@ -39,11 +39,28 @@ func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath, linkMode lin
 		log.Error("Failed to read file %s: %s", target, err)
 		return err
 	}
+	// If the dotfile is a symlink, writing to it will replace its target file contents, instead of the symlink itself.
+	deleteIfSymlink(dotfilesSource)
 	if err := os.WriteFile(dotfilesSource.Str(), targetContent, 0644); err != nil {
 		log.Error("Failed to write file %s: %s", dotfilesSource, err)
 		return err
 	}
 	return ReplaceWithLink(target, dotfilesSource, linkMode)
+}
+
+func deleteIfSymlink(target AbsolutePath) {
+	info, err := os.Lstat(target.Str())
+	if err != nil {
+		log.Error("Failed to stat %s: %s", target, err)
+		return
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		if err := os.Remove(target.Str()); err != nil {
+			log.Error("Failed to remove symlink %s: %s", target, err)
+		} else {
+			log.Info("Removed symlink %s so that it can be replaced with the new file", target)
+		}
+	}
 }
 
 func EnsureParentDir(target AbsolutePath) bool {

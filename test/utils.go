@@ -62,6 +62,11 @@ func assertHomeHardlink(t *testing.T, link string, target string) {
 func assertHomeRegularFile(t *testing.T, path string) {
 	t.Helper()
 	filePath := filepath.Join(homeDir(), path)
+	assertRegularFile(t, filePath)
+}
+
+func assertRegularFile(t *testing.T, filePath string) {
+	t.Helper()
 	info, err := os.Lstat(filePath)
 	assert.NoError(t, err, "Failed to get file info")
 	assert.True(t, info.Mode().IsRegular(), "File is not a regular file")

@@ -150,6 +150,11 @@ func createSymlink(parentDir string, name string, target string) {
 	}
 }
 
+func replaceWithSymlink(parentDir string, name string, target string) {
+	os.Remove(filepath.Join(parentDir, name))
+	createSymlink(parentDir, name, target)
+}
+
 func createHardlink(parentDir string, name string, otherFile string) {
 	hardlinkPath := filepath.Join(parentDir, name)
 	err := os.Link(otherFile, hardlinkPath)

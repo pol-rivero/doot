@@ -38,6 +38,14 @@ func TestInstall_DefaultConfig(t *testing.T) {
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 	assertHomeSymlink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4")
 
+	os.Remove(sourceDir() + "/file1")
+	install.Install(false)
+	assertHomeDirContents(t, "", []string{
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
+
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
 }
@@ -67,6 +75,14 @@ func TestInstall_Hardlinks(t *testing.T) {
 	})
 	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
 	assertHomeHardlink(t, "dir1/nestedDir/file4", sourceDir()+"/dir1/nestedDir/file4")
+
+	os.Remove(sourceDir() + "/file1")
+	install.Install(false)
+	assertHomeDirContents(t, "", []string{
+		"file2.txt",
+		"dir1",
+		"dir3",
+	})
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{})
@@ -479,34 +495,7 @@ func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
 	// User manually changes some files, which should NOT be removed when cleaning
 	os.Remove(homeDir() + "/file1")
 	createNode(homeDir(), File("file1"))
-	os.Remove(homeDir() + "/file2.txt")
-	createSymlink(homeDir(), "file2.txt", homeDir()+"/incorrect_link") // Link does not point to dotfiles dir
-
-	install.Clean(false)
-	assertHomeDirContents(t, "", []string{
-		"file1",
-		"file2.txt",
-	})
-}
-
-func TestInstall_DoNotRemoveUnexpectedFilesHardlink(t *testing.T) {
-	config := config.DefaultConfig()
-	config.ImplicitDot = false
-	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
-
-	install.Install(false)
-	assertHomeDirContents(t, "", []string{
-		"file1",
-		"file2.txt",
-		"dir1",
-		"dir3",
-	})
-	// User manually changes some files, which should NOT be removed when cleaning
-	os.Remove(homeDir() + "/file1")
-	createNode(homeDir(), File("file1"))
-	os.Remove(homeDir() + "/file2.txt")
-	createNode(homeDir(), File("file2.txt"))
+	replaceWithSymlink(homeDir(), "file2.txt", homeDir()+"/incorrect_link") // Link does not point to dotfiles dir
 
 	install.Clean(false)
 	assertHomeDirContents(t, "", []string{
@@ -729,6 +718,37 @@ func TestInstall_AdoptChangesHardlink(t *testing.T) {
 		{Path: homePath.Join("dir1/nestedDir/file4"), Content: sourceDir() + "/dir1/nestedDir/file4"},
 		{Path: homePath.Join("dir3/file6"), Content: sourceDir() + "/dir3/file6"},
 	})
+}
+
+func TestInstall_AdoptRegularFileReplacingSymlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+
+	setUpFiles_TestInstall(t, config)
+	replaceWithSymlink(sourceDir(), "file1", "/some-file")
+
+	createFile(homeDir(), File("file1"))
+
+	utils.USER_INPUT_MOCK_RESPONSE = "a"
+	install.Install(false)
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+	assertRegularFile(t, sourceDir()+"/file1")
+}
+
+func TestInstall_AdoptRegularFileReplacingSymlinkUsingHardlinks(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+
+	setUpFiles_TestInstall(t, config)
+	replaceWithSymlink(sourceDir(), "file1", "/some-file")
+
+	createFile(homeDir(), File("file1"))
+
+	utils.USER_INPUT_MOCK_RESPONSE = "a"
+	install.Install(false)
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assertRegularFile(t, sourceDir()+"/file1")
 }
 
 func setUpFiles_TestInstall(t *testing.T, config config.Config) {

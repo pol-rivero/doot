@@ -33,16 +33,8 @@ func (l *HardlinkLinkMode) IsInstalledLinkOf(maybeInstalledLinkPath string, dotf
 }
 
 func (l *HardlinkLinkMode) CanBeSafelyRemoved(linkPath AbsolutePath, _ string) bool {
-	// For hardlinks, we can check for point equality (IsInstalledLinkOf) but we cannot check if the other hardlink is in a given directory.
-	// The best we can do is to check if there is another hardlink to the same inode. Since data won't be lost, we can safely remove it.
-	info, err := osStat(linkPath.Str())
-	if err != nil {
-		log.Error("Failed to stat %s: %v", linkPath, err)
-		return false
-	}
-	if info.numLinks > 1 {
-		log.Info("Link %s has %d hardlinks, can be safely removed", linkPath, info.numLinks)
-		return true
-	}
-	return false
+	// Hardlinks are just names for the an inode, so we cannot check if this is the same inode we installed without storing
+	// the HardlinkId in the cache. Doing that would greatly increase complexity and it's probably not worth it, since the
+	// probability of actual data loss is low and I doubt many people will use hardlinks.
+	return true
 }
