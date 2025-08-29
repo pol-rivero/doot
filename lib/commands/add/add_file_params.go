@@ -1,6 +1,7 @@
 package add
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +30,7 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 	fileInfo, err := os.Stat(input)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("this file does not exist")
+			return "", errors.New("this file does not exist")
 		}
 		return "", err
 	}
@@ -77,7 +78,7 @@ func constructRelativePath(absPath string, params ProcessAddedFileParams) (Relat
 	}
 	parts := strings.Split(relPathStr, string(filepath.Separator))
 	if len(parts) == 0 {
-		return "", fmt.Errorf("empty relative path")
+		return "", errors.New("empty relative path")
 	}
 
 	for i := range len(parts) - 1 {

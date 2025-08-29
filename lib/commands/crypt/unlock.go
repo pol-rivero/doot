@@ -1,7 +1,7 @@
 package crypt
 
 import (
-	"fmt"
+	"errors"
 	"path/filepath"
 
 	"github.com/pol-rivero/doot/lib/common"
@@ -48,7 +48,7 @@ func unlockWithKeyFile(dotfilesDir AbsolutePath, keyFile string) error {
 
 	err = utils.RunCommand(dotfilesDir, "git-crypt", "unlock", keyFile)
 	if err != nil {
-		return fmt.Errorf("failed to unlock repository, make sure the provided key file is correct")
+		return errors.New("failed to unlock repository, make sure the provided key file is correct")
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func unlockWithKeyFile(dotfilesDir AbsolutePath, keyFile string) error {
 func unlockGPG(dotfilesDir AbsolutePath) error {
 	err := utils.RunCommand(dotfilesDir, "git-crypt", "unlock")
 	if err != nil {
-		return fmt.Errorf("failed to unlock repository with GPG, make sure you have the correct private key installed")
+		return errors.New("failed to unlock repository with GPG, make sure you have the correct private key installed")
 	}
 	return nil
 }

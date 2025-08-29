@@ -1,7 +1,7 @@
 package restore
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -61,12 +61,12 @@ func ensureFileExists(rawInput string) (AbsolutePath, error) {
 	info, err := os.Stat(cleanAbsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("file not found")
+			return "", errors.New("file not found")
 		}
 		return "", err
 	}
 	if info.IsDir() {
-		return "", fmt.Errorf("it's a directory, you must specify files")
+		return "", errors.New("it's a directory, you must specify files")
 	}
 	return NewAbsolutePath(cleanAbsFile), nil
 }
@@ -81,7 +81,7 @@ func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfil
 			return err
 		}
 	}
-	return fmt.Errorf("it's not a dotfile managed by doot")
+	return errors.New("it's not a dotfile managed by doot")
 }
 
 func overwriteLink(symlinkPath, dotfilePath, dotfilesDir AbsolutePath) error {
