@@ -16,7 +16,7 @@ import (
 func TestInstall_DefaultConfig(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -54,7 +54,7 @@ func TestInstall_Hardlinks(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -92,7 +92,7 @@ func TestInstall_HiddenFiles(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.ExcludeFiles = []string{"file2.txt"}
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -117,7 +117,7 @@ func TestInstall_ImplicitDot(t *testing.T) {
 	config.ExcludeFiles = []string{}
 	config.ImplicitDot = true
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -145,7 +145,7 @@ func TestInstall_ImplicitDot(t *testing.T) {
 func TestInstall_MixedWithRegularFiles(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createFile(homeDir(), File("existingFile"))
 	createDir(homeDir(), Dir("dir1", []FsNode{
 		File("existingFileInDir1"),
@@ -185,7 +185,7 @@ func TestInstall_UpdatesCache(t *testing.T) {
 	config.ImplicitDot = true
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	install.Install(false)
 
 	homePath := NewAbsolutePath(homeDir())
@@ -206,7 +206,7 @@ func TestInstall_UpdatesCache(t *testing.T) {
 func TestInstall_IncrementalInstall(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createSymlink(homeDir(), "someFileInstalledInAPreviousRun", sourceDir()+"/file1")
 
 	// someFileInstalledInAPreviousRun is no longer in dotfiles dir, so it should be removed
@@ -254,7 +254,7 @@ func TestInstall_IncrementalInstall(t *testing.T) {
 func TestInstall_IncrementalUpdateLink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createSymlink(homeDir(), "file1", "/incorrect-target")
 
 	dootCache := cache.Load()
@@ -280,7 +280,7 @@ func TestInstall_IncrementalUpdateSymlinkToHardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	createSymlink(homeDir(), "file1", "/incorrect-target")
 
 	dootCache := cache.Load()
@@ -305,7 +305,7 @@ func TestInstall_IncrementalUpdateSymlinkToHardlink(t *testing.T) {
 func TestInstall_SilentOverwrite(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	// Due to the implementation of File(), it has the same contents as the one in dotfiles dir
 	createFile(homeDir(), File("file1"))
 	createSymlink(homeDir(), "file2.txt", sourceDir()+"/file2.txt")
@@ -334,7 +334,7 @@ func TestInstall_SilentOverwriteSymlinkToHardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	correctTarget := sourceDir() + "/file1"
 	createSymlink(homeDir(), "file1", correctTarget)
 
@@ -356,7 +356,7 @@ func TestInstall_SilentOverwriteSymlinkToHardlink(t *testing.T) {
 func TestInstall_SilentOverwriteHardlinkToSymlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	correctTarget := sourceDir() + "/file1"
 	createHardlink(homeDir(), "file1", correctTarget)
 
@@ -378,7 +378,7 @@ func TestInstall_SilentOverwriteHardlinkToSymlink(t *testing.T) {
 func TestInstall_OverwriteN(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", "/outdatedLink")
@@ -399,7 +399,7 @@ func TestInstall_OverwriteN(t *testing.T) {
 func TestInstall_OverwriteY(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createFile(homeDir(), FsFile{Name: "file1", Content: "This is an outdated text"})
 	createSymlink(homeDir(), "file2.txt", "/outdatedLink")
 
@@ -421,7 +421,7 @@ func TestInstall_OverwriteY(t *testing.T) {
 func TestInstall_WithCryptInitialized(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	initializeGitCrypt()
 
 	install.Install(false)
@@ -445,7 +445,7 @@ func TestInstall_WithHostSpecificDir(t *testing.T) {
 		"other_host1": "hosts/OTHER",
 		myHost:        "hosts/HOST",
 	}
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	initializeGitCrypt()
 	createNode(sourceDir(), Dir("hosts", []FsNode{
 		Dir("OTHER", []FsNode{
@@ -483,7 +483,7 @@ func TestInstall_WithHostSpecificDir(t *testing.T) {
 func TestInstall_DoNotRemoveUnexpectedFiles(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -510,7 +510,7 @@ func TestInstall_ExploreExcludedDirs(t *testing.T) {
 	config.ExploreExcludedDirs = true
 	config.ExcludeFiles = []string{"dir*", "**/nestedDir", "**/.*"}
 	config.IncludeFiles = []string{"dir1/nestedDir/file4", "dir3/file6", ".dir2/file5"}
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
@@ -537,7 +537,7 @@ func TestInstall_ExploreExcludedDirs(t *testing.T) {
 func TestInstall_Hooks(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createHookFile("before-update", "before1.sh", `#!/bin/bash
 		echo "before1 $PWD" >> before.txt`)
 	createHookFile("before-update", "before2.sh", `#!/bin/bash
@@ -565,7 +565,7 @@ func TestInstall_HooksFail(t *testing.T) {
 	log.PanicInsteadOfExit = true
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createHookFile("before-update", "before1.sh", `#!/bin/bash
 		echo "i will fail" >> hook.txt
 		exit 1`)
@@ -585,7 +585,7 @@ func TestInstall_HooksFail(t *testing.T) {
 func TestInstall_FullClean(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
 	createSymlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/im-not-in-cache")
 
@@ -600,7 +600,7 @@ func TestInstall_FullClean(t *testing.T) {
 func TestInstall_FullClean2(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
 	createSymlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/im-not-in-cache")
 
@@ -615,7 +615,7 @@ func TestInstall_FullCleanHardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
 	createNode(homeDir(), File("doNotRemoveUnrelatedFile"))
 	createHardlink(homeDir(), "doNotRemoveUnrelatedFile2", homeDir()+"/doNotRemoveUnrelatedFile")
@@ -635,7 +635,7 @@ func TestInstall_FullCleanHardlink2(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	createNode(homeDir(), Dir("nested", []FsNode{Dir("dir", []FsNode{})}))
 	createHardlink(homeDir()+"/nested/dir", "outdatedLink", sourceDir()+"/file1")
 
@@ -649,7 +649,7 @@ func TestInstall_FullCleanHardlink2(t *testing.T) {
 func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	initializeGitCrypt()
 
 	install.Install(false)
@@ -666,7 +666,7 @@ func TestInstall_AddDootCryptDoesntRequireConfirmation(t *testing.T) {
 func TestInstall_AdoptChanges(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 
 	install.Install(false)
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
@@ -695,7 +695,7 @@ func TestInstall_AdoptChangesHardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 
 	install.Install(false)
 	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
@@ -725,7 +725,7 @@ func TestInstall_ReplaceRegularFileWithSymlink(t *testing.T) {
 	config.ImplicitDot = false
 
 	// Home directory contains a regular file that should be replaced with a symlink
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	os.Remove(sourceDir() + "/file1")
 	createSymlink(sourceDir(), "file1", "/some-file")
 
@@ -746,7 +746,7 @@ func TestInstall_ReplaceRegularFileWithSymlinkUsingHardlinks(t *testing.T) {
 	config.UseHardlinks = true
 
 	// Home directory contains a regular file that should be replaced with a symlink
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	os.Remove(sourceDir() + "/file1")
 	replaceWithSymlink(sourceDir(), "file1", "/some-file")
 
@@ -765,7 +765,7 @@ func TestInstall_AdoptRegularFileReplacingSymlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, true)
 	replaceWithSymlink(sourceDir(), "file1", "/some-file")
 
 	createFile(homeDir(), File("file1"))
@@ -781,7 +781,7 @@ func TestInstall_AdoptRegularFileReplacingSymlinkUsingHardlinks(t *testing.T) {
 	config.ImplicitDot = false
 	config.UseHardlinks = true
 
-	setUpFiles_TestInstall(t, config)
+	setUpFiles_TestInstall(t, config, false)
 	replaceWithSymlink(sourceDir(), "file1", "/some-file")
 
 	createFile(homeDir(), File("file1"))
@@ -792,8 +792,8 @@ func TestInstall_AdoptRegularFileReplacingSymlinkUsingHardlinks(t *testing.T) {
 	assertRegularFile(t, sourceDir()+"/file1")
 }
 
-func setUpFiles_TestInstall(t *testing.T, config config.Config) {
-	SetUpFiles(t, []FsNode{
+func setUpFiles_TestInstall(t *testing.T, config config.Config, dotfilesInDifferentFilesystem bool) {
+	SetUpFiles(t, dotfilesInDifferentFilesystem, []FsNode{
 		Dir("doot", []FsNode{
 			ConfigFile(config),
 		}),

@@ -211,7 +211,7 @@ var SCAN_DIR_TESTS = []func(*testing.T){
 }
 
 func TestFileFilter_ScanDirectory(t *testing.T) {
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		File("file1"),
 		File("file2"),
 		Dir("dir1", []FsNode{

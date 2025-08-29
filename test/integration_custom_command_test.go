@@ -48,7 +48,7 @@ func TestCustomCmd_CommandFail(t *testing.T) {
 }
 
 func setUpFiles_TestCustomCmd(t *testing.T, config config.Config) {
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		Dir("doot", []FsNode{
 			ConfigFile(config),
 			Dir("commands", []FsNode{}),

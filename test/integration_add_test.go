@@ -416,7 +416,7 @@ func TestAdd_IsIdempotent(t *testing.T) {
 }
 
 func setUpFiles_TestAdd(t *testing.T, config config.Config) {
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		Dir("doot", []FsNode{
 			ConfigFile(config),
 		}),

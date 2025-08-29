@@ -10,7 +10,7 @@ import (
 )
 
 func TestCache_GetInitial(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	cacheObj := cache.Load()
 	assert.Equal(t, cache.CURRENT_CACHE_VERSION, cacheObj.Version, "Unexpected cache version")
 	assert.Empty(t, cacheObj.Entries, "New cache should have no entries")
@@ -21,7 +21,7 @@ func TestCache_GetInitial(t *testing.T) {
 }
 
 func TestCache_SaveAndLoad(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	cacheObj := cache.Load()
 	filesCache := cacheObj.GetEntry("cacheKey1")
 	filesCache.Links = append(filesCache.Links, &cache.InstalledFile{
@@ -63,7 +63,7 @@ func TestCache_SaveAndLoad(t *testing.T) {
 }
 
 func TestCache_VersionMismatch(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	cacheObj := cache.Load()
 	cacheObj.Version = cache.CURRENT_CACHE_VERSION + 1
 	filesCache := cacheObj.GetEntry("cacheKey1")
@@ -81,7 +81,7 @@ func TestCache_VersionMismatch(t *testing.T) {
 }
 
 func TestCache_MalformedCache(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	err := os.WriteFile(cacheFile(), []byte("This is not a cache file"), 0644)
 	assert.NoError(t, err, "Error writing cache file")
 
@@ -91,7 +91,7 @@ func TestCache_MalformedCache(t *testing.T) {
 }
 
 func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	os.Unsetenv(common.ENV_DOOT_CACHE_DIR)
 	cacheObj := cache.Load()
 	cacheObj.Save()

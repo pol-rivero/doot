@@ -10,7 +10,7 @@ import (
 )
 
 func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	dootDir := sourceDir()
 	assert.NotEmpty(t, dootDir, "DOOT_DIR not set")
 	assert.DirExists(t, dootDir, "DOOT_DIR does not exist")
@@ -29,7 +29,7 @@ func TestMetatest_CreateEmptyTempDirs(t *testing.T) {
 }
 
 func TestMetatest_CreateTempDirs(t *testing.T) {
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		File("topLevelFile"),
 		Dir("topLevelDir", []FsNode{
 			File("file1"),
@@ -50,13 +50,13 @@ func TestMetatest_CreateTempDirs(t *testing.T) {
 }
 
 func TestMetatest_CreateConfig(t *testing.T) {
-	SetUp(t)
+	SetUp(t, true)
 	config := config.DefaultConfig()
 	config.Hosts = map[string]string{
 		"my-laptop": "laptop-dots",
 		"other-pc":  "other-dots",
 	}
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		ConfigFile(config),
 	})
 	dootDir := sourceDir()
@@ -70,7 +70,7 @@ func TestMetatest_CreateConfig(t *testing.T) {
 
 func TestMetatest_CreateConfigBeforeSetUp(t *testing.T) {
 	config := config.DefaultConfig()
-	SetUpFiles(t, []FsNode{
+	SetUpFiles(t, true, []FsNode{
 		ConfigFile(config),
 	})
 	dootDir := sourceDir()

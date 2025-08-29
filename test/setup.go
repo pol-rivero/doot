@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/pelletier/go-toml/v2"
@@ -10,20 +11,34 @@ import (
 	"github.com/pol-rivero/doot/lib/common/config"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils"
+	fs "github.com/pol-rivero/doot/test/filesystem_emulation"
 )
 
-func SetUp(t *testing.T) {
+func SetUp(t *testing.T, dotfilesInDifferentFilesystem bool) {
 	utils.USER_INPUT_MOCK_RESPONSE = utils.MOCK_NO_INPUT
-	tempDootDir := t.TempDir()
+	var tempDootDir string
 	tempCacheDir := t.TempDir()
 	tempHomeDir := t.TempDir()
+
+	if dotfilesInDifferentFilesystem {
+		other := fs.PickDifferentFSDir(t, tempHomeDir)
+		tempDootDir = filepath.Join(other, "doot-"+strconv.Itoa(os.Getpid()))
+		if err := os.MkdirAll(tempDootDir, 0o755); err != nil {
+			t.Fatalf("mkdir DOOT_DIR on different FS: %v", err)
+		}
+		t.Cleanup(func() { _ = os.RemoveAll(filepath.Dir(tempDootDir)) })
+
+	} else {
+		tempDootDir = t.TempDir()
+	}
+
 	os.Setenv(common.ENV_DOOT_DIR, tempDootDir)
 	os.Setenv(common.ENV_DOOT_CACHE_DIR, tempCacheDir)
 	os.Setenv("HOME", tempHomeDir)
 }
 
-func SetUpFiles(t *testing.T, setUpDir []FsNode) {
-	SetUp(t)
+func SetUpFiles(t *testing.T, dotfilesInDifferentFilesystem bool, setUpDir []FsNode) {
+	SetUp(t, dotfilesInDifferentFilesystem)
 	for _, node := range setUpDir {
 		createNode(sourceDir(), node)
 	}
