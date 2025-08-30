@@ -58,7 +58,7 @@ func ensureFileExists(rawInput string) (AbsolutePath, error) {
 	if err != nil {
 		log.Fatal("Failed to get absolute path for '%s': %v", rawInput, err)
 	}
-	info, err := os.Stat(cleanAbsFile)
+	info, err := os.Lstat(cleanAbsFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", errors.New("file not found")

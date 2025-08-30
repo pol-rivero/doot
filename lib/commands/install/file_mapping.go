@@ -157,6 +157,11 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 		err := files.ReplaceWithLink(target, source, fm.linkMode)
 		return err == nil
 	}
+	if common.IsSymlinkWithTarget(source, linkSource) {
+		log.Info("Link %s is incorrect (%s) but the dotfile %s is also a symlink to same target, replacing silently", target, linkSource, source)
+		err := files.ReplaceWithLink(target, source, fm.linkMode)
+		return err == nil
+	}
 	replace := utils.RequestInput("yN", "Link %s already exists, but it points to %s instead of %s. Replace it?", target, linkSource, source)
 	if replace == 'y' {
 		err := files.ReplaceWithLink(target, source, fm.linkMode)

@@ -35,7 +35,12 @@ func assertDirContents(t *testing.T, path string, expected []string) {
 
 func assertHomeSymlink(t *testing.T, link string, target string) {
 	t.Helper()
-	linkPath := filepath.Join(homeDir(), link)
+	filePath := filepath.Join(homeDir(), link)
+	assertSymlink(t, filePath, target)
+}
+
+func assertSymlink(t *testing.T, linkPath string, target string) {
+	t.Helper()
 	info, err := os.Lstat(linkPath)
 	assert.NoError(t, err, "Failed to get link info")
 	assert.True(t, info.Mode()&os.ModeSymlink != 0, "File is not a symlink")

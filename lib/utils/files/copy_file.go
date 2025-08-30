@@ -80,8 +80,8 @@ func copySymlink(sourcePath, destinationPath string) error {
 	}
 
 	err = os.Remove(destinationPath)
-	if !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("failed to remove existing symlink %q: %w", destinationPath, err)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("failed to remove %q: %w", destinationPath, err)
 	}
 
 	return os.Symlink(target, destinationPath)

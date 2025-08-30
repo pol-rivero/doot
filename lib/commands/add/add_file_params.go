@@ -27,7 +27,7 @@ type ProcessAddedFileParams struct {
 }
 
 func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath, error) {
-	fileInfo, err := os.Stat(input)
+	fileInfo, err := os.Lstat(input)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", errors.New("this file does not exist")

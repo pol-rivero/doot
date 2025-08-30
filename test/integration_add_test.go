@@ -380,6 +380,29 @@ func TestAdd_HostSpecificDir(t *testing.T) {
 	assertHomeSymlink(t, "dir1/nestedDir/file4", sourceDir()+"/host/dir/dir1/nestedDir/file4")
 }
 
+func TestAdd_AddAndRestoreASymlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config)
+	t.Chdir(homeDir())
+
+	createSymlink(homeDir(), "my-symlink", "/some-target")
+
+	add.Add([]string{
+		"my-symlink",
+	}, false, false)
+
+	assertHomeSymlink(t, "my-symlink", sourceDir()+"/my-symlink")
+	assertSymlink(t, sourceDir()+"/my-symlink", "/some-target")
+
+	restore.Restore([]string{
+		"my-symlink",
+	})
+	assertHomeSymlink(t, "my-symlink", "/some-target")
+	assert.NoFileExists(t, sourceDir()+"/my-symlink")
+
+}
+
 func TestAdd_IsIdempotent(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
