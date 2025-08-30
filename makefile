@@ -14,7 +14,7 @@ build: doot-linux-x86_64 doot-darwin-x86_64 doot-windows-x86_64.exe \
 codegen: lib/common/cache/Colfer.go
 
 test:
-	go test ./test
+	go test ./test -count=1
 
 check:
 	staticcheck ./...
