@@ -33,31 +33,9 @@ func ReplaceWithLink(target AbsolutePath, dotfilesSource AbsolutePath, linkMode 
 
 func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath, linkMode linkmode.LinkMode) error {
 	log.Info("Adding changes from %s into %s", target, dotfilesSource)
-	targetContent, err := os.ReadFile(target.Str())
-	if err != nil {
-		log.Error("Failed to read file %s: %s", target, err)
-		return err
-	}
-	// If the dotfile is a symlink, writing to it will replace its target file contents, instead of the symlink itself.
-	deleteIfSymlink(dotfilesSource)
-	if err := os.WriteFile(dotfilesSource.Str(), targetContent, 0644); err != nil {
-		log.Error("Failed to write file %s: %s", dotfilesSource, err)
+	if err := CopyFile(target.Str(), dotfilesSource.Str()); err != nil {
+		log.Error("Failed to copy file %s to %s: %s", target, dotfilesSource, err)
 		return err
 	}
 	return ReplaceWithLink(target, dotfilesSource, linkMode)
-}
-
-func deleteIfSymlink(target AbsolutePath) {
-	info, err := os.Lstat(target.Str())
-	if err != nil {
-		log.Error("Failed to stat %s: %s", target, err)
-		return
-	}
-	if common.IsSymlink(info) {
-		if err := os.Remove(target.Str()); err != nil {
-			log.Error("Failed to remove symlink %s: %s", target, err)
-		} else {
-			log.Info("Removed symlink %s so that it can be replaced with the new file", target)
-		}
-	}
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 )
 
@@ -46,7 +47,7 @@ func CopyFile(sourcePath, destinationPath string) error {
 		return fmt.Errorf("failed to create parent directory for %q: %w", destinationPath, err)
 	}
 
-	if info.Mode()&os.ModeSymlink != 0 {
+	if common.IsSymlink(info) {
 		return copySymlink(sourcePath, destinationPath)
 	}
 	if info.Mode().IsRegular() {
@@ -76,6 +77,10 @@ func copyRegularFile(sourcePath, destinationPath string, fileMode os.FileMode) e
 	}
 	defer in.Close()
 
+	if err := removeIfSymlink(destinationPath); err != nil {
+		return fmt.Errorf("failed to remove existing symlink %q: %w", destinationPath, err)
+	}
+
 	// Create with a safe default, permissions will be fixed after copy
 	out, err := os.OpenFile(destinationPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 	if err != nil {
@@ -94,6 +99,22 @@ func copyRegularFile(sourcePath, destinationPath string, fileMode os.FileMode) e
 
 	if err := os.Chmod(destinationPath, fileMode.Perm()); err != nil {
 		return fmt.Errorf("failed to change file mode for %q: %w", destinationPath, err)
+	}
+	return nil
+}
+
+func removeIfSymlink(path string) error {
+	// Delete symlink so that it will be recreated on copy.
+	// Otherwise, OpenFile will open and overwrite the symlink target instead of the symlink itself.
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if common.IsSymlink(info) {
+		return os.Remove(path)
 	}
 	return nil
 }
