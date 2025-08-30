@@ -60,7 +60,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		}
 		// Prefer hardlinking to avoid copying large files. The original file will be replaced on install anyway.
 		// The dotfiles directory may reside in a different filesystem than the home directory, fallback to copy if hardlinking fails.
-		err = file_utils.HardlinkOrCopyFile(file, dotfilePath.Str())
+		err = file_utils.HardlinkOrCopyFile(file, dotfilePath.Str(), false)
 		if err == nil {
 			log.Info("Copied file %s -> %s", file, dotfilePath)
 		} else if os.IsExist(err) {

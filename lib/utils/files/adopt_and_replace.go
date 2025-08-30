@@ -33,7 +33,7 @@ func ReplaceWithLink(target AbsolutePath, dotfilesSource AbsolutePath, linkMode 
 
 func AdoptChanges(target AbsolutePath, dotfilesSource AbsolutePath, linkMode linkmode.LinkMode) error {
 	log.Info("Adding changes from %s into %s", target, dotfilesSource)
-	if err := CopyFile(target.Str(), dotfilesSource.Str()); err != nil {
+	if err := CopyFile(target.Str(), dotfilesSource.Str(), true); err != nil {
 		log.Error("Failed to copy file %s to %s: %s", target, dotfilesSource, err)
 		return err
 	}

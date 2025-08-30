@@ -86,7 +86,7 @@ func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfil
 
 func overwriteLink(symlinkPath, dotfilePath, dotfilesDir AbsolutePath) error {
 	log.Info("Moving '%s' -> '%s'", dotfilePath, symlinkPath)
-	if err := files.MoveOrCopyFile(dotfilePath.Str(), symlinkPath.Str()); err != nil {
+	if err := files.MoveOrCopyFile(dotfilePath.Str(), symlinkPath.Str(), true); err != nil {
 		return err
 	}
 	files.CleanupEmptyDir(dotfilePath.Parent(), dotfilesDir)

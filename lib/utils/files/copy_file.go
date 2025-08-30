@@ -11,24 +11,24 @@ import (
 	"github.com/pol-rivero/doot/lib/common/log"
 )
 
-func HardlinkOrCopyFile(sourcePath, destinationPath string) error {
+func HardlinkOrCopyFile(sourcePath, destinationPath string, allowOverwrite bool) error {
 	err := os.Link(sourcePath, destinationPath)
 	if err == nil {
 		return nil
 	}
 	log.Info("Could not hardlink %s to %s: %v. Falling back to copy.", sourcePath, destinationPath, err)
 
-	return CopyFile(sourcePath, destinationPath)
+	return CopyFile(sourcePath, destinationPath, allowOverwrite)
 }
 
-func MoveOrCopyFile(sourcePath, destinationPath string) error {
+func MoveOrCopyFile(sourcePath, destinationPath string, allowOverwrite bool) error {
 	err := os.Rename(sourcePath, destinationPath)
 	if err == nil {
 		return nil
 	}
 	log.Info("Could not move %s to %s: %v. Falling back to copy + delete.", sourcePath, destinationPath, err)
 
-	if err = CopyFile(sourcePath, destinationPath); err != nil {
+	if err = CopyFile(sourcePath, destinationPath, allowOverwrite); err != nil {
 		return err
 	}
 	if err = os.Remove(sourcePath); err != nil {
@@ -37,9 +37,12 @@ func MoveOrCopyFile(sourcePath, destinationPath string) error {
 	return nil
 }
 
-func CopyFile(sourcePath, destinationPath string) error {
+func CopyFile(sourcePath, destinationPath string, allowOverwrite bool) error {
 	info, err := os.Lstat(sourcePath)
 	if err != nil {
+		return err
+	}
+	if err := checkOverwriteError(destinationPath, allowOverwrite); err != nil {
 		return err
 	}
 
@@ -54,6 +57,20 @@ func CopyFile(sourcePath, destinationPath string) error {
 		return copyRegularFile(sourcePath, destinationPath, info.Mode())
 	}
 	return fmt.Errorf("unsupported file type for %q", sourcePath)
+}
+
+func checkOverwriteError(destinationPath string, allowOverwrite bool) error {
+	if allowOverwrite {
+		return nil // no need to check if destination exists, we can overwrite if it does
+	}
+	_, err := os.Lstat(destinationPath)
+	if err == nil {
+		return os.ErrExist
+	} else if errors.Is(err, os.ErrNotExist) {
+		return nil
+	} else {
+		return fmt.Errorf("failed to stat %q: %w", destinationPath, err)
+	}
 }
 
 func copySymlink(sourcePath, destinationPath string) error {
