@@ -13,6 +13,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common/log"
 	"github.com/pol-rivero/doot/lib/linkmode"
 	. "github.com/pol-rivero/doot/lib/types"
+	file_utils "github.com/pol-rivero/doot/lib/utils/files"
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
@@ -57,14 +58,15 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 			log.Error("Error creating directory %s: %v", filepath.Dir(dotfilePath.Str()), err)
 			continue
 		}
-		// Hardlink instead of copy, the original file will be replaced on install anyway
-		err = os.Link(file, dotfilePath.Str())
+		// Prefer hardlinking to avoid copying large files. The original file will be replaced on install anyway.
+		// The dotfiles directory may reside in a different filesystem than the home directory, fallback to copy if hardlinking fails.
+		err = file_utils.HardlinkOrCopyFile(file, dotfilePath.Str())
 		if err == nil {
-			log.Info("Created hardlink %s -> %s", file, dotfilePath)
+			log.Info("Copied file %s -> %s", file, dotfilePath)
 		} else if os.IsExist(err) {
 			log.Error("Dotfile %s already exists. If you really want to overwrite it, delete it first", dotfilePath)
 		} else {
-			log.Error("Error hardlinking %s to %s: %v", file, dotfilePath, err)
+			log.Error("Error copying %s to %s: %v", file, dotfilePath, err)
 		}
 	}
 
