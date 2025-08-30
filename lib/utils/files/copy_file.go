@@ -1,7 +1,6 @@
 package files
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -66,7 +65,7 @@ func checkOverwriteError(destinationPath string, allowOverwrite bool) error {
 	_, err := os.Lstat(destinationPath)
 	if err == nil {
 		return os.ErrExist
-	} else if errors.Is(err, os.ErrNotExist) {
+	} else if os.IsNotExist(err) {
 		return nil
 	} else {
 		return fmt.Errorf("failed to stat %q: %w", destinationPath, err)
@@ -80,7 +79,7 @@ func copySymlink(sourcePath, destinationPath string) error {
 	}
 
 	err = os.Remove(destinationPath)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove %q: %w", destinationPath, err)
 	}
 
