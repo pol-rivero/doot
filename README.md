@@ -216,8 +216,8 @@ use_hardlinks = false
 diff_command = "diff --unified --color=always"
 
 # Key-value pairs of "host name" -> "host-specific directory".
-# In the example below, <dotfiles dir>/laptop-dots/.zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/.zshrc, if the hostname is "my-laptop".
-# If `implicit_dot` is set to true, the host-specific directories also count as top-level. For example, <dotfiles dir>/laptop-dots/config/foo will be symlinked to ~/.config/foo.
+# In the example below, <dotfiles dir>/laptop-dots/.zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/.zshrc, if and only if the hostname is "my-laptop".
+# If `implicit_dot` is set to true, the host-specific directories also count as top-level. For example, <dotfiles dir>/laptop-dots/config/foo will be symlinked as ~/.config/foo.
 [hosts]
-# my-laptop = "laptop-dots"
+# "my-laptop" = "laptop-dots"
 ```
