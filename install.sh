@@ -17,10 +17,10 @@ fi
 
 ARCH=$(uname -m)
 
-if [ "$ARCH" = "x86_64" ]; then
+if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ] || [ "$ARCH" = "x64" ]; then
     echo "Detected architecture: x86_64"
     base_name="$base_name-x86_64"
-elif [ "$ARCH" = "aarch64" ]; then
+elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     echo "Detected architecture: arm64 (aarch64)"
     base_name="$base_name-arm64"
 else
