@@ -140,10 +140,12 @@ func (fm *FileMapping) handleTargetAlreadyExists(targetFileInfo os.FileInfo, tar
 		return fm.handleExistingSymlink(target, source)
 	} else if targetFileInfo.Mode().IsRegular() {
 		return fm.handleExistingFile(target, source)
+	} else if targetFileInfo.Mode().IsDir() {
+		log.Warning("Skipping %s because it already exists but it's a directory. If you want to replace it, first check its contents and delete it manually.", target)
 	} else {
-		log.Warning("Target %s exists but is not a symlink or a regular file, skipping", target)
-		return false
+		log.Warning("Skipping %s because it already exists. If you want to replace it, first check its contents and delete it manually.", target)
 	}
+	return false
 }
 
 func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
