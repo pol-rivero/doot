@@ -792,6 +792,59 @@ func TestInstall_AdoptRegularFileReplacingSymlinkUsingHardlinks(t *testing.T) {
 	assertRegularFile(t, sourceDir()+"/file1")
 }
 
+func TestInstall_SwapFileAndDirectory(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+
+	setUpFiles_TestInstall(t, config, true)
+	install.Install(false)
+
+	// Change file1 to be a directory and dir1 to a file, it should be handled correctly
+	os.Remove(sourceDir() + "/file1")
+	os.RemoveAll(sourceDir() + "/dir1")
+	createDir(sourceDir(), Dir("file1", []FsNode{File("insideFile1")}))
+	createFile(sourceDir(), File("dir1"))
+
+	install.Install(false)
+	assertHomeSymlink(t, "file1/insideFile1", sourceDir()+"/file1/insideFile1")
+	assertHomeSymlink(t, "dir1", sourceDir()+"/dir1")
+}
+
+func TestInstall_SwapFileAndDirectoryUsingHardlinks(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+
+	setUpFiles_TestInstall(t, config, false)
+	install.Install(false)
+
+	os.Remove(sourceDir() + "/file1")
+	os.RemoveAll(sourceDir() + "/dir1")
+	createDir(sourceDir(), Dir("file1", []FsNode{File("insideFile1")}))
+	createFile(sourceDir(), File("dir1"))
+
+	install.Install(false)
+	assertHomeHardlink(t, "file1/insideFile1", sourceDir()+"/file1/insideFile1")
+	assertHomeHardlink(t, "dir1", sourceDir()+"/dir1")
+}
+
+func TestInstall_DoesNotOverwriteExistingFilesInDirectory(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+
+	setUpFiles_TestInstall(t, config, true)
+	install.Install(false)
+
+	assertHomeDirContents(t, "dir1", []string{"file3", "nestedDir"})
+
+	createFile(homeDir(), File("dir1/pleaseDoNotRemoveMe"))
+	os.RemoveAll(sourceDir() + "/dir1")
+	createFile(sourceDir(), File("dir1"))
+
+	install.Install(false)
+	assertHomeDirContents(t, "dir1", []string{"pleaseDoNotRemoveMe"})
+}
+
 func setUpFiles_TestInstall(t *testing.T, config config.Config, dotfilesInDifferentFilesystem bool) {
 	SetUpFiles(t, dotfilesInDifferentFilesystem, []FsNode{
 		Dir("doot", []FsNode{
