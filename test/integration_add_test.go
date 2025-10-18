@@ -16,7 +16,7 @@ import (
 func TestAdd_BasicMapping(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	assertSourceDirContents(t, "", []string{
@@ -47,13 +47,17 @@ func TestAdd_BasicMapping(t *testing.T) {
 		"file1",
 	})
 	assertHomeRegularFile(t, "file1")
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"dir1",
+	})
 	assertCache(t, []AssertCacheEntry{
 		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/dir1/file3"},
 	})
 }
 
 func TestAdd_RestoreCleansUpDirectories(t *testing.T) {
-	setUpFiles_TestAdd(t, config.DefaultConfig())
+	setUpFiles_TestAdd(t, config.DefaultConfig(), true)
 	t.Chdir(homeDir())
 
 	os.RemoveAll(sourceDir() + "/doot")
@@ -79,7 +83,7 @@ func TestAdd_RestoreCleansUpDirectories(t *testing.T) {
 
 func TestAdd_IncorrectInputs(t *testing.T) {
 	config := config.DefaultConfig()
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -95,7 +99,7 @@ func TestAdd_IncorrectInputs(t *testing.T) {
 func TestAdd_FromAnotherPWD(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir() + "/dir1")
 
 	add.Add([]string{
@@ -116,7 +120,7 @@ func TestAdd_FromAnotherPWD(t *testing.T) {
 func TestAdd_WeirdInputPath(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir() + "/dir1")
 
 	add.Add([]string{
@@ -137,7 +141,7 @@ func TestAdd_ExcludeInclude(t *testing.T) {
 	config.ImplicitDot = false
 	config.ExcludeFiles = []string{"file1", "*.txt", "dir1", "dir3/**"}
 	config.IncludeFiles = []string{"**/file6", "file2.txt"}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -163,7 +167,7 @@ func TestAdd_ImplicitDot(t *testing.T) {
 	config.ImplicitDot = true
 	config.ImplicitDotIgnore = []string{"file2.txt", "dir3"}
 	config.ExcludeFiles = []string{}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -192,7 +196,7 @@ func TestAdd_ImplicitDot(t *testing.T) {
 func TestAdd_WithCryptExtensionUninitialized(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -212,7 +216,7 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.ExcludeFiles = []string{}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	initializeGitCrypt()
 	t.Chdir(homeDir())
 
@@ -262,7 +266,7 @@ func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
 	config.ImplicitDot = false
 	config.ExcludeFiles = []string{"file1.doot-crypt", "*.txt", "dir1", "dir3/**"}
 	config.IncludeFiles = []string{"**/file6.doot-crypt", "file2.doot-crypt.txt"}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	initializeGitCrypt()
 	t.Chdir(homeDir())
 
@@ -293,7 +297,7 @@ func TestAdd_WithCryptDirectory(t *testing.T) {
 		"cryptTest.doot-crypt",
 	}
 	config.ExcludeFiles = []string{}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	initializeGitCrypt()
 	t.Chdir(homeDir())
 
@@ -335,7 +339,7 @@ func TestAdd_HostSpecificNotFound(t *testing.T) {
 	config.Hosts = map[string]string{
 		"other-host": "foo",
 	}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	log.PanicInsteadOfExit = true
@@ -358,7 +362,7 @@ func TestAdd_HostSpecificDir(t *testing.T) {
 		"other-host": "foo",
 		host:         "host/dir",
 	}
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -383,7 +387,7 @@ func TestAdd_HostSpecificDir(t *testing.T) {
 func TestAdd_AddAndRestoreASymlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	createSymlink(homeDir(), "my-symlink", "/some-target")
@@ -406,7 +410,7 @@ func TestAdd_AddAndRestoreASymlink(t *testing.T) {
 func TestAdd_IsIdempotent(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
-	setUpFiles_TestAdd(t, config)
+	setUpFiles_TestAdd(t, config, true)
 	t.Chdir(homeDir())
 
 	add.Add([]string{
@@ -438,8 +442,8 @@ func TestAdd_IsIdempotent(t *testing.T) {
 	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
 }
 
-func setUpFiles_TestAdd(t *testing.T, config config.Config) {
-	SetUpFiles(t, true, []FsNode{
+func setUpFiles_TestAdd(t *testing.T, config config.Config, dotfilesInDifferentFilesystem bool) {
+	SetUpFiles(t, dotfilesInDifferentFilesystem, []FsNode{
 		Dir("doot", []FsNode{
 			ConfigFile(config),
 		}),

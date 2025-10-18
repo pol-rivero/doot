@@ -611,7 +611,7 @@ func TestInstall_FullClean2(t *testing.T) {
 	assertHomeDirContents(t, "", []string{})
 }
 
-func TestInstall_FullCleanHardlink(t *testing.T) {
+func TestInstall_FullClean_Hardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
@@ -691,7 +691,7 @@ func TestInstall_AdoptChanges(t *testing.T) {
 	})
 }
 
-func TestInstall_AdoptChangesHardlink(t *testing.T) {
+func TestInstall_AdoptChanges_Hardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
@@ -740,7 +740,7 @@ func TestInstall_ReplaceRegularFileWithSymlink(t *testing.T) {
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 }
 
-func TestInstall_ReplaceRegularFileWithSymlinkUsingHardlinks(t *testing.T) {
+func TestInstall_ReplaceRegularFileWithSymlink_Hardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
@@ -776,7 +776,7 @@ func TestInstall_AdoptRegularFileReplacingSymlink(t *testing.T) {
 	assertRegularFile(t, sourceDir()+"/file1")
 }
 
-func TestInstall_AdoptRegularFileReplacingSymlinkUsingHardlinks(t *testing.T) {
+func TestInstall_AdoptRegularFileReplacingSymlink_Hardlink(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false
 	config.UseHardlinks = true
