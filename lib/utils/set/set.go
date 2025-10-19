@@ -32,3 +32,11 @@ func (s *Set[T]) Remove(element T) {
 func (s *Set[T]) Iter() map[T]struct{} {
 	return s.elements
 }
+
+func (s *Set[T]) ToSlice() []T {
+	slice := make([]T, 0, len(s.elements))
+	for element := range s.elements {
+		slice = append(slice, element)
+	}
+	return slice
+}

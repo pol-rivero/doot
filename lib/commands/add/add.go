@@ -42,6 +42,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		return
 	}
 
+	addedFiles := make([]AbsolutePath, 0, 16)
 	for _, file := range files {
 		if alreadyManaged(file, &installedLinks, linkMode) {
 			log.Printlnf("%s is already managed by doot", file)
@@ -63,6 +64,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		err = file_utils.HardlinkOrCopyFile(file, dotfilePath.Str(), false)
 		if err == nil {
 			log.Info("Copied file %s -> %s", file, dotfilePath)
+			addedFiles = append(addedFiles, RelativeToPWD(file))
 		} else if os.IsExist(err) {
 			log.Error("Dotfile %s already exists. If you really want to overwrite it, delete it first", dotfilePath)
 		} else {
@@ -71,7 +73,7 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 	}
 
 	log.Info("Files have been copied to the dotfiles directory, now running 'install'...")
-	install.Install(false)
+	install.InstallAfterAdd(false, addedFiles)
 }
 
 func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {

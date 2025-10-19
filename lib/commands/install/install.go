@@ -12,22 +12,32 @@ import (
 type GetFilesFunc func(*config.Config, AbsolutePath) []RelativePath
 
 func Install(fullClean bool) {
+	regularInstall(fullClean, nil)
+}
+
+func InstallAfterAdd(fullClean bool, extraAddedFiles []AbsolutePath) {
+	regularInstall(fullClean, extraAddedFiles)
+}
+
+func regularInstall(fullClean bool, extraAddedFiles []AbsolutePath) {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
 		ignoreDootCrypt := !crypt.GitCryptIsInitialized(dotfilesDir)
 		filter := CreateFilter(config, ignoreDootCrypt)
 		return ScanDirectory(dotfilesDir, &filter)
 	}
-	installImpl(getFiles, fullClean)
+	added, removed := install(getFiles, fullClean)
+	printChanges(added, removed, extraAddedFiles)
 }
 
 func Clean(fullClean bool) {
 	getFiles := func(config *config.Config, dotfilesDir AbsolutePath) []RelativePath {
 		return []RelativePath{}
 	}
-	installImpl(getFiles, fullClean)
+	added, removed := install(getFiles, fullClean)
+	printChanges(added, removed, nil)
 }
 
-func installImpl(getFiles GetFilesFunc, fullClean bool) {
+func install(getFiles GetFilesFunc, fullClean bool) ([]AbsolutePath, []AbsolutePath) {
 	dotfilesDir := common.FindDotfilesDir()
 	config := config.FromDotfilesDir(dotfilesDir)
 	linkMode := linkmode.GetLinkMode(&config)
@@ -51,5 +61,5 @@ func installImpl(getFiles GetFilesFunc, fullClean bool) {
 	cache.Save()
 
 	common.RunHooks(dotfilesDir, "after-update")
-	printChanges(added, removed)
+	return added, removed
 }

@@ -9,9 +9,11 @@ import (
 	"github.com/fatih/color"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
+	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
-func printChanges(added []AbsolutePath, removed []AbsolutePath) {
+func printChanges(added []AbsolutePath, removed []AbsolutePath, extraAddedFiles []AbsolutePath) {
+	added = mergeSlices(added, extraAddedFiles)
 	if len(added) == 0 && len(removed) == 0 {
 		log.Printlnf("No changes made")
 		return
@@ -45,6 +47,17 @@ func orderAndLimitSlice(slice []AbsolutePath, limit int) []AbsolutePath {
 		return slice[:limit]
 	}
 	return slice
+}
+
+func mergeSlices(a []AbsolutePath, b []AbsolutePath) []AbsolutePath {
+	if len(b) == 0 {
+		return a
+	}
+	elementSet := set.NewFromSlice(a)
+	for _, item := range b {
+		elementSet.Add(item)
+	}
+	return elementSet.ToSlice()
 }
 
 func getHome() string {
