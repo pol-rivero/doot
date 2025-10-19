@@ -56,6 +56,50 @@ func TestAdd_BasicMapping(t *testing.T) {
 	})
 }
 
+func TestAdd_BasicMapping_Hardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestAdd(t, config, false)
+	t.Chdir(homeDir())
+
+	assertSourceDirContents(t, "", []string{
+		"doot",
+	})
+	add.Add([]string{
+		"file1",
+		homeDir() + "/dir1/file3",
+	}, false, false)
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"file1",
+		"dir1",
+	})
+	assertSourceDirContents(t, "dir1", []string{
+		"file3",
+	})
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assertHomeHardlink(t, "dir1/file3", sourceDir()+"/dir1/file3")
+
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/file1"), sourceDir() + "/file1"},
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/dir1/file3"},
+	})
+
+	assert.DirExists(t, sourceDir()+"/dir1")
+	restore.Restore([]string{
+		"file1",
+	})
+	assertHomeRegularFile(t, "file1")
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"dir1",
+	})
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/dir1/file3"},
+	})
+}
+
 func TestAdd_RestoreCleansUpDirectories(t *testing.T) {
 	setUpFiles_TestAdd(t, config.DefaultConfig(), true)
 	t.Chdir(homeDir())
@@ -78,6 +122,31 @@ func TestAdd_RestoreCleansUpDirectories(t *testing.T) {
 	})
 	assert.DirExists(t, sourceDir())
 	assertSourceDirContents(t, "", []string{})
+	assertCache(t, []AssertCacheEntry{})
+}
+
+func TestAdd_RestoreCleansUpDirectories_Hardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.UseHardlinks = true
+	setUpFiles_TestAdd(t, config, false)
+	t.Chdir(homeDir())
+
+	assertSourceDirContents(t, "", []string{"doot"})
+
+	add.Add([]string{
+		".dir2/file5",
+		".dir2/nested/nestedFile",
+	}, false, false)
+	assertSourceDirContents(t, "dir2", []string{
+		"file5",
+		"nested",
+	})
+
+	restore.Restore([]string{
+		homeDir() + "/.dir2/file5",
+		sourceDir() + "/dir2/nested/nestedFile",
+	})
+	assertSourceDirContents(t, "", []string{"doot"})
 	assertCache(t, []AssertCacheEntry{})
 }
 

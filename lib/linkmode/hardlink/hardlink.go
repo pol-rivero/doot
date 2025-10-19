@@ -19,14 +19,18 @@ func (l *HardlinkLinkMode) CreateLink(dotfilesSource, target AbsolutePath) error
 }
 
 func (l *HardlinkLinkMode) IsInstalledLinkOf(maybeInstalledLinkPath string, dotfilePath AbsolutePath) bool {
-	info1, err1 := osStat(maybeInstalledLinkPath)
+	return IsHardlink(maybeInstalledLinkPath, dotfilePath.Str())
+}
+
+func IsHardlink(path1 string, path2 string) bool {
+	info1, err1 := osStat(path1)
 	if err1 != nil {
-		log.Info("Failed to stat %s: %v", maybeInstalledLinkPath, err1)
+		log.Info("Failed to stat %s: %v", path1, err1)
 		return false
 	}
-	info2, err2 := osStat(string(dotfilePath))
+	info2, err2 := osStat(path2)
 	if err2 != nil {
-		log.Info("Failed to stat %s: %v", dotfilePath, err2)
+		log.Info("Failed to stat %s: %v", path2, err2)
 		return false
 	}
 	return info1.hardlinkId == info2.hardlinkId

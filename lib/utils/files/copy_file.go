@@ -8,6 +8,7 @@ import (
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
+	hardlink "github.com/pol-rivero/doot/lib/linkmode/hardlink"
 )
 
 func HardlinkOrCopyFile(sourcePath, destinationPath string, allowOverwrite bool) error {
@@ -21,6 +22,11 @@ func HardlinkOrCopyFile(sourcePath, destinationPath string, allowOverwrite bool)
 }
 
 func MoveOrCopyFile(sourcePath, destinationPath string, allowOverwrite bool) error {
+	if hardlink.IsHardlink(sourcePath, destinationPath) {
+		// Just need to delete the source path, as both paths point to the same inode
+		return os.Remove(sourcePath)
+	}
+
 	err := os.Rename(sourcePath, destinationPath)
 	if err == nil {
 		return nil
