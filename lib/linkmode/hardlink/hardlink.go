@@ -3,6 +3,7 @@ package linkmode_hardlink
 import (
 	"os"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
 )
@@ -15,6 +16,17 @@ type OsStatResult struct {
 }
 
 func (l *HardlinkLinkMode) CreateLink(dotfilesSource, target AbsolutePath) error {
+	info, err := os.Lstat(dotfilesSource.Str())
+	if err != nil {
+		return err
+	}
+	if common.IsSymlink(info) {
+		symlinkTarget, err := os.Readlink(dotfilesSource.Str())
+		if err != nil {
+			return err
+		}
+		return os.Symlink(symlinkTarget, target.Str())
+	}
 	return os.Link(dotfilesSource.Str(), target.Str())
 }
 
