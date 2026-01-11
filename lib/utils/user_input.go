@@ -2,7 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 const MOCK_NO_INPUT string = "__NoInput__"
@@ -50,6 +53,22 @@ func getUserInput() string {
 		}
 		return USER_INPUT_MOCK_RESPONSE
 	}
+
+	fd := int(os.Stdin.Fd())
+	if term.IsTerminal(fd) {
+		oldState, err := term.MakeRaw(fd)
+		if err == nil {
+			defer term.Restore(fd, oldState)
+			buf := make([]byte, 1)
+			_, err := os.Stdin.Read(buf)
+			if err != nil {
+				return ""
+			}
+			fmt.Println()
+			return string(buf)
+		}
+	}
+
 	var response string
 	fmt.Scanf("%s", &response)
 	return response
