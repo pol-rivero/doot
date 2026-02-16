@@ -89,7 +89,7 @@ func getHostSpecificDir(config *config.Config, isHostSpecific bool) string {
 	if !ok {
 		log.Fatal(`--host flag is set but your hostname (%s) is not in the hosts map. Consider adding the following to your doot config:
 [hosts]
-%s = "%s-files"`, hostname, hostname, hostname)
+"%s" = "%s-files"`, hostname, hostname, hostname)
 	}
 	return hostSpecificDir
 }
