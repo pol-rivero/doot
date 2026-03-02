@@ -19,12 +19,14 @@ DARWIN_ARM64_CHECKSUM=$(sha256sum dist/doot-darwin-arm64 | cut -d ' ' -f 1)
 
 replace_var() {
     local var_name="$1"
+    local file="$2"
     local var_value="${!var_name}"
-    if [ -z "$var_value" ]; then
-        echo "Error: Variable $var_name is not set."
+    if [[ -z "$var_value" ]]; then
+        echo "Error: Variable $var_name is not set." >&2
         exit 1
     fi
-    sed -i "s/{{$var_name}}/$var_value/g" "$2"
+    sed -i "s/{{$var_name}}/$var_value/g" "$file"
+    return 0
 }
 available_vars=(
     "VERSION"

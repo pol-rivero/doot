@@ -5,12 +5,11 @@ on:
     tags:
       - '*'  # Trigger on any tag push
 
-permissions:
-  contents: write   # Create releases
-
 jobs:
   build_release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # Create releases
     outputs:
       VERSION: ${{ steps.determine_version.outputs.VERSION }}
       RELEASE_TYPE: ${{ steps.determine_version.outputs.RELEASE_TYPE }}
@@ -110,7 +109,7 @@ jobs:
           name: pkgbuilds
 
       - name: Publish AUR package (doot)
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
+        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
         with:
           pkgname: doot
           pkgbuild: ./doot-PKGBUILD
@@ -121,7 +120,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-bin)
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
+        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
         with:
           pkgname: doot-bin
           pkgbuild: ./doot-bin-PKGBUILD
@@ -132,7 +131,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-git)
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.0
+        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
         with:
           pkgname: doot-git
           pkgbuild: ./doot-git-PKGBUILD

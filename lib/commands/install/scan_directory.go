@@ -39,8 +39,9 @@ func CreateFilter(config *config.Config, ignoreDootCrypt bool) FileFilter {
 	}
 }
 
+const SEPARATOR_LEN = len(string(filepath.Separator))
+
 func ScanDirectory(dir AbsolutePath, filter *FileFilter) []RelativePath {
-	const SEPARATOR_LEN = len(string(filepath.Separator))
 	prefixLen := len(dir) + SEPARATOR_LEN
 	files := make([]RelativePath, 0, 64)
 	scanDirectoryRecursive(filter, &files, prefixLen, dir, false)

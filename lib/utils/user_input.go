@@ -71,7 +71,8 @@ func getFirstRune(s string) rune {
 	panic("No rune found in " + s)
 }
 
+const CASE_BIT = 'a' - 'A'
+
 func ensureLower(c rune) rune {
-	const CASE_BIT = 'a' - 'A'
 	return c | CASE_BIT
 }

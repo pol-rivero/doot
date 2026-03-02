@@ -118,7 +118,7 @@ func initializeGitCrypt() {
 	}))
 }
 
-func createHookFile(hook string, scriptName string, content string) {
+func createHookFile(hook, scriptName, content string) {
 	createNode(sourceDir(), Dir("doot", []FsNode{
 		Dir("hooks", []FsNode{
 			Dir(hook, []FsNode{
@@ -132,7 +132,7 @@ func createHookFile(hook string, scriptName string, content string) {
 	os.Chmod(filepath.Join(sourceDir(), "doot", "hooks", hook, scriptName), 0755)
 }
 
-func createCustomCommandFile(name string, content string) {
+func createCustomCommandFile(name, content string) {
 	createNode(sourceDir(), Dir("doot", []FsNode{
 		Dir("commands", []FsNode{
 			FsFile{

@@ -7,7 +7,7 @@ import (
 	. "github.com/pol-rivero/doot/lib/types"
 )
 
-func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) bool {
+func RemoveAndCleanup(removeFile, stopAt AbsolutePath) bool {
 	err := os.Remove(removeFile.Str())
 	if err == nil {
 		CleanupEmptyDir(removeFile.Parent(), stopAt)
@@ -20,7 +20,7 @@ func RemoveAndCleanup(removeFile AbsolutePath, stopAt AbsolutePath) bool {
 	return false
 }
 
-func CleanupEmptyDir(dir AbsolutePath, stopAt AbsolutePath) {
+func CleanupEmptyDir(dir, stopAt AbsolutePath) {
 	if dir == stopAt {
 		return
 	}

@@ -39,9 +39,10 @@ func (gc *GlobCollection) Len() int {
 	return len(gc.globs)
 }
 
+// Since ** should also match 0-depth directories, we make all instances of **/ optional
+const SUPER_GLOB = "**" + string(filepath.Separator)
+const SUPER_GLOB_REPLACEMENT = "{,**" + string(filepath.Separator) + "}"
+
 func preprocessPattern(pattern string) string {
-	// Since ** should also match 0-depth directories, we make all instances of **/ optional
-	const SUPER_GLOB = "**" + string(filepath.Separator)
-	const SUPER_GLOB_REPLACEMENT = "{,**" + string(filepath.Separator) + "}"
 	return strings.ReplaceAll(pattern, SUPER_GLOB, SUPER_GLOB_REPLACEMENT)
 }

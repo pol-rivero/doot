@@ -22,7 +22,7 @@ func (l *HardlinkLinkMode) IsInstalledLinkOf(maybeInstalledLinkPath string, dotf
 	return IsHardlink(maybeInstalledLinkPath, dotfilePath.Str())
 }
 
-func IsHardlink(path1 string, path2 string) bool {
+func IsHardlink(path1, path2 string) bool {
 	info1, err1 := osStat(path1)
 	if err1 != nil {
 		log.Info("Failed to stat %s: %v", path1, err1)

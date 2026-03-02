@@ -157,7 +157,7 @@ func createFile(parentDir string, file FsFile) {
 	}
 }
 
-func createSymlink(parentDir string, name string, target string) {
+func createSymlink(parentDir, name, target string) {
 	symlinkPath := filepath.Join(parentDir, name)
 	err := os.Symlink(target, symlinkPath)
 	if err != nil {
@@ -165,12 +165,12 @@ func createSymlink(parentDir string, name string, target string) {
 	}
 }
 
-func replaceWithSymlink(parentDir string, name string, target string) {
+func replaceWithSymlink(parentDir, name, target string) {
 	os.Remove(filepath.Join(parentDir, name))
 	createSymlink(parentDir, name, target)
 }
 
-func createHardlink(parentDir string, name string, otherFile string) {
+func createHardlink(parentDir, name, otherFile string) {
 	hardlinkPath := filepath.Join(parentDir, name)
 	err := os.Link(otherFile, hardlinkPath)
 	if err != nil {

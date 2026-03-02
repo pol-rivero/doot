@@ -17,7 +17,7 @@ var (
 	PanicInsteadOfExit bool
 )
 
-func Init(verbose bool, quiet bool) {
+func Init(verbose, quiet bool) {
 	if verbose {
 		infolnLogger = log.New(color.Output, "INFO: ", 0)
 	}

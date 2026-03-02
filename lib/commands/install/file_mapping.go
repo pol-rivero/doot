@@ -260,7 +260,7 @@ func (fm *FileMapping) canBeSafelyRemoved(linkPath AbsolutePath) bool {
 	return fm.linkMode.CanBeSafelyRemoved(linkPath, expectedDestinationDir)
 }
 
-func (fm *FileMapping) printDiff(leftFile AbsolutePath, rightFile AbsolutePath) {
+func (fm *FileMapping) printDiff(leftFile, rightFile AbsolutePath) {
 	err := utils.RunCommandStr(fm.sourceBaseDir, fm.diffCommand, leftFile.Str(), rightFile.Str())
 	if err != nil {
 		log.Info("Diff command had non-zero exit code: %s. This is usually not a problem.", err)

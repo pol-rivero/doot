@@ -12,30 +12,31 @@ import (
 	"github.com/pol-rivero/doot/lib/utils/set"
 )
 
-func printChanges(added []AbsolutePath, removed []AbsolutePath, extraAddedFiles []AbsolutePath) {
+const SHOW_LINES_LIMIT = 5
+
+func printChanges(added, removed, extraAddedFiles []AbsolutePath) {
 	added = mergeSlices(added, extraAddedFiles)
 	if len(added) == 0 && len(removed) == 0 {
 		log.Printlnf("No changes made")
 		return
 	}
 
-	const SHOW_LIMIT = 5
 	homePrefix := getHome() + string(filepath.Separator)
 
-	for _, target := range orderAndLimitSlice(added, SHOW_LIMIT) {
+	for _, target := range orderAndLimitSlice(added, SHOW_LINES_LIMIT) {
 		log.Printlnf(color.GreenString("+ %s"), strings.TrimPrefix(target.Str(), homePrefix))
 	}
-	if len(added) > SHOW_LIMIT {
+	if len(added) > SHOW_LINES_LIMIT {
 		boldGreen := color.New(color.FgGreen, color.Bold).SprintFunc()
-		log.Printlnf(boldGreen("+ %d more"), len(added)-SHOW_LIMIT)
+		log.Printlnf(boldGreen("+ %d more"), len(added)-SHOW_LINES_LIMIT)
 	}
 
-	for _, target := range orderAndLimitSlice(removed, SHOW_LIMIT) {
+	for _, target := range orderAndLimitSlice(removed, SHOW_LINES_LIMIT) {
 		log.Printlnf(color.RedString("- %s"), strings.TrimPrefix(target.Str(), homePrefix))
 	}
-	if len(removed) > SHOW_LIMIT {
+	if len(removed) > SHOW_LINES_LIMIT {
 		boldRed := color.New(color.FgRed, color.Bold).SprintFunc()
-		log.Printlnf(boldRed("- %d more"), len(removed)-SHOW_LIMIT)
+		log.Printlnf(boldRed("- %d more"), len(removed)-SHOW_LINES_LIMIT)
 	}
 }
 
@@ -49,7 +50,7 @@ func orderAndLimitSlice(slice []AbsolutePath, limit int) []AbsolutePath {
 	return slice
 }
 
-func mergeSlices(a []AbsolutePath, b []AbsolutePath) []AbsolutePath {
+func mergeSlices(a, b []AbsolutePath) []AbsolutePath {
 	if len(b) == 0 {
 		return a
 	}

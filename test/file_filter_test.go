@@ -23,10 +23,10 @@ func TestFileFilter_CreateFilter1(t *testing.T) {
 }
 
 func TestFileFilter_CreateFilter2(t *testing.T) {
-	invalid_glob := "*["
+	invalidGlob := "*["
 	config := &config.Config{
 		ExcludeFiles: []string{"file1", "*.txt"},
-		IncludeFiles: []string{"file2", invalid_glob},
+		IncludeFiles: []string{"file2", invalidGlob},
 	}
 	filter := install.CreateFilter(config, true)
 	assert.False(t, filter.IgnoreHidden, "Expected IgnoreHidden to be false")
