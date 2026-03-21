@@ -100,7 +100,8 @@ jobs:
     needs: build_release
     runs-on: ubuntu-latest
     if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
-    permissions: {}
+    permissions:
+      contents: read
     env:
       VERSION: ${{ needs.build_release.outputs.VERSION }}
     steps:
@@ -146,7 +147,8 @@ jobs:
     needs: build_release
     runs-on: ubuntu-latest
     if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
-    permissions: {}
+    permissions:
+      contents: read
     env:
       VERSION: ${{ needs.build_release.outputs.VERSION }}
     steps:
