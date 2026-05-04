@@ -111,7 +111,7 @@ jobs:
           name: pkgbuilds
 
       - name: Publish AUR package (doot)
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
         with:
           pkgname: doot
           pkgbuild: ./doot-PKGBUILD
@@ -122,7 +122,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-bin)
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
         with:
           pkgname: doot-bin
           pkgbuild: ./doot-bin-PKGBUILD
@@ -133,7 +133,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-git)
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
         with:
           pkgname: doot-git
           pkgbuild: ./doot-git-PKGBUILD
