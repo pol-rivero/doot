@@ -103,6 +103,11 @@ func getCacheContainingDir() string {
 		return cacheDir
 	}
 
+	xdgCacheHome := os.Getenv("XDG_CACHE_HOME")
+	if xdgCacheHome != "" {
+		return path.Join(xdgCacheHome, "doot")
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal("Error retrieving home directory: %v", err)

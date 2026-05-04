@@ -93,9 +93,25 @@ func TestCache_MalformedCache(t *testing.T) {
 func TestCache_DefaultsToHomeCacheDir(t *testing.T) {
 	SetUp(t, true)
 	os.Unsetenv(common.ENV_DOOT_CACHE_DIR)
+	previousXdgCacheHome := os.Getenv("XDG_CACHE_HOME")
+	os.Unsetenv("XDG_CACHE_HOME")
+	defer os.Setenv("XDG_CACHE_HOME", previousXdgCacheHome)
 	cacheObj := cache.Load()
 	cacheObj.Save()
 
 	assert.NoFileExists(t, cacheFile(), "Cache unexpectedly saved in unset environment variable")
 	assert.FileExists(t, homeDir()+"/.cache/doot/doot-cache.bin", "Cache not saved in default location")
+}
+
+func TestCache_UsesXdgCacheHome(t *testing.T) {
+	SetUp(t, true)
+	os.Unsetenv(common.ENV_DOOT_CACHE_DIR)
+	xdgCacheDir := t.TempDir()
+	os.Setenv("XDG_CACHE_HOME", xdgCacheDir)
+	defer os.Unsetenv("XDG_CACHE_HOME")
+	cacheObj := cache.Load()
+	cacheObj.Save()
+
+	assert.NoFileExists(t, cacheFile(), "Cache unexpectedly saved in DOOT_CACHE_DIR location")
+	assert.FileExists(t, xdgCacheDir+"/doot/doot-cache.bin", "Cache not saved in XDG_CACHE_HOME location")
 }
