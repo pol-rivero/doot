@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/install"
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -868,4 +869,53 @@ func setUpFiles_TestInstall(t *testing.T, config config.Config, dotfilesInDiffer
 		}),
 		Dir("emptyDir", []FsNode{}),
 	})
+}
+
+func setUpFiles_DotfilesInsideHome(t *testing.T, config config.Config) {
+	SetUp(t, false)
+	config.TargetDir = "$HOME"
+	dotfilesDir := homeDir() + "/.dotfiles"
+	os.Setenv(common.ENV_DOOT_DIR, dotfilesDir)
+	createNode(homeDir(), Dir(".dotfiles", []FsNode{
+		Dir("doot", []FsNode{
+			ConfigFile(config),
+		}),
+		File("file1"),
+		Dir("dir1", []FsNode{
+			File("file2"),
+		}),
+	}))
+}
+
+func TestInstall_FullClean_Hardlink_DotfilesInsideHome(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_DotfilesInsideHome(t, config)
+
+	install.Install(false)
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assertHomeHardlink(t, "dir1/file2", sourceDir()+"/dir1/file2")
+
+	install.Install(true)
+	assert.FileExists(t, sourceDir()+"/file1")
+	assert.FileExists(t, sourceDir()+"/dir1/file2")
+	assertHomeHardlink(t, "file1", sourceDir()+"/file1")
+	assertHomeHardlink(t, "dir1/file2", sourceDir()+"/dir1/file2")
+}
+
+func TestInstall_FullClean_Symlink_DotfilesInsideHome(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.ExcludeFiles = append(config.ExcludeFiles, "internalLink")
+	setUpFiles_DotfilesInsideHome(t, config)
+	createSymlink(sourceDir(), "internalLink", sourceDir()+"/file1")
+
+	install.Install(false)
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+
+	install.Install(true)
+	assert.FileExists(t, sourceDir()+"/file1")
+	assert.FileExists(t, sourceDir()+"/internalLink")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
 }

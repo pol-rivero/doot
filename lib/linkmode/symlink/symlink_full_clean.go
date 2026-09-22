@@ -13,11 +13,12 @@ import (
 
 func (l *SymlinkLinkMode) RecalculateCache(dotfilesDir AbsolutePath, scanPath string) []*cache.InstalledFile {
 	result := make([]*cache.InstalledFile, 0, 128)
-	fullCleanScanRecursive(&result, dotfilesDir, scanPath)
+	dotfilesDirInfo := common.StatDotfilesDir(dotfilesDir)
+	fullCleanScanRecursive(&result, dotfilesDir, dotfilesDirInfo, scanPath)
 	return result
 }
 
-func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir AbsolutePath, scanPath string) {
+func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir AbsolutePath, dotfilesDirInfo os.FileInfo, scanPath string) {
 	entries, err := os.ReadDir(scanPath)
 	if err != nil {
 		log.Warning("Skipping '%s' due to error: %v", scanPath, err)
@@ -27,7 +28,11 @@ func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir Absolute
 		entryName := entry.Name()
 		entryPath := filepath.Join(scanPath, entryName)
 		if entry.IsDir() {
-			fullCleanScanRecursive(result, dotfilesDir, entryPath)
+			if common.IsDotfilesDir(entry, dotfilesDirInfo) {
+				// Symlinks inside the dotfiles dir are part of the repo, not installed links
+				continue
+			}
+			fullCleanScanRecursive(result, dotfilesDir, dotfilesDirInfo, entryPath)
 		} else if common.DirEntryIsSymlink(entry) {
 			target, err := os.Readlink(entryPath)
 			if err != nil {

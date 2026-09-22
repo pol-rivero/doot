@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -15,11 +16,12 @@ func (l *HardlinkLinkMode) RecalculateCache(dotfilesDir AbsolutePath, scanPath s
 	result := make([]*cache.InstalledFile, 0, 128)
 	dotfilesDirHardlinks := make(HardlinkMap, 128)
 	getHardlinksInfoRecursive(&dotfilesDirHardlinks, dotfilesDir)
-	fullCleanScanRecursive(&result, &dotfilesDirHardlinks, scanPath)
+	dotfilesDirInfo := common.StatDotfilesDir(dotfilesDir)
+	fullCleanScanRecursive(&result, &dotfilesDirHardlinks, dotfilesDirInfo, scanPath)
 	return result
 }
 
-func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDirHardlinks *HardlinkMap, scanPath string) {
+func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDirHardlinks *HardlinkMap, dotfilesDirInfo os.FileInfo, scanPath string) {
 	entries, err := os.ReadDir(scanPath)
 	if err != nil {
 		log.Warning("Skipping '%s' due to error: %v", scanPath, err)
@@ -29,7 +31,11 @@ func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDirHardlinks
 		entryName := entry.Name()
 		entryPath := filepath.Join(scanPath, entryName)
 		if entry.IsDir() {
-			fullCleanScanRecursive(result, dotfilesDirHardlinks, entryPath)
+			if common.IsDotfilesDir(entry, dotfilesDirInfo) {
+				// Every file in the dotfiles dir is a hardlink of itself, don't mistake them for installed links
+				continue
+			}
+			fullCleanScanRecursive(result, dotfilesDirHardlinks, dotfilesDirInfo, entryPath)
 		} else {
 			hardlinkInfo := getHardlinkId(entryPath)
 			if hardlinkInfo == nil {
