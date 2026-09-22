@@ -71,5 +71,22 @@ func verifyConfig(config *Config) {
 				implicitDotIgnore, topLevelDir)
 		}
 	}
+	for host, dir := range config.Hosts {
+		config.Hosts[host] = verifyHostDir(host, dir)
+	}
 	config.DiffCommand = strings.TrimSpace(os.ExpandEnv(config.DiffCommand))
+}
+
+func verifyHostDir(host, dir string) string {
+	cleanDir := filepath.Clean(dir)
+	if dir == "" || cleanDir == "." {
+		log.Fatal("Invalid config: 'hosts -> %s' must not be empty", host)
+	}
+	if !filepath.IsLocal(cleanDir) {
+		log.Fatal("Invalid config: 'hosts -> %s = %s' must be a relative path inside the dotfiles directory", host, dir)
+	}
+	if RelativePath(cleanDir).TopLevelDir() == "doot" {
+		log.Fatal("Invalid config: 'hosts -> %s = %s' must not be inside the doot directory", host, dir)
+	}
+	return cleanDir
 }

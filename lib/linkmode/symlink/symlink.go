@@ -2,7 +2,6 @@ package linkmode_symlink
 
 import (
 	"os"
-	"strings"
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -37,5 +36,5 @@ func (l *SymlinkLinkMode) CanBeSafelyRemoved(linkPath AbsolutePath, expectedDest
 	if linkErr != nil {
 		return false
 	}
-	return strings.HasPrefix(linkSource, expectedDestinationDir)
+	return common.IsInsideDir(expectedDestinationDir, linkSource)
 }

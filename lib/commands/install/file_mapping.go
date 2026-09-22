@@ -154,7 +154,7 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 		log.Error("Failed to read link %s: %s", target, linkErr)
 		return false
 	}
-	if strings.HasPrefix(linkSource, fm.sourceBaseDir.Str()) {
+	if common.IsInsideDir(fm.sourceBaseDir.Str(), linkSource) {
 		log.Info("Link %s is incorrect (%s) but points to the source directory, replacing silently with %s", target, linkSource, source)
 		err := files.ReplaceWithLink(target, source, fm.linkMode)
 		return err == nil

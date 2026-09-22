@@ -215,7 +215,7 @@ use_hardlinks = false
 # Command and flags to use for displaying diffs. Use any tool and format you like, but it must accept 2 positional arguments for the files to compare.
 diff_command = "diff --unified --color=always"
 
-# Key-value pairs of "host name" -> "host-specific directory".
+# Key-value pairs of "host name" -> "host-specific directory". The directory must be a relative path inside the dotfiles directory.
 # In the example below, <dotfiles dir>/laptop-dots/.zshrc will be symlinked to ~/.zshrc, taking precedence over <dotfiles dir>/.zshrc, if and only if the hostname is "my-laptop".
 # If `implicit_dot` is set to true, the host-specific directories also count as top-level. For example, <dotfiles dir>/laptop-dots/config/foo will be symlinked as ~/.config/foo.
 [hosts]

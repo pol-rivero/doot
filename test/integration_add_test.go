@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/add"
@@ -556,4 +557,47 @@ func setUpFiles_TestAdd(t *testing.T, config config.Config, dotfilesInDifferentF
 	for _, node := range testFiles {
 		createNode(homeDir(), node)
 	}
+}
+
+func TestAdd_FileInSiblingDirWithSamePrefixAsTarget(t *testing.T) {
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME/target"
+	config.ImplicitDot = false
+	config.ExcludeFiles = []string{}
+	setUpFiles_TestAdd(t, config, false)
+	createNode(homeDir(), Dir("target", []FsNode{}))
+	createNode(homeDir(), Dir("targetx", []FsNode{
+		File("file1"),
+	}))
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"targetx/file1",
+	}, false, false)
+	assertSourceDirContents(t, "", []string{
+		"doot",
+	})
+	assert.NoFileExists(t, filepath.Dir(sourceDir())+"/targetx/file1", "Dotfile was created outside the dotfiles directory")
+	assertHomeRegularFile(t, "targetx/file1")
+}
+
+func TestAdd_HostSpecificDirOutsideDotfilesDir(t *testing.T) {
+	host, err := os.Hostname()
+	assert.NoError(t, err)
+
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME"
+	config.ImplicitDot = false
+	config.Hosts = map[string]string{
+		host: "../escaped",
+	}
+	setUpFiles_TestAdd(t, config, false)
+	t.Chdir(homeDir())
+
+	log.PanicInsteadOfExit = true
+	assert.Panics(t, func() {
+		add.Add([]string{"file1"}, false, true)
+	})
+	assert.NoFileExists(t, filepath.Dir(sourceDir())+"/escaped/file1", "Dotfile was created outside the dotfiles directory")
+	assertHomeRegularFile(t, "file1")
 }

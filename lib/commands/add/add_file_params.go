@@ -41,7 +41,7 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 	if err != nil {
 		return "", fmt.Errorf("error getting absolute path: %v", err)
 	}
-	if !strings.HasPrefix(cleanAbsFile, params.targetDir) {
+	if !common.IsInsideDir(params.targetDir, cleanAbsFile) {
 		return "", fmt.Errorf("it's not inside target directory %s", params.targetDir)
 	}
 

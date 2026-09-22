@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/install"
@@ -918,4 +919,78 @@ func TestInstall_FullClean_Symlink_DotfilesInsideHome(t *testing.T) {
 	assert.FileExists(t, sourceDir()+"/file1")
 	assert.FileExists(t, sourceDir()+"/internalLink")
 	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+}
+
+func setUpFiles_SiblingDirWithSamePrefix(t *testing.T) string {
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME"
+	config.ImplicitDot = false
+	setUpFiles_TestInstall(t, config, false)
+	siblingDir := sourceDir() + "-old"
+	createNode(filepath.Dir(siblingDir), Dir(filepath.Base(siblingDir), []FsNode{
+		File("file1"),
+		File("vimrc"),
+	}))
+	return siblingDir
+}
+
+func TestInstall_FullClean_KeepsLinkToSiblingDirWithSamePrefix(t *testing.T) {
+	siblingDir := setUpFiles_SiblingDirWithSamePrefix(t)
+	createSymlink(homeDir(), "vimrc", siblingDir+"/vimrc")
+
+	install.Install(true)
+	assertHomeSymlink(t, "vimrc", siblingDir+"/vimrc")
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+}
+
+func TestInstall_ExistingLinkToSiblingDirWithSamePrefixIsNotSilentlyReplaced(t *testing.T) {
+	siblingDir := setUpFiles_SiblingDirWithSamePrefix(t)
+	createSymlink(homeDir(), "file1", siblingDir+"/file1")
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+
+	install.Install(false)
+	assertHomeSymlink(t, "file1", siblingDir+"/file1")
+}
+
+func TestInstall_StaleLinkRedirectedToSiblingDirWithSamePrefixIsNotRemoved(t *testing.T) {
+	siblingDir := setUpFiles_SiblingDirWithSamePrefix(t)
+
+	install.Install(false)
+	assertHomeSymlink(t, "file1", sourceDir()+"/file1")
+
+	replaceWithSymlink(homeDir(), "file1", siblingDir+"/file1")
+	os.Remove(sourceDir() + "/file1")
+	install.Install(false)
+	assertHomeSymlink(t, "file1", siblingDir+"/file1")
+}
+
+func TestInstall_HostDirWithTrailingSlash(t *testing.T) {
+	host, err := os.Hostname()
+	assert.NoError(t, err)
+
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME"
+	config.ImplicitDot = false
+	config.Hosts = map[string]string{
+		host:         "this-host/",
+		"other-host": "other-host/",
+	}
+	SetUpFiles(t, false, []FsNode{
+		Dir("doot", []FsNode{
+			ConfigFile(config),
+		}),
+		File("file1"),
+		Dir("this-host", []FsNode{
+			File("file1"),
+		}),
+		Dir("other-host", []FsNode{
+			File("file2"),
+		}),
+	})
+
+	install.Install(false)
+	assertHomeDirContents(t, "", []string{
+		"file1",
+	})
+	assertHomeSymlink(t, "file1", sourceDir()+"/this-host/file1")
 }

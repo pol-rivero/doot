@@ -3,7 +3,6 @@ package linkmode_symlink
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/cache"
@@ -39,7 +38,7 @@ func fullCleanScanRecursive(result *[]*cache.InstalledFile, dotfilesDir Absolute
 				log.Warning("Failed to read symlink %s: %v", entryPath, err)
 				continue
 			}
-			if !strings.HasPrefix(target, dotfilesDir.Str()) {
+			if !common.IsInsideDir(dotfilesDir.Str(), target) {
 				continue
 			}
 			*result = append(*result, &cache.InstalledFile{

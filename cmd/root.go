@@ -49,7 +49,7 @@ func init() {
 	rootCmd.AddGroup(advancedCommandsGroup)
 	rootCmd.AddGroup(otherCommandsGroup)
 
-	rootCmd.Flags().Bool("full-clean", false, "Search and remove all broken symlinks that point to the dotfiles directory, even if they were created by another program. Can be slow.")
+	rootCmd.Flags().Bool("full-clean", false, "Search and remove all outdated symlinks that point to the dotfiles directory, even if they were created by another program. Can be slow.")
 
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Print additional information to stdout.")
 	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Suppress warnings and errors.")
