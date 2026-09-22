@@ -101,6 +101,9 @@ func (fm *FileMapping) InstallNewLinks() []AbsolutePath {
 			added := fm.handleTargetAlreadyExists(fileInfo, target, newSource)
 			if added {
 				createdLinks = append(createdLinks, target)
+			} else {
+				// Declined by the user or failed, the target is not our link and must not be cached
+				fm.targetsSkipped = append(fm.targetsSkipped, target)
 			}
 			continue
 		}
@@ -113,6 +116,7 @@ func (fm *FileMapping) InstallNewLinks() []AbsolutePath {
 			}
 		}
 		log.Error("Failed to create link %s -> %s: %s", target, newSource, err)
+		fm.targetsSkipped = append(fm.targetsSkipped, target)
 	}
 	return createdLinks
 }
@@ -169,7 +173,6 @@ func (fm *FileMapping) handleExistingSymlink(target, source AbsolutePath) bool {
 		err := files.ReplaceWithLink(target, source, fm.linkMode)
 		return err == nil
 	} else {
-		fm.targetsSkipped = append(fm.targetsSkipped, target)
 		return false
 	}
 }
@@ -206,7 +209,6 @@ func (fm *FileMapping) handleExistingFile(target, source AbsolutePath) bool {
 			err := files.ReplaceWithLink(target, source, fm.linkMode)
 			return err == nil
 		case 'n':
-			fm.targetsSkipped = append(fm.targetsSkipped, target)
 			return false
 		case 'd':
 			fm.printDiff(source, target)
@@ -230,7 +232,6 @@ func (fm *FileMapping) handleReplaceRegularFileWithSymlink(target, sourceSymlink
 			err := files.ReplaceWithLink(target, sourceSymlink, fm.linkMode)
 			return err == nil
 		case 'n':
-			fm.targetsSkipped = append(fm.targetsSkipped, target)
 			return false
 		case 'a':
 			err := files.AdoptChanges(target, sourceSymlink, fm.linkMode)

@@ -994,3 +994,36 @@ func TestInstall_HostDirWithTrailingSlash(t *testing.T) {
 	})
 	assertHomeSymlink(t, "file1", sourceDir()+"/this-host/file1")
 }
+
+func TestInstall_FailedHardlinkIsNotCached(t *testing.T) {
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME"
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config, true)
+	// Identical contents, so doot tries to replace it silently. os.Link fails because the dotfiles dir is in another filesystem
+	contents, err := os.ReadFile(sourceDir() + "/file1")
+	assert.NoError(t, err)
+	assert.NoError(t, os.WriteFile(homeDir()+"/file1", contents, 0o644))
+
+	install.Install(false)
+	assertHomeRegularFile(t, "file1")
+
+	install.Clean(false)
+	assertHomeRegularFile(t, "file1")
+}
+
+func TestInstall_TargetIsExistingDirectoryIsNotCached_Hardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.TargetDir = "$HOME"
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestInstall(t, config, false)
+	createNode(homeDir(), Dir("file1", []FsNode{}))
+
+	install.Install(false)
+	assert.DirExists(t, homeDir()+"/file1")
+
+	install.Clean(false)
+	assert.DirExists(t, homeDir()+"/file1")
+}
