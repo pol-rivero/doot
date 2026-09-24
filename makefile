@@ -25,7 +25,7 @@ create-prerelease:
 doot-%: codegen
 	@CGO_ENABLED=0 \
 	GOOS=$(word 1,$(subst -, ,$*)) \
-	GOARCH=$(ARCH_MAP_$(word 2,$(subst -, ,$*))) \
+	GOARCH=$(ARCH_MAP_$(word 2,$(subst -, ,$(basename $*)))) \
 	go build -o $(OUTPUT_DIR)/doot-$*
 
 lib/common/cache/Colfer.go: lib/common/cache/cache.colf
