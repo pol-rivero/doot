@@ -69,6 +69,23 @@ func TestFileMapping_WithDootCrypt(t *testing.T) {
 	})
 }
 
+func TestFileMapping_DootCryptLookalikes(t *testing.T) {
+	config := config.Config{
+		TargetDir:   "/target",
+		ImplicitDot: false,
+	}
+	mapping := install.NewFileMapping("/src", &config, []RelativePath{
+		"token.doot-crypt_old",
+		"keys.doot-crypted/id",
+		"notes.doot-crypt.doot-crypted",
+	})
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/token.doot-crypt_old": "/src/token.doot-crypt_old",
+		"/target/keys.doot-crypted/id": "/src/keys.doot-crypted/id",
+		"/target/notes.doot-crypted":   "/src/notes.doot-crypt.doot-crypted",
+	})
+}
+
 func TestFileMapping_ConflictingNames(t *testing.T) {
 	config := config.Config{
 		TargetDir:   "/target",

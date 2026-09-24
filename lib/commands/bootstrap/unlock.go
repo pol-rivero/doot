@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"os"
-	"strings"
 
 	"github.com/pol-rivero/doot/lib/commands/crypt"
 	"github.com/pol-rivero/doot/lib/common"
@@ -37,7 +36,7 @@ func containsCryptFiles(scanPath AbsolutePath) bool {
 	}
 	for _, entry := range entries {
 		entryName := entry.Name()
-		if strings.Contains(entryName, common.DOOT_CRYPT_EXT) {
+		if common.IsCryptName(entryName) {
 			return true
 		}
 		if entry.IsDir() && containsCryptFiles(scanPath.Join(entryName)) {

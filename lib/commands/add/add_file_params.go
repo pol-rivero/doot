@@ -58,7 +58,7 @@ func ProcessAddedFile(input string, params ProcessAddedFileParams) (RelativePath
 		}
 	}
 
-	if params.crypt && !strings.Contains(relPath.Str(), common.DOOT_CRYPT_EXT) {
+	if params.crypt && !common.IsCryptPath(relPath.Str()) {
 		relPath = addDootCryptExtension(relPath)
 	}
 

@@ -332,6 +332,29 @@ func TestAdd_WithCryptExtension(t *testing.T) {
 	assertHomeSymlink(t, ".dir2/.foo.txt", sourceDir()+"/.dir2/.foo.doot-crypt.txt")
 }
 
+func TestAdd_WithCryptLookalikeName(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.ExcludeFiles = []string{}
+	setUpFiles_TestAdd(t, config, true)
+	initializeGitCrypt()
+	t.Chdir(homeDir())
+
+	// These names contain ".doot-crypt" but don't match the git-crypt attributes,
+	// so the extension must still be added
+	createNode(homeDir(), File("notes.doot-crypted"))
+	createNode(homeDir(), Dir("old.doot-crypt_bak", []FsNode{
+		File("key"),
+	}))
+
+	add.Add([]string{
+		"notes.doot-crypted",
+		"old.doot-crypt_bak/key",
+	}, true, false)
+	assertHomeSymlink(t, "notes.doot-crypted", sourceDir()+"/notes.doot-crypt.doot-crypted")
+	assertHomeSymlink(t, "old.doot-crypt_bak/key", sourceDir()+"/old.doot-crypt_bak/key.doot-crypt")
+}
+
 func TestAdd_ExcludeIncludeWithCrypt(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false

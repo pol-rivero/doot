@@ -3,7 +3,6 @@ package install
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/pol-rivero/doot/lib/common"
 	"github.com/pol-rivero/doot/lib/common/config"
@@ -78,6 +77,6 @@ func (f *FileFilter) isExcluded(path RelativePath, fileName string, inExcludedDi
 
 func (f *FileFilter) matchesExcludePattern(path RelativePath, fileName string) bool {
 	return (f.IgnoreHidden && fileName[0] == '.') ||
-		(f.IgnoreDootCrypt && strings.Contains(fileName, common.DOOT_CRYPT_EXT)) ||
+		(f.IgnoreDootCrypt && common.IsCryptName(fileName)) ||
 		f.ExcludeGlobs.Matches(path)
 }

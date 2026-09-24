@@ -247,3 +247,26 @@ func TestFileFilter_ScanDirectory(t *testing.T) {
 		test(t)
 	}
 }
+
+func TestFileFilter_ScanDirectoryCryptLookalikes(t *testing.T) {
+	SetUpFiles(t, true, []FsNode{
+		File("secret.doot-crypt"),
+		File("token.doot-crypt_old"),
+		Dir("keys.doot-crypted", []FsNode{
+			File("id"),
+		}),
+	})
+	filter := install.FileFilter{
+		IgnoreHidden:        false,
+		IgnoreDootCrypt:     true,
+		ExploreExcludedDirs: false,
+		ExcludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+		IncludeGlobs:        glob_collection.NewGlobCollection([]string{}),
+	}
+	files := install.ScanDirectory(sourceDirPath(), &filter)
+	expectedFiles := []RelativePath{
+		"token.doot-crypt_old",
+		"keys.doot-crypted/id",
+	}
+	assert.ElementsMatch(t, expectedFiles, files, "Unexpected files")
+}

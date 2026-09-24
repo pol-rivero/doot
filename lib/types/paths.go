@@ -18,10 +18,6 @@ func (rp RelativePath) MakeAbsolute(baseDir AbsolutePath) AbsolutePath {
 	return baseDir.Join(rp.Str())
 }
 
-func (rp RelativePath) Replace(substring, replacement string) RelativePath {
-	return RelativePath(strings.ReplaceAll(rp.Str(), substring, replacement))
-}
-
 func (rp RelativePath) RemoveBaseDir(baseDirLen int) RelativePath {
 	return RelativePath(rp.Str()[baseDirLen:])
 }
