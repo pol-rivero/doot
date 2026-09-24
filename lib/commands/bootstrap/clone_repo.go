@@ -24,7 +24,7 @@ func CloneRepoOrExit(repo string, dotfilesDir AbsolutePath) {
 	gitUrl := getGitUrl(repo)
 	log.Info("Cloning repository %s into %s (%s)", gitUrl, dotfilesDir, repoDirName)
 
-	err := utils.RunCommand(dotfilesDir.Parent(), "git", "clone", gitUrl, repoDirName, "--recurse-submodules")
+	err := utils.RunCommand(dotfilesDir.Parent(), "git", "clone", "--recurse-submodules", "--", gitUrl, repoDirName)
 	if err != nil {
 		log.Fatal("Failed to clone repository: %v", err)
 	}
