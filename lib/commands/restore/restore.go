@@ -107,7 +107,7 @@ func ensureLinkCanBeOverwritten(symlinkPath, dotfilePath AbsolutePath, linkMode 
 		return err
 	}
 	if !linkMode.IsInstalledLinkOf(symlinkPath.Str(), dotfilePath) {
-		return fmt.Errorf("'%s' was modified externally and is no longer a link to '%s'. Restoring it would overwrite its changes, please review it manually.", symlinkPath, dotfilePath)
+		return fmt.Errorf("'%s' was modified externally and is no longer a link to '%s'. Restoring it would overwrite its changes, please review it manually", symlinkPath, dotfilePath)
 	}
 	return nil
 }
