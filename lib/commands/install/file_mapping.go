@@ -249,7 +249,7 @@ func (fm *FileMapping) mapSourceToTarget(source RelativePath) (optional.Optional
 	if isHostSpecific {
 		target = target.RemoveBaseDir(prefixLen)
 	}
-	if fm.implicitDot && !fm.implicitDotIgnore.Contains(source.TopLevelDir()) && !strings.HasPrefix(target.Str(), ".") {
+	if fm.implicitDot && !fm.implicitDotIgnore.Contains(target.TopLevelDir()) && !strings.HasPrefix(target.Str(), ".") {
 		target = "." + target
 	}
 	target = target.Replace(common.DOOT_CRYPT_EXT, "")

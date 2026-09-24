@@ -147,3 +147,30 @@ func TestFileMapping_NestedHostSpecificDirs(t *testing.T) {
 		"/target/.some/other/file": "/src/hosts/host/some/other/file",
 	})
 }
+
+func TestFileMapping_HostSpecificDirsWithImplicitDotIgnore(t *testing.T) {
+	myHost, err := os.Hostname()
+	assert.NoError(t, err)
+	config := config.Config{
+		TargetDir:         "/target",
+		ImplicitDot:       true,
+		ImplicitDotIgnore: []string{"bin", "HOST_IS_NOT_A_TOP_LEVEL_DIR"},
+		Hosts: map[string]string{
+			myHost:       "HOST_IS_NOT_A_TOP_LEVEL_DIR",
+			"other_host": "OTHER",
+		},
+	}
+	mapping := install.NewFileMapping("/src", &config, []RelativePath{
+		"bin/a",
+		"HOST_IS_NOT_A_TOP_LEVEL_DIR/bin/b",
+		"HOST_IS_NOT_A_TOP_LEVEL_DIR/bin",
+		"HOST_IS_NOT_A_TOP_LEVEL_DIR/config/c",
+		"OTHER/bin/ignored",
+	})
+	assertSymlinkCollection(t, mapping.GetInstalledTargets(), map[AbsolutePath]AbsolutePath{
+		"/target/bin/a":     "/src/bin/a",
+		"/target/bin/b":     "/src/HOST_IS_NOT_A_TOP_LEVEL_DIR/bin/b",
+		"/target/bin":       "/src/HOST_IS_NOT_A_TOP_LEVEL_DIR/bin",
+		"/target/.config/c": "/src/HOST_IS_NOT_A_TOP_LEVEL_DIR/config/c",
+	})
+}

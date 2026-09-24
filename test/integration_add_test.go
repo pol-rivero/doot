@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/add"
+	"github.com/pol-rivero/doot/lib/commands/install"
 	"github.com/pol-rivero/doot/lib/commands/restore"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
@@ -691,4 +692,36 @@ func TestAdd_RestoreWhenLinkIsMissing(t *testing.T) {
 	assertHomeRegularFile(t, "file1")
 	assert.NoFileExists(t, sourceDir()+"/file1")
 	assertCache(t, []AssertCacheEntry{})
+}
+
+func TestAdd_HostSpecificDirWithImplicitDotIgnore(t *testing.T) {
+	host, err := os.Hostname()
+	assert.NoError(t, err)
+
+	config := config.DefaultConfig()
+	config.ImplicitDotIgnore = []string{"dir1"}
+	config.Hosts = map[string]string{
+		host: "myhost",
+	}
+	setUpFiles_TestAdd(t, config, true)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"dir1/file3",
+	}, false, true)
+	assertSourceDirContents(t, "myhost/dir1", []string{
+		"file3",
+	})
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/myhost/dir1/file3")
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/myhost/dir1/file3"},
+	})
+
+	// Reinstalling must link the file back to where it came from, not to ~/.dir1/file3
+	install.Install(false)
+	assertHomeSymlink(t, "dir1/file3", sourceDir()+"/myhost/dir1/file3")
+	assert.NoFileExists(t, homeDir()+"/.dir1/file3")
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/dir1/file3"), sourceDir() + "/myhost/dir1/file3"},
+	})
 }
