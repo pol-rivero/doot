@@ -31,14 +31,18 @@ jobs:
       - name: Determine Version
         id: determine_version
         shell: bash
+        env:
+          TAG_NAME: ${{ github.ref_name }}
         run: |
-          TAG_NAME="${{ github.ref_name }}"  # GitHub provides the tag name directly
           echo "Tag name: $TAG_NAME"
 
-          if [[ "$TAG_NAME" == pre.* ]]; then
+          if [[ "$TAG_NAME" =~ ^pre\.[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4}$ ]]; then
             RELEASE_TYPE="prerelease"
-          else
+          elif [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             RELEASE_TYPE="release"
+          else
+            echo "::error::Invalid tag name. Expected X.Y.Z or pre.YYYY.MM.DD.HHMM"
+            exit 1
           fi
 
           echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
@@ -49,8 +53,8 @@ jobs:
       - name: Populate version string
         shell: bash
         run: |
-          sed -i "s/\[\[VERSION\]\]/${{ env.VERSION }}/g" cmd/version.go
-          sed -i "s/\[\[COMMIT\]\]/${{ github.sha }}/g" cmd/version.go
+          sed -i "s/\[\[VERSION\]\]/${VERSION}/g" cmd/version.go
+          sed -i "s/\[\[COMMIT\]\]/${GITHUB_SHA}/g" cmd/version.go
 
       - name: Run tests
         run: make test
@@ -80,11 +84,11 @@ jobs:
 
       - name: Compute tarball checksum
         run: |
-          TARBALL_CHECKSUM=$(curl -sSL "https://github.com/${{ github.repository }}/archive/refs/tags/${{ env.VERSION }}.tar.gz" | sha256sum | cut -d' ' -f1)
+          TARBALL_CHECKSUM=$(curl -sSL "https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${VERSION}.tar.gz" | sha256sum | cut -d' ' -f1)
           echo "TARBALL_CHECKSUM=${TARBALL_CHECKSUM}" >> $GITHUB_ENV
 
       - name: Generate PKGBUILD files from templates
-        run: .github/generate-pkgbuild.sh ${{ env.VERSION }} ${{ env.TARBALL_CHECKSUM }}
+        run: .github/generate-pkgbuild.sh "$VERSION" "$TARBALL_CHECKSUM"
 
       - name: Upload PKGBUILD and Homebrew Artifacts
         uses: actions/upload-artifact@v4
@@ -170,5 +174,5 @@ jobs:
           git config --global user.name "Formula Updater"
           git config --global user.email "formula-updater@example.com"
           git add Formula/doot.rb
-          git commit -m "Update doot to version ${{ env.VERSION }}"
+          git commit -m "Update doot to version ${VERSION}"
           git push origin main
