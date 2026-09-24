@@ -427,6 +427,44 @@ func TestAdd_WithCryptDirectory(t *testing.T) {
 	assertHomeSymlink(t, "cryptTest/foo/not-really-a-secret2.txt", sourceDir()+"/cryptTest/foo/not-really-a-secret2.txt")
 }
 
+func TestAdd_WithCryptDirectoryUninitialized(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.ExcludeFiles = []string{}
+	setUpFiles_TestAdd(t, config, true)
+	t.Chdir(homeDir())
+	t.Cleanup(func() { utils.USER_INPUT_MOCK_RESPONSE = "" })
+
+	// Fresh clone that hasn't been unlocked: the crypt directory exists but git-crypt isn't set up
+	createNode(sourceDir(), Dir("cryptTest.doot-crypt", []FsNode{}))
+	createNode(homeDir(), File("secret.doot-crypt"))
+
+	// Accepting the existing crypt directory must not commit the file in plaintext
+	utils.USER_INPUT_MOCK_RESPONSE = "y"
+	add.Add([]string{
+		"cryptTest/foo/secret1.txt",
+	}, false, false)
+	assertSourceDirContents(t, "cryptTest.doot-crypt", []string{})
+	assertHomeRegularFile(t, "cryptTest/foo/secret1.txt")
+
+	// Same for a file whose name already matches the crypt attributes
+	add.Add([]string{
+		"secret.doot-crypt",
+	}, false, false)
+	assertSourceDirContents(t, "", []string{
+		"doot",
+		"cryptTest.doot-crypt",
+	})
+	assertHomeRegularFile(t, "secret.doot-crypt")
+
+	// Declining the crypt directory adds the file unencrypted, as requested
+	utils.USER_INPUT_MOCK_RESPONSE = "n"
+	add.Add([]string{
+		"cryptTest/foo/secret2.txt",
+	}, false, false)
+	assertHomeSymlink(t, "cryptTest/foo/secret2.txt", sourceDir()+"/cryptTest/foo/secret2.txt")
+}
+
 func TestAdd_HostSpecificNotFound(t *testing.T) {
 	config := config.DefaultConfig()
 	config.ImplicitDot = false

@@ -37,7 +37,8 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		excludeFiles:      glob_collection.NewGlobCollection(config.ExcludeFiles),
 	}
 
-	if isCrypt && !crypt.GitCryptIsInitialized(dotfilesDir) {
+	gitCryptInitialized := crypt.GitCryptIsInitialized(dotfilesDir)
+	if isCrypt && !gitCryptInitialized {
 		log.Error("Can't add private files with --crypt flag because repository is not initialized. Run 'doot crypt init' first.")
 		return
 	}
@@ -51,6 +52,11 @@ func Add(files []string, isCrypt bool, isHostSpecific bool) {
 		dotfileRelativePath, err := ProcessAddedFile(file, params)
 		if err != nil {
 			log.Error("Can't add %s: %v", file, err)
+			continue
+		}
+		// Without --crypt, the file can still end up encrypted (existing crypt directory or name)
+		if common.IsCryptPath(dotfileRelativePath.Str()) && !gitCryptInitialized {
+			log.Error("Can't add %s as %s because the repository is not initialized for encryption and the file would be committed in plaintext. Run 'doot crypt init' or 'doot crypt unlock' first.", file, dotfileRelativePath)
 			continue
 		}
 		dotfilePath := dotfilesDir.JoinPath(dotfileRelativePath)
