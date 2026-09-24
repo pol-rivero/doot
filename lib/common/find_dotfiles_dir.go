@@ -17,6 +17,7 @@ func FindDotfilesDir() AbsolutePath {
 	if !filepath.IsAbs(dotfilesDir) {
 		log.Fatal("Dotfiles directory must be an absolute path: %s", dotfilesDir)
 	}
+	dotfilesDir = filepath.Clean(dotfilesDir)
 	log.Info("Using dotfiles directory: %s", dotfilesDir)
 	return NewAbsolutePath(dotfilesDir)
 }

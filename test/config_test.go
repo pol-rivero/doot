@@ -54,3 +54,23 @@ func TestConfig_HostDirsAreCleaned(t *testing.T) {
 		"host4": "doot-files",
 	}, cfg.Hosts)
 }
+
+func TestConfig_ParseErrorIsFatal(t *testing.T) {
+	invalidConfigs := []string{
+		"target_dir = \"$HOME\"\nimplicit_dot = false\n[hosts",
+		"exclude_files = [\"README.md\"",
+		"implicit_dot = notABool",
+		"use_hardlinks = \"yes\"",
+	}
+	log.PanicInsteadOfExit = true
+	for _, content := range invalidConfigs {
+		SetUpFiles(t, false, []FsNode{
+			Dir("doot", []FsNode{
+				FsFile{Name: "config.toml", Content: content},
+			}),
+		})
+		assert.Panics(t, func() {
+			config.FromDotfilesDir(sourceDirPath())
+		}, "Config '%s' should be rejected", content)
+	}
+}

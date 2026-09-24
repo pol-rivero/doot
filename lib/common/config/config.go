@@ -49,7 +49,7 @@ func FromFile(path AbsolutePath) Config {
 	}
 	err = toml.Unmarshal(fileContents, &config)
 	if err != nil {
-		log.Error("Error parsing config file: %v", err)
+		log.Fatal("Error parsing config file %s: %v", path, err)
 	}
 	verifyConfig(&config)
 	return config

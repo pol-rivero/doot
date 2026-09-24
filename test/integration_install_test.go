@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/pol-rivero/doot/lib/commands/install"
@@ -1026,4 +1027,28 @@ func TestInstall_TargetIsExistingDirectoryIsNotCached_Hardlink(t *testing.T) {
 
 	install.Clean(false)
 	assert.DirExists(t, homeDir()+"/file1")
+}
+
+func TestInstall_DootDirIsCleaned(t *testing.T) {
+	uncleanSuffixes := []string{"/", "//", "/.", "/./", "/../" + "{base}" + "/"}
+	for _, suffix := range uncleanSuffixes {
+		config := config.DefaultConfig()
+		config.ImplicitDot = false
+		setUpFiles_TestInstall(t, config, false)
+		cleanDootDir := sourceDir()
+		suffix = strings.ReplaceAll(suffix, "{base}", filepath.Base(cleanDootDir))
+		os.Setenv(common.ENV_DOOT_DIR, cleanDootDir+suffix)
+
+		assert.Equal(t, NewAbsolutePath(cleanDootDir), common.FindDotfilesDir(), "DOOT_DIR suffix '%s'", suffix)
+
+		install.Install(false)
+		assertHomeSymlink(t, "file1", cleanDootDir+"/file1")
+		assertHomeSymlink(t, "dir1/nestedDir/file4", cleanDootDir+"/dir1/nestedDir/file4")
+		assertHomeDirContents(t, "", []string{
+			"file1",
+			"file2.txt",
+			"dir1",
+			"dir3",
+		})
+	}
 }
