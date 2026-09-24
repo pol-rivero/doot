@@ -2,6 +2,7 @@ package restore
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/pol-rivero/doot/lib/common/cache"
 	"github.com/pol-rivero/doot/lib/common/config"
 	"github.com/pol-rivero/doot/lib/common/log"
+	"github.com/pol-rivero/doot/lib/linkmode"
 	. "github.com/pol-rivero/doot/lib/types"
 	"github.com/pol-rivero/doot/lib/utils/files"
 )
@@ -22,7 +24,8 @@ func Restore(inputFiles []string) {
 	installedFilesCache := cache.GetEntry(cacheKey)
 
 	installedLinks := installedFilesCache.GetLinks()
-	successCount := restoreFiles(inputFiles, installedLinks, dotfilesDir)
+	linkMode := linkmode.GetLinkMode(&config)
+	successCount := restoreFiles(inputFiles, installedLinks, dotfilesDir, linkMode)
 
 	installedFilesCache.SetLinks(installedLinks)
 	cache.Save()
@@ -35,12 +38,12 @@ func Restore(inputFiles []string) {
 	}
 }
 
-func restoreFiles(inputFiles []string, installedLinks SymlinkCollection, dotfilesDir AbsolutePath) int {
+func restoreFiles(inputFiles []string, installedLinks SymlinkCollection, dotfilesDir AbsolutePath, linkMode linkmode.LinkMode) int {
 	successCount := 0
 	for _, rawInput := range inputFiles {
 		filePath, err := ensureFileExists(rawInput)
 		if err == nil {
-			err = restoreFile(filePath, installedLinks, dotfilesDir)
+			err = restoreFile(filePath, installedLinks, dotfilesDir, linkMode)
 		}
 
 		if err != nil {
@@ -71,10 +74,10 @@ func ensureFileExists(rawInput string) (AbsolutePath, error) {
 	return NewAbsolutePath(cleanAbsFile), nil
 }
 
-func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfilesDir AbsolutePath) error {
+func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfilesDir AbsolutePath, linkMode linkmode.LinkMode) error {
 	for linkPath, linkContent := range installedLinks.Iter() {
 		if linkPath == filePath || linkContent == filePath {
-			err := overwriteLink(linkPath, linkContent, dotfilesDir)
+			err := overwriteLink(linkPath, linkContent, dotfilesDir, linkMode)
 			if err == nil {
 				installedLinks.Remove(linkPath)
 			}
@@ -84,11 +87,27 @@ func restoreFile(filePath AbsolutePath, installedLinks SymlinkCollection, dotfil
 	return errors.New("it's not a dotfile managed by doot")
 }
 
-func overwriteLink(symlinkPath, dotfilePath, dotfilesDir AbsolutePath) error {
+func overwriteLink(symlinkPath, dotfilePath, dotfilesDir AbsolutePath, linkMode linkmode.LinkMode) error {
+	if err := ensureLinkCanBeOverwritten(symlinkPath, dotfilePath, linkMode); err != nil {
+		return err
+	}
 	log.Info("Moving '%s' -> '%s'", dotfilePath, symlinkPath)
 	if err := files.MoveOrCopyFile(dotfilePath.Str(), symlinkPath.Str(), true); err != nil {
 		return err
 	}
 	files.CleanupEmptyDir(dotfilePath.Parent(), dotfilesDir)
+	return nil
+}
+
+func ensureLinkCanBeOverwritten(symlinkPath, dotfilePath AbsolutePath, linkMode linkmode.LinkMode) error {
+	_, err := os.Lstat(symlinkPath.Str())
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	if !linkMode.IsInstalledLinkOf(symlinkPath.Str(), dotfilePath) {
+		return fmt.Errorf("'%s' was modified externally and is no longer a link to '%s'. Restoring it would overwrite its changes, please review it manually.", symlinkPath, dotfilePath)
+	}
 	return nil
 }

@@ -601,3 +601,94 @@ func TestAdd_HostSpecificDirOutsideDotfilesDir(t *testing.T) {
 	assert.NoFileExists(t, filepath.Dir(sourceDir())+"/escaped/file1", "Dotfile was created outside the dotfiles directory")
 	assertHomeRegularFile(t, "file1")
 }
+
+func TestAdd_RestoreDoesNotOverwriteModifiedLink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config, true)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+		"file2.txt",
+		"dir1/file3",
+	}, false, false)
+
+	// Replace the link with a regular file containing user edits
+	os.Remove(homeDir() + "/file1")
+	createNode(homeDir(), FsFile{Name: "file1", Content: "user edits"})
+	// Replace the link with a symlink pointing elsewhere
+	replaceWithSymlink(homeDir(), "file2.txt", "/some-other-target")
+
+	restore.Restore([]string{
+		"file1",
+		"file2.txt",
+		"dir1/file3",
+	})
+
+	assertHomeRegularFile(t, "file1")
+	assert.Equal(t, "user edits", readFile(homeDir()+"/file1"))
+	assert.FileExists(t, sourceDir()+"/file1")
+	assertHomeSymlink(t, "file2.txt", "/some-other-target")
+	assert.FileExists(t, sourceDir()+"/file2.txt")
+	assertHomeRegularFile(t, "dir1/file3")
+	assert.NoFileExists(t, sourceDir()+"/dir1/file3")
+
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/file1"), sourceDir() + "/file1"},
+		{NewAbsolutePath(homeDir() + "/file2.txt"), sourceDir() + "/file2.txt"},
+	})
+}
+
+func TestAdd_RestoreDoesNotOverwriteModifiedLink_Hardlink(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	config.UseHardlinks = true
+	setUpFiles_TestAdd(t, config, false)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+		"dir1/file3",
+	}, false, false)
+
+	// Break the hardlink by replacing it with an independent file containing user edits
+	os.Remove(homeDir() + "/file1")
+	createNode(homeDir(), FsFile{Name: "file1", Content: "user edits"})
+
+	restore.Restore([]string{
+		"file1",
+		"dir1/file3",
+	})
+
+	assertHomeRegularFile(t, "file1")
+	assert.Equal(t, "user edits", readFile(homeDir()+"/file1"))
+	assert.FileExists(t, sourceDir()+"/file1")
+	assertHomeRegularFile(t, "dir1/file3")
+	assert.NoFileExists(t, sourceDir()+"/dir1/file3")
+
+	assertCache(t, []AssertCacheEntry{
+		{NewAbsolutePath(homeDir() + "/file1"), sourceDir() + "/file1"},
+	})
+}
+
+func TestAdd_RestoreWhenLinkIsMissing(t *testing.T) {
+	config := config.DefaultConfig()
+	config.ImplicitDot = false
+	setUpFiles_TestAdd(t, config, true)
+	t.Chdir(homeDir())
+
+	add.Add([]string{
+		"file1",
+	}, false, false)
+
+	os.Remove(homeDir() + "/file1")
+
+	restore.Restore([]string{
+		sourceDir() + "/file1",
+	})
+
+	assertHomeRegularFile(t, "file1")
+	assert.NoFileExists(t, sourceDir()+"/file1")
+	assertCache(t, []AssertCacheEntry{})
+}
