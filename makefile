@@ -23,7 +23,8 @@ create-prerelease:
 	.github/create-prerelease.sh
 
 doot-%: codegen
-	@GOOS=$(word 1,$(subst -, ,$*)) \
+	@CGO_ENABLED=0 \
+	GOOS=$(word 1,$(subst -, ,$*)) \
 	GOARCH=$(ARCH_MAP_$(word 2,$(subst -, ,$*))) \
 	go build -o $(OUTPUT_DIR)/doot-$*
 
