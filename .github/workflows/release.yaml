@@ -6,21 +6,23 @@ on:
       - '*'  # Trigger on any tag push
 
 jobs:
-  build_release:
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # Create releases
+      contents: read
     outputs:
       VERSION: ${{ steps.determine_version.outputs.VERSION }}
       RELEASE_TYPE: ${{ steps.determine_version.outputs.RELEASE_TYPE }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
-          go-version: '1.24.0'
+          go-version: '1.26.8'
 
       - name: Install staticcheck
         run: go install honnef.co/go/tools/cmd/staticcheck@v0.8.1 # 2026.2.1
@@ -65,6 +67,45 @@ jobs:
       - name: Build binaries
         run: make build
 
+      - name: Compute tarball checksum
+        run: |
+          TARBALL_CHECKSUM=$(curl -sSL "https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${VERSION}.tar.gz" | sha256sum | cut -d' ' -f1)
+          echo "TARBALL_CHECKSUM=${TARBALL_CHECKSUM}" >> $GITHUB_ENV
+
+      - name: Generate PKGBUILD files from templates
+        run: .github/generate-pkgbuild.sh "$VERSION" "$TARBALL_CHECKSUM"
+
+      - name: Upload PKGBUILD and Homebrew Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: pkgbuilds
+          path: |
+            doot-PKGBUILD
+            doot-git-PKGBUILD
+            doot-bin-PKGBUILD
+            doot.homebrew-formula.rb
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: binaries
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # Create releases
+    env:
+      VERSION: ${{ needs.build.outputs.VERSION }}
+      RELEASE_TYPE: ${{ needs.build.outputs.RELEASE_TYPE }}
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: binaries
+          path: dist/
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
@@ -82,35 +123,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute tarball checksum
-        run: |
-          TARBALL_CHECKSUM=$(curl -sSL "https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${VERSION}.tar.gz" | sha256sum | cut -d' ' -f1)
-          echo "TARBALL_CHECKSUM=${TARBALL_CHECKSUM}" >> $GITHUB_ENV
-
-      - name: Generate PKGBUILD files from templates
-        run: .github/generate-pkgbuild.sh "$VERSION" "$TARBALL_CHECKSUM"
-
-      - name: Upload PKGBUILD and Homebrew Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: pkgbuilds
-          path: |
-            doot-PKGBUILD
-            doot-git-PKGBUILD
-            doot-bin-PKGBUILD
-            doot.homebrew-formula.rb
-
   publish_aur:
-    needs: build_release
+    needs: [build, release]
     runs-on: ubuntu-latest
-    if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
+    if: ${{ needs.build.outputs.RELEASE_TYPE == 'release' }}
     permissions:
       contents: read
     env:
-      VERSION: ${{ needs.build_release.outputs.VERSION }}
+      VERSION: ${{ needs.build.outputs.VERSION }}
     steps:
       - name: Download PKGBUILD Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pkgbuilds
 
@@ -148,22 +171,22 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
   publish_homebrew:
-    needs: build_release
+    needs: [build, release]
     runs-on: ubuntu-latest
-    if: ${{ needs.build_release.outputs.RELEASE_TYPE == 'release' }}
+    if: ${{ needs.build.outputs.RELEASE_TYPE == 'release' }}
     permissions:
       contents: read
     env:
-      VERSION: ${{ needs.build_release.outputs.VERSION }}
+      VERSION: ${{ needs.build.outputs.VERSION }}
     steps:
       - name: Clone Homebrew Tap
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: "pol-rivero/homebrew-tap"
           token: ${{ secrets.HOMEBREW_TAP_PERSONAL_ACCESS_TOKEN }}
 
       - name: Download Homebrew Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pkgbuilds
 
