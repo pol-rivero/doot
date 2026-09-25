@@ -39,6 +39,6 @@ class Doot < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/doot --version")
+    assert_match version.to_s, shell_output("#{bin}/doot version")
   end
 end
