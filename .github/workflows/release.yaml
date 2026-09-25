@@ -23,7 +23,7 @@ jobs:
           go-version: '1.24.0'
 
       - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+        run: go install honnef.co/go/tools/cmd/staticcheck@v0.8.1 # 2026.2.1
 
       - name: Install Go dependencies
         run: go mod download
@@ -66,7 +66,7 @@ jobs:
         run: make build
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: "${{ env.VERSION }}"
           name: "${{ env.RELEASE_TYPE == 'release' && 'Release' || 'Pre-release' }} ${{ env.VERSION }}"
@@ -115,7 +115,7 @@ jobs:
           name: pkgbuilds
 
       - name: Publish AUR package (doot)
-        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7 # v4.1.3
         with:
           pkgname: doot
           pkgbuild: ./doot-PKGBUILD
@@ -126,7 +126,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-bin)
-        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7 # v4.1.3
         with:
           pkgname: doot-bin
           pkgbuild: ./doot-bin-PKGBUILD
@@ -137,7 +137,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package (doot-git)
-        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7
+        uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7 # v4.1.3
         with:
           pkgname: doot-git
           pkgbuild: ./doot-git-PKGBUILD
