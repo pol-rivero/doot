@@ -75,6 +75,9 @@ func verifyConfig(config *Config) {
 		config.Hosts[host] = verifyHostDir(host, dir)
 	}
 	config.DiffCommand = strings.TrimSpace(os.ExpandEnv(config.DiffCommand))
+	if config.DiffCommand == "" {
+		log.Fatal("Invalid config: 'diff_command' must not be empty")
+	}
 }
 
 func verifyHostDir(host, dir string) string {

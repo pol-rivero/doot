@@ -74,3 +74,26 @@ func TestConfig_ParseErrorIsFatal(t *testing.T) {
 		}, "Config '%s' should be rejected", content)
 	}
 }
+
+func TestConfig_EmptyDiffCommandIsFatal(t *testing.T) {
+	t.Setenv("DOOT_TEST_UNSET_VAR", "")
+	invalidDiffCommands := []string{
+		"",
+		"   ",
+		"$DOOT_TEST_UNSET_VAR",
+	}
+	log.PanicInsteadOfExit = true
+	for _, diffCommand := range invalidDiffCommands {
+		cfg := config.DefaultConfig()
+		cfg.TargetDir = "$HOME"
+		cfg.DiffCommand = diffCommand
+		SetUpFiles(t, false, []FsNode{
+			Dir("doot", []FsNode{
+				ConfigFile(cfg),
+			}),
+		})
+		assert.Panics(t, func() {
+			config.FromDotfilesDir(sourceDirPath())
+		}, "Diff command '%s' should be rejected", diffCommand)
+	}
+}
