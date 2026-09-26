@@ -2,6 +2,7 @@ package common
 
 import (
 	"os"
+	"strings"
 
 	"github.com/pol-rivero/doot/lib/common/log"
 	. "github.com/pol-rivero/doot/lib/types"
@@ -18,6 +19,10 @@ func RunHooks(dotfilesDir AbsolutePath, hookName string) {
 	for _, entry := range dirEntries {
 		if entry.IsDir() {
 			log.Warning("Unexpected directory (%s) in hooks directory. The hooks directory should only contain files or links to files", entry.Name())
+			continue
+		}
+		if strings.HasPrefix(entry.Name(), ".") {
+			log.Info("Skipping hidden file (%s) in hooks directory", entry.Name())
 			continue
 		}
 		hookPath := hookDir.Join(entry.Name())

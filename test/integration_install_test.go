@@ -547,6 +547,15 @@ func TestInstall_Hooks(t *testing.T) {
 		echo "before2" >> before.txt`)
 	createHookFile("after-update", "after1.sh", `#!/bin/bash
 		echo "after" >> before.txt && echo "after" >> after.txt`)
+	createHookFile("before-update", ".hidden.sh", `#!/bin/bash
+		echo "hidden hooks should not be executed" >> before.txt`)
+	createNode(sourceDir(), Dir("doot", []FsNode{
+		Dir("hooks", []FsNode{
+			Dir("before-update", []FsNode{
+				FsFile{Name: ".DS_Store", Content: "garbage"},
+			}),
+		}),
+	}))
 
 	install.Install(false)
 	assertHomeDirContents(t, "", []string{
